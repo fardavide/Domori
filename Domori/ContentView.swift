@@ -2,132 +2,150 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var listings: [PropertyListing]
-    @State private var showingAddListing = false
-    @State private var searchText = ""
-    @State private var sortOption: SortOption = .dateAdded
-    @State private var showingCompareView = false
-    @State private var selectedListings: Set<PropertyListing> = []
-    
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                // Search and sort controls
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(.secondary)
-                        TextField("Search properties...", text: $searchText)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color.secondary.opacity(0.1))
-                    .cornerRadius(8)
-                    
-                    Picker("Sort by", selection: $sortOption) {
-                        ForEach(SortOption.allCases, id: \.self) { option in
-                            Text(option.rawValue).tag(option)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                }
-                .padding()
-                
-                Divider()
-                
-                // Listings list
-                List(filteredListings, id: \.persistentModelID) { listing in
-                    NavigationLink(destination: PropertyDetailView(listing: listing)) {
-                        PropertyListRowView(listing: listing)
-                    }
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) {
-                            deleteListing(listing)
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                        
-                        Button {
-                            listing.isFavorite.toggle()
-                        } label: {
-                            Label(
-                                listing.isFavorite ? "Unfavorite" : "Favorite",
-                                systemImage: listing.isFavorite ? "heart.slash" : "heart"
-                            )
-                        }
-                        .tint(.red)
-                    }
-                    .contextMenu {
-                        Button {
-                            selectedListings.insert(listing)
-                        } label: {
-                            Label("Select for Compare", systemImage: "rectangle.stack")
-                        }
-                    }
-                }
-                .listStyle(.plain)
+  @Environment(\.modelContext) private var modelContext
+  @Query private var listings: [PropertyListing]
+  @State private var showingAddListing = false
+  @State private var searchText = ""
+  @State private var sortOption: SortOption = .dateAdded
+  @State private var showingCompareView = false
+  @State private var selectedListings: Set<PropertyListing> = []
+  
+  var body: some View {
+    NavigationStack {
+      VStack(spacing: 0) {
+        // Search and sort controls
+        VStack(alignment: .leading, spacing: 12) {
+          HStack {
+            Image(systemName: "magnifyingglass")
+              .foregroundColor(.secondary)
+            TextField("Search properties...", text: $searchText)
+              .textFieldStyle(PlainTextFieldStyle())
+          }
+          .padding(.horizontal, 12)
+          .padding(.vertical, 8)
+#if os(iOS)
+          .background(Color(.systemGray5))
+#else
+          .background(Color(NSColor.controlBackgroundColor))
+#endif
+          .cornerRadius(8)
+          
+          HStack {
+            Text("Sort by:")
+              .font(.subheadline)
+              .foregroundColor(.secondary)
+            
+            Picker("Sort", selection: $sortOption) {
+              ForEach(SortOption.allCases, id: \.self) { option in
+                Text(option.displayName).tag(option)
+              }
             }
-            .navigationTitle("Properties")
-            .toolbar {
-                ToolbarItemGroup(placement: .primaryAction) {
-                    if !selectedListings.isEmpty {
-                        Button("Compare (\(selectedListings.count))") {
-                            showingCompareView = true
-                        }
-                        .disabled(selectedListings.count < 2)
-                        
-                        Button("Clear") {
-                            selectedListings.removeAll()
-                        }
-                    }
-                    
-                    Button {
-                        showingAddListing = true
-                    } label: {
-                        Label("Add Property", systemImage: "plus")
-                    }
-                }
+            .pickerStyle(MenuPickerStyle())
+            .accentColor(.primary)
+            
+            Spacer()
+            
+            if selectedListings.count >= 2 {
+              Button("Compare (\(selectedListings.count))") {
+                showingCompareView = true
+              }
+              .font(.caption)
+              .foregroundColor(.blue)
             }
-            .sheet(isPresented: $showingAddListing) {
-                AddPropertyView()
-            }
-            .sheet(isPresented: $showingCompareView) {
-                ComparePropertiesView(listings: Array(selectedListings))
-            }
+          }
         }
-    }
-    
-    private var filteredListings: [PropertyListing] {
-        let filtered = searchText.isEmpty ? listings : listings.filter { listing in
-            listing.title.localizedCaseInsensitiveContains(searchText) ||
-            listing.address.localizedCaseInsensitiveContains(searchText)
-        }
+        .padding(.horizontal)
+        .padding(.bottom, 8)
         
-        return filtered.sorted { first, second in
-            switch sortOption {
-            case .dateAdded:
-                return first.createdDate > second.createdDate
-            case .price:
-                return first.price < second.price
-            case .size:
-                return first.size > second.size
-            case .title:
-                return first.title < second.title
-            case .favorites:
-                if first.isFavorite != second.isFavorite {
-                    return first.isFavorite
+        // Property list
+        List {
+          ForEach(filteredAndSortedListings, id: \.title) { listing in
+            NavigationLink(destination: PropertyDetailView(listing: listing)) {
+              PropertyListRowView(
+                listing: listing,
+                isSelected: selectedListings.contains(listing),
+                onSelectionChanged: { isSelected in
+                  if isSelected {
+                    selectedListings.insert(listing)
+                  } else {
+                    selectedListings.remove(listing)
+                  }
                 }
-                return first.createdDate > second.createdDate
+              )
             }
+            .swipeActions(edge: .trailing) {
+              Button("Delete", role: .destructive) {
+                deleteProperty(listing)
+              }
+            }
+          }
         }
+        .listStyle(.plain)
+      }
+      .navigationTitle("Properties")
+      .toolbar {
+        ToolbarItemGroup(placement: {
+#if os(iOS)
+          .navigationBarTrailing
+#else
+          .primaryAction
+#endif
+        }()) {
+          if !selectedListings.isEmpty {
+            Button("Clear") {
+              selectedListings.removeAll()
+            }
+            .foregroundColor(.secondary)
+          }
+          
+          Button {
+            showingAddListing = true
+          } label: {
+            Image(systemName: "plus")
+          }
+        }
+      }
+      .sheet(isPresented: $showingAddListing) {
+        AddPropertyView()
+      }
+      .sheet(isPresented: $showingCompareView) {
+        ComparePropertiesView(listings: Array(selectedListings))
+      }
+    }
+  }
+  
+  private var filteredAndSortedListings: [PropertyListing] {
+    let filtered = listings.filter { listing in
+      if searchText.isEmpty {
+        return true
+      }
+      return listing.title.localizedCaseInsensitiveContains(searchText) ||
+      listing.address.localizedCaseInsensitiveContains(searchText)
     }
     
-    private func deleteListing(_ listing: PropertyListing) {
-        withAnimation {
-            modelContext.delete(listing)
-        }
+    return filtered.sorted { first, second in
+      switch sortOption {
+      case .dateAdded:
+        return first.createdDate > second.createdDate
+      case .price:
+        return first.price < second.price
+      case .size:
+        return first.size > second.size
+      case .title:
+        return first.title < second.title
+      case .rating:
+        // Sort by propertyRating, handling nil values
+        let firstRating = first.propertyRating?.rawValue ?? "none"
+        let secondRating = second.propertyRating?.rawValue ?? "none"
+        return firstRating > secondRating
+      }
     }
+  }
+  
+  private func deleteProperty(_ listing: PropertyListing) {
+    modelContext.delete(listing)
+    selectedListings.remove(listing)
+  }
 }
 
 enum SortOption: String, CaseIterable {
@@ -135,7 +153,17 @@ enum SortOption: String, CaseIterable {
     case price = "Price"
     case size = "Size"
     case title = "Title"
-    case favorites = "Favorites First"
+    case rating = "Rating"
+    
+    var displayName: String {
+        switch self {
+        case .dateAdded: return "Date Added"
+        case .price: return "Price (Low to High)"
+        case .size: return "Size (Large to Small)"
+        case .title: return "Title (A-Z)"
+        case .rating: return "Rating"
+        }
+    }
 }
 
 #Preview {

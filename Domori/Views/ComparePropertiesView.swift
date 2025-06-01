@@ -7,16 +7,19 @@ struct ComparePropertiesView: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                LazyVStack(spacing: 0) {
-                    // Header row
+                VStack(spacing: 0) {
+                    // Headers
                     HStack(spacing: 1) {
-                        // Label column
                         Text("Property")
                             .font(.headline)
                             .fontWeight(.semibold)
                             .frame(width: 120, alignment: .leading)
                             .padding()
+#if os(iOS)
                             .background(Color(.systemGroupedBackground))
+#else
+                            .background(Color(NSColor.controlBackgroundColor))
+#endif
                         
                         // Property columns
                         ForEach(listings, id: \.title) { listing in
@@ -27,16 +30,26 @@ struct ComparePropertiesView: View {
                                     .multilineTextAlignment(.center)
                                     .lineLimit(2)
                                 
-                                if listing.isFavorite {
-                                    Image(systemName: "heart.fill")
-                                        .foregroundStyle(.red)
-                                        .font(.caption)
+                                // Show rating instead of favorite
+                                if let propertyRating = listing.propertyRating, propertyRating != .none {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: propertyRating.systemImage)
+                                            .foregroundColor(Color(propertyRating.color))
+                                            .font(.caption)
+                                        Text(propertyRating.displayName)
+                                            .font(.caption2)
+                                            .foregroundColor(Color(propertyRating.color))
+                                    }
                                 }
                             }
                             .frame(maxWidth: .infinity, minHeight: 60)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 12)
+#if os(iOS)
                             .background(Color(.systemGroupedBackground))
+#else
+                            .background(Color(NSColor.controlBackgroundColor))
+#endif
                         }
                     }
                     
@@ -95,13 +108,13 @@ struct ComparePropertiesView: View {
                     ComparisonRow(
                         label: "Rating",
                         values: listings.map { listing in
-                            listing.rating > 0 ? String(format: "%.1f ⭐", listing.rating) : "Not rated"
+                            listing.propertyRating?.displayName ?? "Not rated"
                         },
                         highlightBest: true,
                         bestComparison: { _ in
-                            let ratings = listings.map { $0.rating }
-                            let maxRating = ratings.max() ?? 0
-                            return ratings.map { $0 == maxRating && $0 > 0 }
+                            let ratingValues = listings.map { $0.propertyRating?.rawValue ?? "none" }
+                            let bestRating = ratingValues.max() ?? "none"
+                            return ratingValues.map { $0 == bestRating && $0 != "none" }
                         }
                     )
                     
@@ -129,7 +142,11 @@ struct ComparePropertiesView: View {
                                 .fontWeight(.medium)
                                 .frame(width: 120, alignment: .leading)
                                 .padding()
+#if os(iOS)
                                 .background(Color(.secondarySystemGroupedBackground))
+#else
+                                .background(Color(NSColor.separatorColor).opacity(0.2))
+#endif
                             
                             ForEach(listings, id: \.title) { listing in
                                 ScrollView {
@@ -147,7 +164,11 @@ struct ComparePropertiesView: View {
                                 }
                                 .frame(maxWidth: .infinity, minHeight: 80)
                                 .padding(8)
+#if os(iOS)
                                 .background(Color(.secondarySystemGroupedBackground))
+#else
+                                .background(Color(NSColor.separatorColor).opacity(0.2))
+#endif
                             }
                         }
                         Divider()
@@ -161,7 +182,11 @@ struct ComparePropertiesView: View {
                                 .fontWeight(.medium)
                                 .frame(width: 120, alignment: .leading)
                                 .padding()
+#if os(iOS)
                                 .background(Color(.tertiarySystemGroupedBackground))
+#else
+                                .background(Color(NSColor.separatorColor).opacity(0.1))
+#endif
                             
                             ForEach(listings, id: \.title) { listing in
                                 ScrollView {
@@ -173,14 +198,20 @@ struct ComparePropertiesView: View {
                                 }
                                 .frame(maxWidth: .infinity, minHeight: 80)
                                 .padding(8)
+#if os(iOS)
                                 .background(Color(.tertiarySystemGroupedBackground))
+#else
+                                .background(Color(NSColor.separatorColor).opacity(0.1))
+#endif
                             }
                         }
                     }
                 }
             }
             .navigationTitle("Compare Properties")
+#if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+#endif
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button("Done") {
@@ -206,7 +237,7 @@ struct ComparisonRow: View {
                     .fontWeight(.medium)
                     .frame(width: 120, alignment: .leading)
                     .padding()
-                    .background(Color(.secondarySystemGroupedBackground))
+                    .background(labelBackgroundColor)
                 
                 ForEach(Array(values.enumerated()), id: \.offset) { index, value in
                     let isBest = highlightBest && (bestComparison?(values)[index] == true)
@@ -217,15 +248,33 @@ struct ComparisonRow: View {
                         .foregroundStyle(isBest ? .green : .primary)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(
-                            isBest ? Color.green.opacity(0.1) : Color(.secondarySystemGroupedBackground)
-                        )
+                        .background(backgroundColorForCell(isBest: isBest))
                         .overlay(
                             isBest ? RoundedRectangle(cornerRadius: 0).stroke(Color.green.opacity(0.3), lineWidth: 1) : nil
                         )
                 }
             }
             Divider()
+        }
+    }
+    
+    private var labelBackgroundColor: Color {
+#if os(iOS)
+        Color(.secondarySystemGroupedBackground)
+#else
+        Color(NSColor.separatorColor).opacity(0.2)
+#endif
+    }
+    
+    private func backgroundColorForCell(isBest: Bool) -> Color {
+        if isBest {
+            return Color.green.opacity(0.1)
+        } else {
+#if os(iOS)
+            return Color(.secondarySystemGroupedBackground)
+#else
+            return Color(NSColor.separatorColor).opacity(0.2)
+#endif
         }
     }
 }

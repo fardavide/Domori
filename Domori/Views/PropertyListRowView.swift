@@ -2,103 +2,109 @@ import SwiftUI
 
 struct PropertyListRowView: View {
     let listing: PropertyListing
+    let isSelected: Bool
+    let onSelectionChanged: (Bool) -> Void
     
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            // Property type icon
-            Image(systemName: listing.propertyType.systemImage)
-                .font(.title2)
-                .foregroundStyle(.secondary)
-                .frame(width: 32, height: 32)
-                .background(Color.secondary.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+        VStack(alignment: .leading, spacing: 8) {
+            // Title and Rating
+            HStack {
+                Text(listing.title)
+                    .font(.headline)
+                    .fontWeight(.medium)
+                
+                Spacer()
+                
+                // Small rating indicator
+                if let propertyRating = listing.propertyRating, propertyRating != .none {
+                    Circle()
+                        .fill(Color(propertyRating.color))
+                        .frame(width: 8, height: 8)
+                }
+            }
             
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(listing.title)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                    
-                    Spacer()
-                    
-                    if listing.isFavorite {
-                        Image(systemName: "heart.fill")
-                            .foregroundStyle(.red)
-                            .font(.caption)
-                    }
+            // Address
+            Text(listing.address)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .lineLimit(1)
+            
+            // Property details
+            HStack(spacing: 16) {
+                Label(listing.propertyType.rawValue, systemImage: listing.propertyType.systemImage)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                if listing.bedrooms > 0 {
+                    Label("\(listing.bedrooms)", systemImage: "bed")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
                 
-                Text(listing.address)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
+                Label(listing.bathroomText, systemImage: "shower")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
                 
-                HStack {
+                Label(listing.formattedSize, systemImage: "square")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+            }
+            
+            // Price
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(listing.formattedPrice)
-                        .font(.subheadline)
+                        .font(.title3)
                         .fontWeight(.semibold)
-                        .foregroundStyle(.primary)
+                        .foregroundColor(.primary)
                     
-                    Spacer()
-                    
-                    if listing.rating > 0 {
-                        HStack(spacing: 2) {
-                            Image(systemName: "star.fill")
-                                .foregroundStyle(.yellow)
-                            Text(String(format: "%.1f", listing.rating))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+                    Text(listing.formattedPricePerUnit)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
                 
-                HStack(spacing: 16) {
-                    Label("\(listing.bedrooms)", systemImage: "bed.double")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    
-                    Label(listing.bathroomText, systemImage: "shower")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    
-                    Label(listing.formattedSize, systemImage: "square")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    
-                    Spacer()
-                }
+                Spacer()
                 
+                // Tags preview
                 if !listing.tags.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 6) {
-                            ForEach(listing.tags.prefix(3), id: \.name) { tag in
-                                Text(tag.name)
-                                    .font(.caption2)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(Color(tag.color.rawValue).opacity(0.2))
-                                    .foregroundStyle(Color(tag.color.rawValue))
-                                    .clipShape(RoundedRectangle(cornerRadius: 4))
-                            }
-                            
-                            if listing.tags.count > 3 {
-                                Text("+\(listing.tags.count - 3)")
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                            }
+                    HStack(spacing: 4) {
+                        ForEach(Array(listing.tags.prefix(2)), id: \.name) { tag in
+                            Text(tag.name)
+                                .font(.caption2)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color(tag.color.rawValue).opacity(0.2))
+                                .foregroundColor(Color(tag.color.rawValue))
+                                .cornerRadius(4)
+                        }
+                        
+                        if listing.tags.count > 2 {
+                            Text("+\(listing.tags.count - 2)")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
                         }
                     }
                 }
             }
         }
-        .padding(.vertical, 4)
+        .padding()
     }
 }
 
 #Preview {
     List {
-        ForEach(PropertyListing.sampleData, id: \.title) { listing in
-            PropertyListRowView(listing: listing)
-        }
+        PropertyListRowView(
+            listing: PropertyListing.sampleData[0],
+            isSelected: false,
+            onSelectionChanged: { _ in }
+        )
+        PropertyListRowView(
+            listing: PropertyListing.sampleData[1],
+            isSelected: true,
+            onSelectionChanged: { _ in }
+        )
     }
+    .modelContainer(for: PropertyListing.self, inMemory: true)
 } 

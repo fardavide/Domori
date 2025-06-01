@@ -10,9 +10,12 @@ final class PropertyListing {
     var bedrooms: Int
     var bathrooms: Double
     var propertyType: PropertyType
-    var rating: Double // 1-5 stars
+    var rating: Double // 1-5 stars (legacy)
     var notes: String
-    var isFavorite: Bool
+    
+    // New property rating system (added for migration)
+    var propertyRating: PropertyRating?
+    
     var createdDate: Date
     var updatedDate: Date
     
@@ -31,7 +34,7 @@ final class PropertyListing {
         propertyType: PropertyType,
         rating: Double = 0,
         notes: String = "",
-        isFavorite: Bool = false
+        propertyRating: PropertyRating? = nil
     ) {
         self.title = title
         self.address = address
@@ -40,10 +43,40 @@ final class PropertyListing {
         self.bedrooms = bedrooms
         self.bathrooms = bathrooms
         self.propertyType = propertyType
-        self.rating = rating
         self.notes = notes
-        self.isFavorite = isFavorite
         self.createdDate = Date()
+        self.updatedDate = Date()
+        
+        // Handle migration: if propertyRating is provided, use it; otherwise convert from legacy
+        if let propertyRating = propertyRating {
+            self.propertyRating = propertyRating
+            // Update legacy properties to match new rating
+            self.rating = propertyRating.toLegacyRating
+        } else {
+            // Convert from legacy rating system
+            self.rating = rating
+            // Convert legacy data to new rating, or use .none if no legacy data
+            if rating > 0 {
+                self.propertyRating = PropertyRating.fromLegacy(rating: rating, isFavorite: false)
+            } else {
+                self.propertyRating = .none
+            }
+        }
+    }
+    
+    // Migration helper method - can be called to sync legacy data
+    func migrateLegacyRating() {
+        let newRating = PropertyRating.fromLegacy(rating: rating, isFavorite: false)
+        if propertyRating != newRating {
+            propertyRating = newRating
+            updatedDate = Date()
+        }
+    }
+    
+    // Helper to update rating (updates both new and legacy for compatibility)
+    func updateRating(_ newRating: PropertyRating) {
+        self.propertyRating = newRating
+        self.rating = newRating.toLegacyRating
         self.updatedDate = Date()
     }
     
@@ -127,18 +160,5 @@ enum PropertyType: String, CaseIterable, Codable {
         case .loft: return "archivebox"
         case .other: return "questionmark.square"
         }
-    }
-}
-
-// Locale extension for metric system detection
-extension Locale {
-    var usesMetricSystem: Bool {
-        // Countries that primarily use imperial system
-        let imperialCountries = ["US", "LR", "MM"] // USA, Liberia, Myanmar
-        // UK uses a mix but commonly uses square feet for property
-        let mixedImperialCountries = ["GB"]
-        
-        let countryCode = self.region?.identifier ?? "US"
-        return !imperialCountries.contains(countryCode) && !mixedImperialCountries.contains(countryCode)
     }
 } 

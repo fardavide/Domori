@@ -18,8 +18,8 @@ struct PropertyDetailView: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(listing.title)
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
+                                .font(.title2)
+                                .fontWeight(.semibold)
                             
                             Text(listing.address)
                                 .font(.subheadline)
@@ -28,12 +28,21 @@ struct PropertyDetailView: View {
                         
                         Spacer()
                         
-                        Button {
-                            listing.isFavorite.toggle()
-                        } label: {
-                            Image(systemName: listing.isFavorite ? "heart.fill" : "heart")
-                                .font(.title2)
-                                .foregroundStyle(listing.isFavorite ? .red : .secondary)
+                        // Color-based rating
+                        if let propertyRating = listing.propertyRating, propertyRating != .none {
+                            HStack(spacing: 6) {
+                                Image(systemName: propertyRating.systemImage)
+                                    .foregroundColor(Color(propertyRating.color))
+                                    .font(.title2)
+                                Text(propertyRating.displayName)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(Color(propertyRating.color))
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color(propertyRating.color).opacity(0.1))
+                            .cornerRadius(16)
                         }
                     }
                     
@@ -67,31 +76,29 @@ struct PropertyDetailView: View {
                         }
                     }
                     
-                    // Bed/Bath info
+                    // Bed/Bath info and price per unit
                     HStack(spacing: 24) {
-                        Label("\(listing.bedrooms) bed", systemImage: "bed.double")
+                        if listing.bedrooms > 0 {
+                            Label("\(listing.bedrooms) bed", systemImage: "bed.double")
+                        }
                         Label("\(listing.bathroomText) bath", systemImage: "shower")
                         
                         Spacer()
                         
-                        if listing.rating > 0 {
-                            HStack(spacing: 4) {
-                                ForEach(1...5, id: \.self) { star in
-                                    Image(systemName: star <= Int(listing.rating) ? "star.fill" : "star")
-                                        .foregroundStyle(star <= Int(listing.rating) ? .yellow : .gray.opacity(0.3))
-                                        .font(.caption)
-                                }
-                                Text(String(format: "%.1f", listing.rating))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
+                        VStack(alignment: .trailing) {
+                            Text("Price per unit")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text(listing.formattedPricePerUnit)
+                                .font(.subheadline)
+                                .fontWeight(.medium)
                         }
                     }
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 }
                 .padding()
-                .background(Color(.systemBackground))
+                .background(systemBackgroundColor)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
                 
@@ -114,7 +121,7 @@ struct PropertyDetailView: View {
                         }
                     }
                     .padding()
-                    .background(Color(.systemBackground))
+                    .background(systemBackgroundColor)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
                 }
@@ -159,14 +166,16 @@ struct PropertyDetailView: View {
                     }
                     .padding()
                 }
-                .background(Color(.systemBackground))
+                .background(systemBackgroundColor)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
             }
             .padding()
         }
         .navigationTitle("Property Details")
+#if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
+#endif
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button("Edit") {
@@ -254,7 +263,7 @@ struct PropertyDetailView: View {
                                 .font(.body)
                         }
                         .padding()
-                        .background(Color(.secondarySystemBackground))
+                        .background(secondarySystemBackgroundColor)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
                 }
@@ -287,6 +296,7 @@ struct PropertyDetailView: View {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
                     ForEach(listing.photos.sorted(by: { $0.photoType.sortOrder < $1.photoType.sortOrder }), id: \.createdDate) { photo in
                         VStack(alignment: .leading, spacing: 6) {
+#if os(iOS)
                             if let uiImage = UIImage(data: photo.imageData) {
                                 Image(uiImage: uiImage)
                                     .resizable()
@@ -294,6 +304,15 @@ struct PropertyDetailView: View {
                                     .frame(height: 120)
                                     .clipShape(RoundedRectangle(cornerRadius: 8))
                             }
+#else
+                            if let nsImage = NSImage(data: photo.imageData) {
+                                Image(nsImage: nsImage)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(height: 120)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+#endif
                             
                             Text(photo.photoType.rawValue)
                                 .font(.caption)
@@ -337,7 +356,7 @@ struct PropertyDetailView: View {
                     TextEditor(text: $newNoteContent)
                         .frame(minHeight: 100)
                         .padding(8)
-                        .background(Color(.secondarySystemBackground))
+                        .background(secondarySystemBackgroundColor)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
                 
@@ -345,7 +364,9 @@ struct PropertyDetailView: View {
             }
             .padding()
             .navigationTitle("Add Note")
+#if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+#endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -379,6 +400,22 @@ struct PropertyDetailView: View {
                 .fontWeight(.medium)
         }
         .font(.subheadline)
+    }
+    
+    private var systemBackgroundColor: Color {
+#if os(iOS)
+        Color(.systemBackground)
+#else
+        Color(NSColor.controlBackgroundColor)
+#endif
+    }
+    
+    private var secondarySystemBackgroundColor: Color {
+#if os(iOS)
+        Color(.secondarySystemBackground)
+#else
+        Color(NSColor.separatorColor).opacity(0.2)
+#endif
     }
 }
 

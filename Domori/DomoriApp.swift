@@ -28,6 +28,12 @@ struct DomoriApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .onAppear {
+                    // Perform data migration on app startup
+                    Task {
+                        await performDataMigration()
+                    }
+                }
         }
         .modelContainer(sharedModelContainer)
         
@@ -36,5 +42,21 @@ struct DomoriApp: App {
             SettingsView()
         }
         #endif
+    }
+    
+    @MainActor
+    private func performDataMigration() async {
+        let context = sharedModelContainer.mainContext
+        
+        // Check if migration is needed
+        if DataMigrationManager.needsMigration(context: context) {
+            print("DataMigration: Migration needed - starting migration process...")
+            await DataMigrationManager.migratePropertyListings(context: context)
+            
+            // Validate migration was successful
+            _ = DataMigrationManager.validateMigration(context: context)
+        } else {
+            print("DataMigration: No migration needed")
+        }
     }
 }
