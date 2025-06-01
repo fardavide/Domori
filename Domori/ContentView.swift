@@ -4,7 +4,6 @@ import SwiftData
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var listings: [PropertyListing]
-    @State private var selectedListing: PropertyListing?
     @State private var showingAddListing = false
     @State private var searchText = ""
     @State private var sortOption: SortOption = .dateAdded
@@ -12,8 +11,7 @@ struct ContentView: View {
     @State private var selectedListings: Set<PropertyListing> = []
     
     var body: some View {
-        NavigationSplitView {
-            // Sidebar
+        NavigationStack {
             VStack(spacing: 0) {
                 // Search and sort controls
                 VStack(alignment: .leading, spacing: 12) {
@@ -39,34 +37,36 @@ struct ContentView: View {
                 Divider()
                 
                 // Listings list
-                List(filteredListings, selection: $selectedListing) { listing in
-                    PropertyListRowView(listing: listing)
-                        .swipeActions(edge: .trailing) {
-                            Button(role: .destructive) {
-                                deleteListing(listing)
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
-                            
-                            Button {
-                                listing.isFavorite.toggle()
-                            } label: {
-                                Label(
-                                    listing.isFavorite ? "Unfavorite" : "Favorite",
-                                    systemImage: listing.isFavorite ? "heart.slash" : "heart"
-                                )
-                            }
-                            .tint(.red)
+                List(filteredListings, id: \.persistentModelID) { listing in
+                    NavigationLink(destination: PropertyDetailView(listing: listing)) {
+                        PropertyListRowView(listing: listing)
+                    }
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            deleteListing(listing)
+                        } label: {
+                            Label("Delete", systemImage: "trash")
                         }
-                        .contextMenu {
-                            Button {
-                                selectedListings.insert(listing)
-                            } label: {
-                                Label("Select for Compare", systemImage: "rectangle.stack")
-                            }
+                        
+                        Button {
+                            listing.isFavorite.toggle()
+                        } label: {
+                            Label(
+                                listing.isFavorite ? "Unfavorite" : "Favorite",
+                                systemImage: listing.isFavorite ? "heart.slash" : "heart"
+                            )
                         }
+                        .tint(.red)
+                    }
+                    .contextMenu {
+                        Button {
+                            selectedListings.insert(listing)
+                        } label: {
+                            Label("Select for Compare", systemImage: "rectangle.stack")
+                        }
+                    }
                 }
-                .listStyle(.sidebar)
+                .listStyle(.plain)
             }
             .navigationTitle("Properties")
             .toolbar {
@@ -89,23 +89,12 @@ struct ContentView: View {
                     }
                 }
             }
-        } detail: {
-            // Detail view
-            if let selectedListing = selectedListing {
-                PropertyDetailView(listing: selectedListing)
-            } else {
-                ContentUnavailableView(
-                    "Select a Property",
-                    systemImage: "house.circle",
-                    description: Text("Choose a property from the list to view its details")
-                )
+            .sheet(isPresented: $showingAddListing) {
+                AddPropertyView()
             }
-        }
-        .sheet(isPresented: $showingAddListing) {
-            AddPropertyView()
-        }
-        .sheet(isPresented: $showingCompareView) {
-            ComparePropertiesView(listings: Array(selectedListings))
+            .sheet(isPresented: $showingCompareView) {
+                ComparePropertiesView(listings: Array(selectedListings))
+            }
         }
     }
     
@@ -137,7 +126,6 @@ struct ContentView: View {
     private func deleteListing(_ listing: PropertyListing) {
         withAnimation {
             modelContext.delete(listing)
-            selectedListing = nil
         }
     }
 }
