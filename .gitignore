@@ -1,0 +1,21 @@
+# Xcode user data
+xcuserdata/
+
+# Build products
+DerivedData/
+build/
+*.ipa
+*.dSYM*
+
+# Xcode state files
+*.xcuserstate
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# macOS
+.DS_Store
+
+# Test artifacts
+*.xcresult

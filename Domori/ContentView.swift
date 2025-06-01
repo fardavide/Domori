@@ -1,61 +1,156 @@
-//
-
 import SwiftUI
 import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
-
+    @Query private var listings: [PropertyListing]
+    @State private var selectedListing: PropertyListing?
+    @State private var showingAddListing = false
+    @State private var searchText = ""
+    @State private var sortOption: SortOption = .dateAdded
+    @State private var showingCompareView = false
+    @State private var selectedListings: Set<PropertyListing> = []
+    
     var body: some View {
         NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+            // Sidebar
+            VStack(spacing: 0) {
+                // Search and sort controls
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.secondary)
+                        TextField("Search properties...", text: $searchText)
                     }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.secondary.opacity(0.1))
+                    .cornerRadius(8)
+                    
+                    Picker("Sort by", selection: $sortOption) {
+                        ForEach(SortOption.allCases, id: \.self) { option in
+                            Text(option.rawValue).tag(option)
+                        }
+                    }
+                    .pickerStyle(.menu)
                 }
-                .onDelete(perform: deleteItems)
+                .padding()
+                
+                Divider()
+                
+                // Listings list
+                List(filteredListings, selection: $selectedListing) { listing in
+                    PropertyListRowView(listing: listing)
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                deleteListing(listing)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                            
+                            Button {
+                                listing.isFavorite.toggle()
+                            } label: {
+                                Label(
+                                    listing.isFavorite ? "Unfavorite" : "Favorite",
+                                    systemImage: listing.isFavorite ? "heart.slash" : "heart"
+                                )
+                            }
+                            .tint(.red)
+                        }
+                        .contextMenu {
+                            Button {
+                                selectedListings.insert(listing)
+                            } label: {
+                                Label("Select for Compare", systemImage: "rectangle.stack")
+                            }
+                        }
+                }
+                .listStyle(.sidebar)
             }
-#if os(macOS)
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-#endif
+            .navigationTitle("Properties")
             .toolbar {
-#if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-#endif
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
+                ToolbarItemGroup(placement: .primaryAction) {
+                    if !selectedListings.isEmpty {
+                        Button("Compare (\(selectedListings.count))") {
+                            showingCompareView = true
+                        }
+                        .disabled(selectedListings.count < 2)
+                        
+                        Button("Clear") {
+                            selectedListings.removeAll()
+                        }
+                    }
+                    
+                    Button {
+                        showingAddListing = true
+                    } label: {
+                        Label("Add Property", systemImage: "plus")
                     }
                 }
             }
         } detail: {
-            Text("Select an item")
+            // Detail view
+            if let selectedListing = selectedListing {
+                PropertyDetailView(listing: selectedListing)
+            } else {
+                ContentUnavailableView(
+                    "Select a Property",
+                    systemImage: "house.circle",
+                    description: Text("Choose a property from the list to view its details")
+                )
+            }
+        }
+        .sheet(isPresented: $showingAddListing) {
+            AddPropertyView()
+        }
+        .sheet(isPresented: $showingCompareView) {
+            ComparePropertiesView(listings: Array(selectedListings))
         }
     }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
+    
+    private var filteredListings: [PropertyListing] {
+        let filtered = searchText.isEmpty ? listings : listings.filter { listing in
+            listing.title.localizedCaseInsensitiveContains(searchText) ||
+            listing.address.localizedCaseInsensitiveContains(searchText)
         }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
+        
+        return filtered.sorted { first, second in
+            switch sortOption {
+            case .dateAdded:
+                return first.createdDate > second.createdDate
+            case .price:
+                return first.price < second.price
+            case .size:
+                return first.size > second.size
+            case .title:
+                return first.title < second.title
+            case .favorites:
+                if first.isFavorite != second.isFavorite {
+                    return first.isFavorite
+                }
+                return first.createdDate > second.createdDate
             }
         }
     }
+    
+    private func deleteListing(_ listing: PropertyListing) {
+        withAnimation {
+            modelContext.delete(listing)
+            selectedListing = nil
+        }
+    }
+}
+
+enum SortOption: String, CaseIterable {
+    case dateAdded = "Date Added"
+    case price = "Price"
+    case size = "Size"
+    case title = "Title"
+    case favorites = "Favorites First"
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
-}
+        .modelContainer(for: PropertyListing.self, inMemory: true)
+} 
