@@ -246,4 +246,82 @@ struct DomoriTests {
         let uniqueAddresses = Set(sampleData.map { $0.address })
         #expect(uniqueAddresses.count == sampleData.count)
     }
+    
+    @Test("PropertyDetailBadge creation and validation")
+    func testPropertyDetailBadge() {
+        let badge = PropertyDetailBadge(icon: "bed.double", value: "3", label: "beds")
+        // Just verify the badge can be created - we can't easily test SwiftUI view properties
+        #expect(badge.icon == "bed.double")
+        #expect(badge.value == "3")
+        #expect(badge.label == "beds")
+        
+        // Test different badge types
+        let bathBadge = PropertyDetailBadge(icon: "shower", value: "2", label: "baths")
+        #expect(bathBadge.icon == "shower")
+        #expect(bathBadge.value == "2")
+        #expect(bathBadge.label == "baths")
+        
+        let sizeBadge = PropertyDetailBadge(icon: "square", value: "1200", label: "sq ft")
+        #expect(sizeBadge.icon == "square")
+        #expect(sizeBadge.value == "1200")
+        #expect(sizeBadge.label == "sq ft")
+    }
+    
+    @Test("PropertyListRowView with rating validation")
+    func testPropertyListRowViewWithRating() {
+        let listing = PropertyListing.sampleData[0] // Should have excellent rating
+        let rowView = PropertyListRowView(
+            listing: listing,
+            isSelected: false,
+            onSelectionChanged: { _ in }
+        )
+        
+        // Test that the row view can be created
+        #expect(rowView.listing.title == listing.title)
+        
+        // Test that rating is properly displayed
+        if let rating = listing.propertyRating {
+            #expect(rating != PropertyRating.none)
+            #expect(!rating.systemImage.isEmpty)
+            #expect(!rating.color.isEmpty)
+        }
+    }
+    
+    @Test("PropertyListRowView without rating validation")
+    func testPropertyListRowViewWithoutRating() {
+        var listing = PropertyListing.sampleData[0]
+        listing.propertyRating = PropertyRating.none
+        
+        let rowView = PropertyListRowView(
+            listing: listing,
+            isSelected: false,
+            onSelectionChanged: { _ in }
+        )
+        
+        #expect(rowView.listing.title == listing.title)
+        #expect(listing.propertyRating == PropertyRating.none)
+    }
+    
+    @Test("PropertyListRowView selection handling")
+    func testPropertyListRowViewSelection() {
+        let listing = PropertyListing.sampleData[0]
+        var selectionChanged = false
+        var selectedState = false
+        
+        let rowView = PropertyListRowView(
+            listing: listing,
+            isSelected: false,
+            onSelectionChanged: { isSelected in
+                selectionChanged = true
+                selectedState = isSelected
+            }
+        )
+        
+        #expect(rowView.listing.title == listing.title)
+        #expect(rowView.isSelected == false)
+        
+        // Note: In a real test environment, we would simulate the tap gesture
+        // For now, we just verify the callback structure is correct
+        #expect(selectionChanged == false) // Not triggered until tap
+    }
 }

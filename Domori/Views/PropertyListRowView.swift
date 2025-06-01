@@ -6,90 +6,171 @@ struct PropertyListRowView: View {
     let onSelectionChanged: (Bool) -> Void
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Title and Rating
-            HStack {
-                Text(listing.title)
-                    .font(.headline)
-                    .fontWeight(.medium)
-                
-                Spacer()
-                
-                // Small rating indicator
-                if let propertyRating = listing.propertyRating, propertyRating != .none {
-                    Circle()
-                        .fill(Color(propertyRating.color))
-                        .frame(width: 8, height: 8)
-                }
+        HStack(spacing: 12) {
+            // Selection button on the far left
+            Button(action: {
+                onSelectionChanged(!isSelected)
+            }) {
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.title3)
+                    .foregroundColor(isSelected ? .blue : .gray.opacity(0.4))
+                    .frame(width: 24, height: 24)
             }
+            .buttonStyle(PlainButtonStyle())
             
-            // Address
-            Text(listing.address)
-                .font(.subheadline)
+            // Property type icon (small, no color) - fixed alignment
+            Image(systemName: listing.propertyType.systemImage)
+                .font(.caption)
                 .foregroundColor(.secondary)
-                .lineLimit(1)
+                .frame(width: 16, height: 16)
             
-            // Property details
-            HStack(spacing: 16) {
-                Label(listing.propertyType.rawValue, systemImage: listing.propertyType.systemImage)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                if listing.bedrooms > 0 {
-                    Label("\(listing.bedrooms)", systemImage: "bed")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                Label(listing.bathroomText, systemImage: "shower")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                Label(listing.formattedSize, systemImage: "square")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                Spacer()
-            }
-            
-            // Price
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(listing.formattedPrice)
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.primary)
-                    
-                    Text(listing.formattedPricePerUnit)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-                
-                // Tags preview
-                if !listing.tags.isEmpty {
-                    HStack(spacing: 4) {
-                        ForEach(Array(listing.tags.prefix(2)), id: \.name) { tag in
-                            Text(tag.name)
-                                .font(.caption2)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(Color(tag.color.rawValue).opacity(0.2))
-                                .foregroundColor(Color(tag.color.rawValue))
-                                .cornerRadius(4)
-                        }
+            // Main content
+            VStack(alignment: .leading, spacing: 6) {
+                // Title row
+                HStack(alignment: .top, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(listing.title)
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .lineLimit(1)
                         
-                        if listing.tags.count > 2 {
-                            Text("+\(listing.tags.count - 2)")
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
+                        Text(listing.address)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                    }
+                    
+                    Spacer()
+                    
+                    // Rating label - always show for debugging
+                    if let propertyRating = listing.propertyRating {
+                        if propertyRating != .none {
+                            Text(propertyRating.displayName)
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color(propertyRating.color).opacity(0.2))
+                                .foregroundColor(Color(propertyRating.color))
+                                .cornerRadius(6)
+                        } else {
+                            // Debug: show when rating is .none
+                            Text("None")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.gray.opacity(0.2))
+                                .foregroundColor(.gray)
+                                .cornerRadius(6)
+                        }
+                    } else {
+                        // Debug: show when rating is nil
+                        Text("No Rating")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.red.opacity(0.2))
+                            .foregroundColor(.red)
+                            .cornerRadius(6)
+                    }
+                }
+                
+                // Property details in a more organized grid
+                HStack(spacing: 16) {
+                    if listing.bedrooms > 0 {
+                        PropertyDetailBadge(
+                            icon: "bed.double",
+                            value: "\(listing.bedrooms)",
+                            label: listing.bedrooms == 1 ? "bed" : "beds"
+                        )
+                    }
+                    
+                    PropertyDetailBadge(
+                        icon: "shower",
+                        value: listing.bathroomText,
+                        label: Double(listing.bathroomText) == 1.0 ? "bath" : "baths"
+                    )
+                    
+                    PropertyDetailBadge(
+                        icon: "square",
+                        value: "\(Int(listing.size))",
+                        label: listing.sizeUnit
+                    )
+                    
+                    Spacer()
+                }
+                
+                // Price and tags row
+                HStack(alignment: .bottom) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(listing.formattedPrice)
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                        
+                        Text(listing.formattedPricePerUnit)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    // Tags preview with improved styling
+                    if !listing.tags.isEmpty {
+                        HStack(spacing: 4) {
+                            ForEach(Array(listing.tags.prefix(2)), id: \.name) { tag in
+                                Text(tag.name)
+                                    .font(.caption2)
+                                    .fontWeight(.medium)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color(tag.color.rawValue).opacity(0.15))
+                                    .foregroundColor(Color(tag.color.rawValue))
+                                    .cornerRadius(6)
+                            }
+                            
+                            if listing.tags.count > 2 {
+                                Text("+\(listing.tags.count - 2)")
+                                    .font(.caption2)
+                                    .fontWeight(.medium)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 4)
+                                    .background(Color.gray.opacity(0.15))
+                                    .foregroundColor(.secondary)
+                                    .cornerRadius(6)
+                            }
                         }
                     }
                 }
             }
         }
-        .padding()
+        .padding(.vertical, 8)
+        .contentShape(Rectangle())
+    }
+}
+
+// Helper view for property details
+struct PropertyDetailBadge: View {
+    let icon: String
+    let value: String
+    let label: String
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+            
+            Text(value)
+                .font(.caption)
+                .fontWeight(.semibold)
+            
+            Text(label)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+        }
     }
 }
 

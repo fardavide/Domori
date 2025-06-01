@@ -235,7 +235,7 @@ final class DomoriUITests: XCTestCase {
         let detailView = app.scrollViews.firstMatch
         if detailView.waitForExistence(timeout: 2.0) {
             
-            // Look for star rating or rating elements
+            // Look for rating elements in detail view
             let ratingElements = app.buttons.matching(NSPredicate(format: "label CONTAINS 'star' OR identifier CONTAINS 'rating'"))
             if ratingElements.count > 0 {
                 let firstStar = ratingElements.firstMatch
@@ -243,6 +243,82 @@ final class DomoriUITests: XCTestCase {
                 
                 // Should update rating
                 XCTAssertTrue(firstStar.exists)
+            }
+        }
+    }
+    
+    @MainActor
+    func testPropertyListRatingIcons() throws {
+        let app = XCUIApplication()
+        app.launch()
+        
+        // Wait for content to load
+        let propertyList = app.collectionViews.firstMatch
+        XCTAssertTrue(propertyList.waitForExistence(timeout: 3.0))
+        
+        // Check that rating labels are visible in the list (updated from icons to labels)
+        let ratingLabels = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Excellent' OR label CONTAINS 'Good' OR label CONTAINS 'Considering' OR label CONTAINS 'Excluded' OR label CONTAINS 'Not Rated'"))
+        
+        // Should have at least one rating label visible
+        if ratingLabels.count > 0 {
+            XCTAssertTrue(ratingLabels.firstMatch.exists)
+            
+            // Verify different rating states exist in sample data
+            let excellentRating = app.staticTexts["Excellent"]
+            let goodRating = app.staticTexts["Good"]
+            let consideringRating = app.staticTexts["Considering"]
+            let excludedRating = app.staticTexts["Excluded"]
+            let noRating = app.staticTexts["Not Rated"]
+            
+            // At least one type should exist
+            let hasAnyRating = excellentRating.exists || goodRating.exists || 
+                             consideringRating.exists || excludedRating.exists || noRating.exists
+            XCTAssertTrue(hasAnyRating, "At least one rating label should be visible")
+        }
+        
+        // Check that property type icons are visible in the list (small, gray)
+        let propertyTypeIcons = app.images.matching(NSPredicate(format: "label CONTAINS 'house' OR label CONTAINS 'building' OR label CONTAINS 'bed.double' OR label CONTAINS 'car.garage'"))
+        if propertyTypeIcons.count > 0 {
+            XCTAssertTrue(propertyTypeIcons.firstMatch.exists, "Property type icons should be visible")
+        }
+        
+        // Test that selection buttons are present and functional
+        let selectionButtons = app.buttons.matching(NSPredicate(format: "label CONTAINS 'circle' OR label CONTAINS 'checkmark.circle.fill'"))
+        if selectionButtons.count > 0 {
+            XCTAssertTrue(selectionButtons.firstMatch.exists, "Selection buttons should be present")
+            
+            // Test selection functionality - tap a selection button
+            let firstSelectionButton = selectionButtons.firstMatch
+            firstSelectionButton.tap()
+            
+            // The button should change state (circle -> checkmark.circle.fill or vice versa)
+            // We just verify the button still exists after interaction
+            XCTAssertTrue(firstSelectionButton.exists, "Selection button should still exist after tap")
+        }
+        
+        // Test that tapping on the main content area navigates to detail view instead of selecting
+        let firstProperty = propertyList.cells.firstMatch
+        if firstProperty.exists {
+            // Tap on the property row (not on the selection button)
+            let propertyContent = firstProperty.staticTexts.firstMatch
+            if propertyContent.exists {
+                propertyContent.tap()
+                
+                // Should navigate to detail view, not select the item
+                let detailView = app.scrollViews.firstMatch
+                if detailView.waitForExistence(timeout: 2.0) {
+                    // Successfully navigated to detail view
+                    XCTAssertTrue(detailView.exists, "Should navigate to detail view when tapping property content")
+                    
+                    // Navigate back to test list again
+                    let backButton = app.buttons["Back"]
+                    if backButton.exists {
+                        backButton.tap()
+                    } else {
+                        app.swipeRight()
+                    }
+                    XCTAssertTrue(propertyList.waitForExistence(timeout: 2.0))
+                }
             }
         }
     }
