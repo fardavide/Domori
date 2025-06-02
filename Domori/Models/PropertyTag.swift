@@ -1,71 +1,59 @@
 import Foundation
 import SwiftData
+import SwiftUI
 
 @Model
 final class PropertyTag {
+    var id: UUID
     var name: String
-    var color: TagColor
-    var createdDate: Date
+    var rating: PropertyRating
     
-    // Relationship - many-to-many with PropertyListing
-    var properties: [PropertyListing] = []
+    @Relationship(deleteRule: .nullify)
+    var properties: [PropertyListing]
     
-    init(name: String, color: TagColor = .blue) {
+    init(name: String, rating: PropertyRating) {
+        self.id = UUID()
         self.name = name
-        self.color = color
-        self.createdDate = Date()
+        self.rating = rating
+        self.properties = []
     }
     
-    static func createDefaultTags() -> [PropertyTag] {
-        [
-            PropertyTag(name: "High Priority", color: .red),
-            PropertyTag(name: "Good Deal", color: .green),
-            PropertyTag(name: "Needs Work", color: .orange),
-            PropertyTag(name: "Move-in Ready", color: .blue),
-            PropertyTag(name: "Investment", color: .purple),
-            PropertyTag(name: "Family Home", color: .pink),
-            PropertyTag(name: "Starter Home", color: .mint),
-            PropertyTag(name: "Luxury", color: .gold),
-            PropertyTag(name: "Waterfront", color: .cyan),
-            PropertyTag(name: "City Center", color: .indigo),
-            PropertyTag(name: "Quiet Area", color: .teal),
-            PropertyTag(name: "Near School", color: .brown)
-        ]
+    // Computed property to get SwiftUI Color from rating
+    var swiftUiColor: Color {
+        switch rating {
+        case .none: return .gray
+        case .excluded: return .red
+        case .considering: return .orange
+        case .good: return .green
+        case .excellent: return .blue
+        }
     }
 }
 
-enum TagColor: String, CaseIterable, Codable {
-    case red = "red"
-    case orange = "orange"
-    case yellow = "yellow"
-    case green = "green"
-    case mint = "mint"
-    case teal = "teal"
-    case cyan = "cyan"
-    case blue = "blue"
-    case indigo = "indigo"
-    case purple = "purple"
-    case pink = "pink"
-    case brown = "brown"
-    case gray = "gray"
-    case gold = "gold"
-    
-    var displayName: String {
-        switch self {
-        case .red: return "Red"
-        case .orange: return "Orange"
-        case .yellow: return "Yellow"
-        case .green: return "Green"
-        case .mint: return "Mint"
-        case .teal: return "Teal"
-        case .cyan: return "Cyan"
-        case .blue: return "Blue"
-        case .indigo: return "Indigo"
-        case .purple: return "Purple"
-        case .pink: return "Pink"
-        case .brown: return "Brown"
-        case .gray: return "Gray"
-        case .gold: return "Gold"
+// Extension to handle hex color conversion
+extension Color {
+    init?(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 3: // RGB (12-bit)
+            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6: // RGB (24-bit)
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8: // ARGB (32-bit)
+            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            return nil
         }
+        
+        self.init(
+            .sRGB,
+            red: Double(r) / 255,
+            green: Double(g) / 255,
+            blue: Double(b) / 255,
+            opacity: Double(a) / 255
+        )
     }
 } 

@@ -20,7 +20,7 @@ final class PropertyListing {
     var updatedDate: Date
     
     // Relationships
-    @Relationship(deleteRule: .nullify) var tags: [PropertyTag] = []
+    @Relationship(deleteRule: .nullify, inverse: \PropertyTag.properties) var tags: [PropertyTag] = []
     
     init(
         title: String,

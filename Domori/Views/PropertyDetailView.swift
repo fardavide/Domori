@@ -1,9 +1,18 @@
 import SwiftUI
+import SwiftData
 
 struct PropertyDetailView: View {
     @Bindable var listing: PropertyListing
     @Environment(\.modelContext) private var modelContext
     @State private var showingEditSheet = false
+    @State private var showingAddTagSheet = false
+    
+    // Force reload listing data to ensure relationships are loaded
+    @Query private var allListings: [PropertyListing]
+    
+    private var currentListing: PropertyListing? {
+        allListings.first { $0.id == listing.id }
+    }
     
     var body: some View {
         ScrollView {
@@ -128,34 +137,79 @@ struct PropertyDetailView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
 
-                // Tags
-                if !listing.tags.isEmpty {
-                    VStack(alignment: .leading, spacing: 12) {
+                // Tags Section
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
                         Text("Tags")
                             .font(.headline)
                             .fontWeight(.semibold)
                         
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 8) {
-                            ForEach(listing.tags.sorted(by: { $0.name < $1.name }), id: \.name) { tag in
-                                HStack {
-                                    Text(tag.name)
-                                        .font(.caption)
-                                        .fontWeight(.medium)
-                                        .foregroundColor(.white)
-                                    Spacer()
+                        Spacer()
+                        
+                        Button("Add Tag") {
+                            showingAddTagSheet = true
+                        }
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                    }
+                    
+                    // Debug info
+                    if let current = currentListing {
+                        if !current.tags.isEmpty {
+                            // Full width flow layout for tags
+                            VStack(alignment: .leading, spacing: 8) {
+                                FlowLayout(spacing: 8, data: current.tags.sorted(by: { $0.name < $1.name })) { tag in
+                                    TagChipView(tag: tag) {
+                                        // Remove tag when tapped
+                                        removeTag(tag)
+                                    }
                                 }
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Color(tag.color.rawValue))
-                                .clipShape(Capsule())
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        } else {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("No tags added")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                
+                                Text("Tap 'Add Tag' to organize this property")
+                                    .font(.caption)
+                                    .foregroundStyle(.tertiary)
+                            }
+                            .padding(.vertical, 8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    } else {
+                        // Fallback to original listing
+                        if !listing.tags.isEmpty {
+                            VStack(alignment: .leading, spacing: 8) {
+                                FlowLayout(spacing: 8, data: listing.tags.sorted(by: { $0.name < $1.name })) { tag in
+                                    TagChipView(tag: tag) {
+                                        // Remove tag when tapped
+                                        removeTag(tag)
+                                    }
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        } else {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("No tags added")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                
+                                Text("Tap 'Add Tag' to organize this property")
+                                    .font(.caption)
+                                    .foregroundStyle(.tertiary)
+                            }
+                            .padding(.vertical, 8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
-                    .padding()
-                    .background(systemBackgroundColor)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
                 }
+                .padding()
+                .background(systemBackgroundColor)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
                 
                 // Property Information
                 VStack(alignment: .leading, spacing: 16) {
@@ -193,6 +247,12 @@ struct PropertyDetailView: View {
         .sheet(isPresented: $showingEditSheet) {
             AddPropertyView(listing: listing)
         }
+        .sheet(isPresented: $showingAddTagSheet) {
+            AddTagView(listing: listing)
+        }
+        .onAppear {
+            // Tags should load automatically with SwiftData relationships
+        }
     }
     
     private func detailRow(_ label: String, value: String) -> some View {
@@ -212,6 +272,13 @@ struct PropertyDetailView: View {
 #else
         Color(NSColor.controlBackgroundColor)
 #endif
+    }
+    
+    private func removeTag(_ tag: PropertyTag) {
+        if let index = listing.tags.firstIndex(where: { $0.id == tag.id }) {
+            listing.tags.remove(at: index)
+            try? modelContext.save()
+        }
     }
 }
 

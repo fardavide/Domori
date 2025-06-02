@@ -196,79 +196,6 @@ struct PropertyListingTests {
         #expect(PropertyRating.excellent.toLegacyRating == 5.0)
     }
     
-    @Test("PropertyTag creation")
-    func propertyTagCreation() {
-        let tag = PropertyTag(name: "Test Tag", color: TagColor.blue)
-        
-        #expect(tag.name == "Test Tag")
-        #expect(tag.color == TagColor.blue)
-        #expect(tag.properties.isEmpty)
-        #expect(tag.createdDate <= Date())
-    }
-    
-    @Test("PropertyTag default color")
-    func propertyTagDefaultColor() {
-        let tag = PropertyTag(name: "Test Tag")
-        
-        #expect(tag.color == TagColor.blue)
-    }
-    
-    @Test("PropertyTag default tags creation")
-    func defaultTagsCreation() {
-        let defaultTags = PropertyTag.createDefaultTags()
-        
-        #expect(defaultTags.count == 12)
-        #expect(defaultTags.contains { $0.name == "High Priority" })
-        #expect(defaultTags.contains { $0.name == "Good Deal" })
-        #expect(defaultTags.contains { $0.name == "Move-in Ready" })
-        #expect(defaultTags.contains { $0.name == "Needs Work" })
-        #expect(defaultTags.contains { $0.name == "Investment" })
-        #expect(defaultTags.contains { $0.name == "Family Home" })
-        #expect(defaultTags.contains { $0.name == "Starter Home" })
-        #expect(defaultTags.contains { $0.name == "Luxury" })
-        #expect(defaultTags.contains { $0.name == "Waterfront" })
-        #expect(defaultTags.contains { $0.name == "City Center" })
-        #expect(defaultTags.contains { $0.name == "Quiet Area" })
-        #expect(defaultTags.contains { $0.name == "Near School" })
-        
-        // Test colors are assigned
-        #expect(defaultTags.allSatisfy { !$0.name.isEmpty })
-        #expect(defaultTags.first { $0.name == "High Priority" }?.color == TagColor.red)
-        #expect(defaultTags.first { $0.name == "Good Deal" }?.color == TagColor.green)
-    }
-    
-    @Test("TagColor enum values")
-    func tagColorValues() {
-        #expect(TagColor.red.rawValue == "red")
-        #expect(TagColor.orange.rawValue == "orange")
-        #expect(TagColor.yellow.rawValue == "yellow")
-        #expect(TagColor.green.rawValue == "green")
-        #expect(TagColor.mint.rawValue == "mint")
-        #expect(TagColor.teal.rawValue == "teal")
-        #expect(TagColor.cyan.rawValue == "cyan")
-        #expect(TagColor.blue.rawValue == "blue")
-        #expect(TagColor.indigo.rawValue == "indigo")
-        #expect(TagColor.purple.rawValue == "purple")
-        #expect(TagColor.pink.rawValue == "pink")
-        #expect(TagColor.brown.rawValue == "brown")
-        #expect(TagColor.gray.rawValue == "gray")
-        #expect(TagColor.gold.rawValue == "gold")
-        
-        // Test display names
-        #expect(TagColor.red.displayName == "Red")
-        #expect(TagColor.blue.displayName == "Blue")
-        #expect(TagColor.green.displayName == "Green")
-        #expect(TagColor.gold.displayName == "Gold")
-    }
-    
-    @Test("TagColor case iterable")
-    func tagColorCaseIterable() {
-        let allCases = TagColor.allCases
-        #expect(allCases.count == 14)
-        #expect(allCases.contains(TagColor.red))
-        #expect(allCases.contains(TagColor.gold))
-    }
-    
     @Test("Sample data creation")
     func sampleDataCreation() {
         let sampleData = PropertyListing.sampleData
@@ -280,18 +207,5 @@ struct PropertyListingTests {
         #expect(sampleData.allSatisfy { $0.size > 0 })
         #expect(sampleData.allSatisfy { $0.bedrooms >= 0 })
         #expect(sampleData.allSatisfy { $0.bathrooms > 0 })
-    }
-    
-    @Test("Sample tags creation")
-    func sampleTagsCreation() {
-        let sampleTags = PropertyListing.createSampleTags()
-        
-        #expect(sampleTags.count == 12)
-        #expect(sampleTags.allSatisfy { !$0.name.isEmpty })
-        #expect(sampleTags.allSatisfy { $0.properties.isEmpty })
-        
-        // Should be the same as default tags
-        let defaultTags = PropertyTag.createDefaultTags()
-        #expect(sampleTags.map { $0.name } == defaultTags.map { $0.name })
     }
 } 

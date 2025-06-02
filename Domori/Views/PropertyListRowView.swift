@@ -99,8 +99,8 @@ struct PropertyListRowView: View {
                                     .fontWeight(.medium)
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 4)
-                                    .background(Color(tag.color.rawValue).opacity(0.15))
-                                    .foregroundColor(Color(tag.color.rawValue))
+                                    .background(tag.swiftUiColor.opacity(0.15))
+                                    .foregroundColor(tag.swiftUiColor)
                                     .cornerRadius(6)
                             }
                             

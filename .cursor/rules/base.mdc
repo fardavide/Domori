@@ -1,0 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Before executing actions, check RULES.md.
+RULES.md is a file that contains only reference to doc, like `Testing: <testing-file>`, `CodeStyle: <code-style-file>` etc.
+The agent must maintain those files, following the contained doc, and contantly update it to facilitate future tasks.

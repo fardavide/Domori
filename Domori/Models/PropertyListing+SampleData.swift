@@ -89,8 +89,4 @@ extension PropertyListing {
             )
         }
     }
-    
-    static func createSampleTags() -> [PropertyTag] {
-        PropertyTag.createDefaultTags()
-    }
 } 
