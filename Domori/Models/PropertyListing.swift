@@ -47,20 +47,19 @@ final class PropertyListing {
         self.createdDate = Date()
         self.updatedDate = Date()
         
-        // Handle migration: if propertyRating is provided, use it; otherwise convert from legacy
+        // Handle rating initialization: prioritize the new propertyRating system
         if let propertyRating = propertyRating {
+            // New system: propertyRating is explicitly provided
             self.propertyRating = propertyRating
-            // Update legacy properties to match new rating
             self.rating = propertyRating.toLegacyRating
-        } else {
-            // Convert from legacy rating system
+        } else if rating > 0 {
+            // Legacy system: convert from old rating
+            self.propertyRating = PropertyRating.fromLegacy(rating: rating, isFavorite: false)
             self.rating = rating
-            // Convert legacy data to new rating, or use .none if no legacy data
-            if rating > 0 {
-                self.propertyRating = PropertyRating.fromLegacy(rating: rating, isFavorite: false)
-            } else {
-                self.propertyRating = .none
-            }
+        } else {
+            // Default: no rating
+            self.propertyRating = .none
+            self.rating = 0.0
         }
     }
     

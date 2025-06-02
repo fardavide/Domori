@@ -15,9 +15,20 @@ class DataMigrationManager {
             var migrationCount = 0
             
             for property in properties {
-                // Check if migration is needed (propertyRating is nil and has meaningful legacy rating data)
-                if property.propertyRating == nil && property.rating > 0 {
-                    property.migrateLegacyRating()
+                // Check if migration is needed 
+                // Case 1: propertyRating is nil (needs migration)
+                // Case 2: propertyRating is .none but has meaningful legacy rating (inconsistent)
+                let needsMigration = property.propertyRating == nil || 
+                                   (property.propertyRating == .none && property.rating > 0)
+                
+                if needsMigration {
+                    if property.rating > 0 {
+                        // Convert legacy rating to new system
+                        property.propertyRating = PropertyRating.fromLegacy(rating: property.rating, isFavorite: false)
+                    } else {
+                        // Default to .none for properties with no rating
+                        property.propertyRating = .none
+                    }
                     migrationCount += 1
                 }
             }
@@ -41,9 +52,11 @@ class DataMigrationManager {
             let descriptor = FetchDescriptor<PropertyListing>()
             let properties = try context.fetch(descriptor)
             
-            // Check if any property needs migration (has meaningful rating data but nil propertyRating)
+            // Check if any property needs migration
             for property in properties {
-                if property.propertyRating == nil && property.rating > 0 {
+                let needsMigration = property.propertyRating == nil || 
+                                   (property.propertyRating == .none && property.rating > 0)
+                if needsMigration {
                     return true
                 }
             }

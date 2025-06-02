@@ -42,38 +42,11 @@ struct PropertyListRowView: View {
                     
                     Spacer()
                     
-                    // Rating label - always show for debugging
-                    if let propertyRating = listing.propertyRating {
-                        if propertyRating != .none {
-                            Text(propertyRating.displayName)
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color(propertyRating.color).opacity(0.2))
-                                .foregroundColor(Color(propertyRating.color))
-                                .cornerRadius(6)
-                        } else {
-                            // Debug: show when rating is .none
-                            Text("None")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color.gray.opacity(0.2))
-                                .foregroundColor(.gray)
-                                .cornerRadius(6)
-                        }
-                    } else {
-                        // Debug: show when rating is nil
-                        Text("No Rating")
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.red.opacity(0.2))
-                            .foregroundColor(.red)
-                            .cornerRadius(6)
+                    // Rating indicator as colored circle
+                    if let propertyRating = listing.propertyRating, propertyRating != .none {
+                        Circle()
+                            .fill(getColorForRating(propertyRating))
+                            .frame(width: 12, height: 12)
                     }
                 }
                 
@@ -148,6 +121,17 @@ struct PropertyListRowView: View {
         }
         .padding(.vertical, 8)
         .contentShape(Rectangle())
+    }
+    
+    // Helper function to convert rating to proper SwiftUI Color
+    private func getColorForRating(_ rating: PropertyRating) -> Color {
+        switch rating {
+        case .none: return .gray
+        case .excluded: return .red
+        case .considering: return .orange
+        case .good: return .green
+        case .excellent: return .blue
+        }
     }
 }
 

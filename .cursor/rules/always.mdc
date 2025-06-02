@@ -3,5 +3,10 @@ description:
 globs: 
 alwaysApply: true
 ---
-- After a change, ensure it is properly covered by unit tests and, if necessary, UI tests
+This file contains main instructions to run at every prompt. The agent should update this file with relevant information, or refence relevant files to consult, like readme other. THe agent can udpate this file autonomously
+
+- On a change:
+    - First write tests: unit test and, if necessary, UI tests
+    - Then make sure readme is updated
 - When running Swift app (or tests), check if a simulator is already running; if more than one, or none, prefer iPhone 16 pro as target
+- When commit, use an emoji at the start to identify its type
