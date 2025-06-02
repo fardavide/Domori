@@ -7,176 +7,131 @@
 
 ---
 
-## 📱 **TARGET DEVICE & TECHNICAL SPECS**
+## 📱 **SUPPORTED PLATFORMS & TECHNICAL SPECS**
+
+### ✅ **iPhone (Completed)**
 - **Device**: iPhone 16 Pro (6.3" display)
 - **Simulator**: iPhone 16 Pro in portrait mode
 - **Format**: PNG files
 - **Quality**: High resolution, production-ready
-- **Currency**: Euro (€) symbol
-- **Area Unit**: Square meters (sqm)
+- **Test**: `testAppStoreScreenshots_iPhone()`
+
+### ✅ **iPad (Completed)**
+- **Device**: iPad Pro 13" (13" display)  
+- **Simulator**: iPad Pro 13" in portrait mode
+- **Format**: PNG files
+- **Quality**: High resolution, optimized for tablet layout
+- **Test**: `testAppStoreScreenshots_iPad()`
+
+### 🚧 **Mac (Future - Requires macOS Target)**
+- **Platform**: macOS Catalyst or native macOS
+- **Requirements**: Would need macOS app target to implement
+- **Test**: `testAppStoreScreenshots_Mac()` (prepared but not active)
+- **Status**: Currently iOS-only app, macOS support requires platform expansion
 
 ---
 
-## 🏠 **REQUIRED SCREENSHOTS (EXACTLY 3)**
+## 📸 **SCREENSHOT SPECIFICATIONS**
 
-### 📷 **Screenshot 1: `01_MainScreen_ThreeListings.png`**
-**Content**: Main properties list showing exactly 3 European properties
+### **Required Screenshots per Platform:**
+1. **Main Screen** - Show property listings with European data
+2. **Add Property Form** - Filled form with realistic European property data  
+3. **Property Detail** - Detailed view of a selected property
 
-**Required Data Per Property**:
-- ✅ **Title**: European property names (e.g., "Modern City Apartment")
-- ✅ **Location**: Full European addresses (e.g., "Via Roma 123, Milano, Italy")
-- ✅ **Price**: Realistic Euro amounts (e.g., "€485,000" - NO "€0" or "NaN")
-- ✅ **Size**: Real square meters (e.g., "85 sqm" - NO "0 sqm")
-- ✅ **Price per sqm**: Calculated value (e.g., "€5,706/sqm" - NO "NaN/sqm")
-- ✅ **Bedrooms**: Real numbers (e.g., "2" - NO "0")
-- ✅ **Rating**: One of: "Excellent", "Good", "Considering", "Excluded" (NOT "Not Rated")
-
-**Visual Requirements**:
-- Clean property cards with all data visible
-- Proper spacing and formatting
-- Search bar visible at top
-- Add (+) button visible in navigation
-- NO placeholder zeros or NaN values anywhere
-
-### 📷 **Screenshot 2: `02_AddProperty_FilledForm.png`**
-**Content**: Add Property form completely filled with sample data
-
-**Required Form Fields** (ALL must be filled):
-- ✅ **Property Title**: "Elegant Apartment" or similar
-- ✅ **Location**: European address (e.g., "Via del Corso 156, Roma, Italy")
-- ✅ **Property Link**: Valid URL (e.g., "https://example.com/roma-apartment")
-- ✅ **Price**: Euro amount (e.g., "€425,000" - NO "€0")
-- ✅ **Size**: Square meters (e.g., "75 sqm" - NO "0")
-- ✅ **Bedrooms**: Number (e.g., "2" - NO "0")
-- ✅ **Rating**: Selected rating visible
-
-**Visual Requirements**:
-- Form scrolled to TOP (not middle or bottom)
-- Keyboard completely DISMISSED
-- All fields clearly filled with realistic data
-- Save/Cancel buttons visible
-- NO "0" values anywhere in form
-
-### 📷 **Screenshot 3: `03_PropertyDetail.png`**
-**Content**: Detail view of a single property with complete information
-
-**Required Elements**:
-- ✅ **Property title** prominently displayed
-- ✅ **Full address** with European location
-- ✅ **Price in Euros** (large, formatted amount - NO "€0")
-- ✅ **Size in sqm** (clear formatting - NO "0 sqm")
-- ✅ **Price per sqm** calculation (NO "NaN/sqm")
-- ✅ **Bedrooms count** (NO "0")
-- ✅ **Property link** visible
-- ✅ **Rating indicator** showing selected rating
-- ✅ **Notes section** (if applicable)
-
-**Visual Requirements**:
-- Professional, clean layout
-- All data properly formatted
-- Back button visible for navigation
-- Scrolled to show key information
-- NO missing or zero values
+### **Naming Convention:**
+- iPhone: `01_iPhone_MainScreen_ThreeListings.png`, `02_iPhone_AddProperty_FilledForm.png`, `03_iPhone_PropertyDetail.png`
+- iPad: `01_iPad_MainScreen_ThreeListings.png`, `02_iPad_AddProperty_FilledForm.png`, `03_iPad_PropertyDetail.png`
+- Mac: `01_Mac_MainScreen_ThreeListings.png`, `02_Mac_AddProperty_FilledForm.png`, `03_Mac_PropertyDetail.png`
 
 ---
 
-## 🚫 **ABSOLUTELY FORBIDDEN**
+## 🇪🇺 **EUROPEAN DATA REQUIREMENTS**
 
-### ❌ **Data Issues That Must NOT Appear**:
-- ✅ NO "€0" prices anywhere
-- ✅ NO "0 sqm" sizes anywhere  
-- ✅ NO "0" bedrooms anywhere
-- ✅ NO "NaN/sqm" calculations anywhere
-- ✅ NO "Not Rated" ratings (must show actual rating)
-- ✅ NO empty or placeholder text fields
-- ✅ NO partially filled forms in screenshots
+### **MANDATORY European Property Data:**
+- **Addresses**: Use realistic European addresses (Italian, German, French cities)
+- **Currency**: Euro (€) format - NEVER show "€0"
+- **Size**: Square meters (sqm) - NEVER show "0 sqm" 
+- **Price per sqm**: Calculate dynamically - NEVER show "NaN/sqm"
 
-### ❌ **Visual Issues That Must NOT Appear**:
-- Keyboards visible in screenshots
-- Forms scrolled to middle/bottom (must be at top)
-- Truncated or cut-off text
-- Missing navigation elements
-- Debug text or developer artifacts
+### **Sample Data Used:**
+1. **Modern City Apartment** - Via Roma 123, Milano, Italy - €485,000 - 85 sqm
+2. **Victorian Townhouse** - Kurfürstendamm 45, Berlin, Germany - €750,000 - 120 sqm  
+3. **Riverside Penthouse** - Quai des Grands Augustins 12, Paris, France - €1,250,000 - 150 sqm
 
 ---
 
-## 🏠 **SAMPLE PROPERTY DATA TO USE**
+## ❌ **CRITICAL PROHIBITIONS**
 
-### Property 1:
-- **Title**: "Modern City Apartment"
-- **Location**: "Via Roma 123, Milano, Italy"
-- **Price**: "€485,000"
-- **Size**: "85 sqm"
-- **Bedrooms**: "2"
-- **Rating**: "Excellent"
-- **Link**: "https://example.com/milano-apartment"
-
-### Property 2:
-- **Title**: "Victorian Townhouse"
-- **Location**: "Kurfürstendamm 45, Berlin, Germany"
-- **Price**: "€750,000"
-- **Size**: "120 sqm"
-- **Bedrooms**: "3"
-- **Rating**: "Good"
-- **Link**: "https://example.com/berlin-townhouse"
-
-### Property 3:
-- **Title**: "Riverside Penthouse"
-- **Location**: "Quai des Grands Augustins 12, Paris, France"
-- **Price**: "€1,250,000"
-- **Size**: "150 sqm"
-- **Bedrooms**: "4"
-- **Rating**: "Considering"
-- **Link**: "https://example.com/paris-penthouse"
+**These values MUST NEVER appear in screenshots:**
+- "€0" or "0 EUR" 
+- "0 sqm" or "0 m²"
+- "NaN/sqm" or "NaN €/m²"
+- Any placeholder or zero values
+- Non-European addresses or currency
 
 ---
 
-## 🧪 **TESTING REQUIREMENTS**
+## 🧪 **TESTING FRAMEWORK**
 
-### ✅ **Before Taking Screenshots**:
-1. Verify ALL properties have non-zero prices and sizes
-2. Confirm price/sqm calculations are working (no NaN)
-3. Check that all form fields accept and display data correctly
-4. Ensure rating system is functional
-5. Test navigation between screens
+### **Multi-Platform Test Structure:**
+```swift
+// Main entry points
+testAppStoreScreenshots_iPhone()  // ✅ Active
+testAppStoreScreenshots_iPad()    // ✅ Active  
+testAppStoreScreenshots_Mac()     // 🚧 Prepared for future
 
-### ✅ **Screenshot Validation Checklist**:
-- [ ] No "€0" values visible anywhere
-- [ ] No "0 sqm" values visible anywhere
-- [ ] No "NaN/sqm" calculations visible anywhere
-- [ ] All properties have realistic European data
-- [ ] All rating indicators show actual ratings
-- [ ] Forms are properly filled with realistic data
-- [ ] Navigation elements are visible and functional
+// Core platform-agnostic logic
+generateScreenshotsForPlatform(platform: .iPhone/.iPad/.Mac, deviceName: String)
+```
 
----
+### **Platform Optimization:**
+- **iPhone**: Standard mobile layout, keyboard dismissal, vertical scrolling
+- **iPad**: Enhanced tablet layout, larger form display, master-detail optimization
+- **Mac**: Desktop layout optimization (prepared for future implementation)
 
-## 🔧 **IMPLEMENTATION NOTES**
-
-### **For UI Test Automation**:
-- Use multiple strategies to find and fill form fields
-- Implement proper text clearing before entering new values
-- Add validation to ensure data was actually entered
-- Include debugging output to track field filling success
-- Use realistic delays to allow UI updates
-
-### **For Manual Screenshot Generation**:
-- Create properties in the exact order specified above
-- Double-check all numeric values before taking screenshots
-- Ensure proper data formatting (€ symbol, sqm units)
-- Take screenshots from top of screens, not middle
+### **Performance:**
+- iPhone: ~175 seconds 
+- iPad: ~199 seconds (slightly longer due to larger interface)
+- All tests use optimized timing with `usleep()` and `XCTWaiter` for reliability
 
 ---
 
-## 📊 **SUCCESS CRITERIA**
+## 🔄 **AUTOMATION STATUS**
 
-Screenshots are acceptable ONLY when:
-1. ✅ All 3 screenshots generated successfully
-2. ✅ All properties show realistic, non-zero data
-3. ✅ European addresses and Euro currency used throughout
-4. ✅ No technical artifacts (NaN, 0 values, placeholders) visible
-5. ✅ Professional presentation suitable for App Store submission
+### **Current Implementation:**
+- ✅ **Fully automated** screenshot generation for iPhone and iPad
+- ✅ **Multi-platform** test architecture ready for expansion
+- ✅ **Apple guidelines compliance** with proper form filling and navigation
+- ✅ **European data validation** prevents placeholder values
+- ✅ **Optimized performance** with reduced delays and smart waiting
+
+### **Screenshot Generation Commands:**
+```bash
+# iPhone screenshots
+xcodebuild test -project Domori.xcodeproj -scheme Domori \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  -only-testing:DomoriUITests/DomoriUITests/testAppStoreScreenshots_iPhone
+
+# iPad screenshots  
+xcodebuild test -project Domori.xcodeproj -scheme Domori \
+  -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M4)' \
+  -only-testing:DomoriUITests/DomoriUITests/testAppStoreScreenshots_iPad
+```
 
 ---
 
-**⚠️ IMPORTANT**: This document supersedes all previous requirements. Any conflicting information in other documents should be ignored in favor of these specifications. 
+## 📋 **VALIDATION CHECKLIST**
+
+Before submitting screenshots, verify:
+- [ ] All prices show realistic Euro amounts (never €0)
+- [ ] All sizes show realistic square meters (never 0 sqm)
+- [ ] All addresses are European locations 
+- [ ] Price per sqm is calculated correctly (never NaN/sqm)
+- [ ] Screenshots are high resolution and production-ready
+- [ ] Both iPhone and iPad variants are generated
+- [ ] File naming follows the established convention
+- [ ] Screenshots showcase the app's property management features effectively
+
+---
+
+**Last Updated**: June 2025 - Multi-platform screenshot automation completed for iPhone and iPad platforms. 

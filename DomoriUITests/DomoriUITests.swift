@@ -190,7 +190,240 @@ final class DomoriUITests: XCTestCase {
         }
     }
     
-    // MARK: - Enhanced Screenshot Generation Tests
+    // MARK: - Multi-Platform Screenshot Generation Tests
+    
+    @MainActor
+    func testAppStoreScreenshots_iPhone() throws {
+        generateScreenshotsForPlatform(platform: .iPhone, deviceName: "iPhone 16 Pro")
+    }
+    
+    @MainActor
+    func testAppStoreScreenshots_iPad() throws {
+        generateScreenshotsForPlatform(platform: .iPad, deviceName: "iPad Pro 13")
+    }
+    
+    @MainActor
+    func testAppStoreScreenshots_Mac() throws {
+        generateScreenshotsForPlatform(platform: .Mac, deviceName: "Mac")
+    }
+    
+    // MARK: - Platform Configuration
+    
+    enum ScreenshotPlatform {
+        case iPhone
+        case iPad
+        case Mac
+        
+        var prefix: String {
+            switch self {
+            case .iPhone: return "iPhone"
+            case .iPad: return "iPad" 
+            case .Mac: return "Mac"
+            }
+        }
+        
+        var isTabletOrDesktop: Bool {
+            switch self {
+            case .iPhone: return false
+            case .iPad, .Mac: return true
+            }
+        }
+    }
+    
+    private func generateScreenshotsForPlatform(platform: ScreenshotPlatform, deviceName: String) {
+        let app = XCUIApplication()
+        app.launch()
+        
+        print("\n🎯 === Generating \(platform.prefix) Screenshots ===")
+        
+        // Wait for the app to load completely
+        XCTAssertTrue(app.navigationBars["Properties"].waitForExistence(timeout: 10))
+        
+        // Create 3 sample properties with European addresses, ratings, and complete data
+        let sampleProperties = [
+            (title: "Modern City Apartment", 
+             location: "Via Roma 123, Milano, Italy", 
+             price: "485000", 
+             size: "85", 
+             bedrooms: "2", 
+             link: "https://example.com/milano-apartment"),
+            (title: "Victorian Townhouse", 
+             location: "Kurfürstendamm 45, Berlin, Germany", 
+             price: "750000", 
+             size: "120", 
+             bedrooms: "3", 
+             link: "https://example.com/berlin-townhouse"),
+            (title: "Riverside Penthouse", 
+             location: "Quai des Grands Augustins 12, Paris, France", 
+             price: "1250000", 
+             size: "150", 
+             bedrooms: "4", 
+             link: "https://example.com/paris-penthouse")
+        ]
+        
+        // Create each property with proper data validation
+        for (index, property) in sampleProperties.enumerated() {
+            createPropertyWithCompleteData(in: app, 
+                                         title: property.title, 
+                                         location: property.location, 
+                                         price: property.price, 
+                                         size: property.size,
+                                         bedrooms: property.bedrooms,
+                                         link: property.link,
+                                         rating: index == 0 ? "Excellent" : (index == 1 ? "Good" : "Considering"))
+        }
+        
+        // Screenshot 1: Main screen with 3 listings
+        waitForUIToSettle(in: app)
+        takeScreenshotForPlatform(name: "01_\(platform.prefix)_MainScreen_ThreeListings", platform: platform)
+        
+        // Screenshot 2: Add/Edit form with filled data
+        let addButton = app.navigationBars["Properties"].buttons["plus"]
+        if addButton.exists {
+            addButton.tap()
+            
+            // Wait for the Add Property screen to appear
+            XCTAssertTrue(app.navigationBars["Add Property"].waitForExistence(timeout: 5))
+            waitForFormToLoad(in: app)
+            
+            // Fill the form completely with proper data
+            fillCompletePropertyFormWithValidation(in: app)
+            
+            // Platform-specific form positioning
+            if platform.isTabletOrDesktop {
+                // For iPad/Mac, ensure optimal view of enhanced layout
+                scrollFormToOptimalPosition(in: app, platform: platform)
+            } else {
+                // For iPhone, ensure we're at the top and keyboard is dismissed
+                app.swipeDown() // Dismiss keyboard if open
+                app.scrollViews.firstMatch.swipeDown() // Scroll to top
+            }
+            
+            waitForUIToSettle(in: app)
+            
+            // Take screenshot of filled form
+            takeScreenshotForPlatform(name: "02_\(platform.prefix)_AddProperty_FilledForm", platform: platform)
+            
+            // Cancel to return to main screen
+            let cancelButton = app.buttons["Cancel"]
+            if cancelButton.exists {
+                cancelButton.tap()
+            }
+        }
+        
+        // Screenshot 3: Property detail view
+        waitForUIToSettle(in: app)
+        let firstProperty = app.collectionViews.firstMatch.cells.firstMatch
+        if firstProperty.exists {
+            firstProperty.tap()
+            
+            // Wait for detail view to load
+            let detailViewExpectation = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "exists == true"),
+                object: app.scrollViews.firstMatch
+            )
+            _ = XCTWaiter.wait(for: [detailViewExpectation], timeout: 3.0)
+            
+            // Platform-specific detail view positioning
+            if platform.isTabletOrDesktop {
+                optimizeDetailViewForTabletOrDesktop(in: app, platform: platform)
+            }
+            
+            takeScreenshotForPlatform(name: "03_\(platform.prefix)_PropertyDetail", platform: platform)
+            
+            // Navigate back
+            if app.buttons["Back"].exists {
+                app.buttons["Back"].tap()
+            } else {
+                app.swipeRight()
+            }
+        }
+        
+        print("✅ \(platform.prefix) screenshots completed successfully!")
+    }
+    
+    private func scrollFormToOptimalPosition(in app: XCUIApplication, platform: ScreenshotPlatform) {
+        // For iPad/Mac, position form to show enhanced layout
+        switch platform {
+        case .iPad:
+            // Scroll to show form structure optimized for iPad layout
+            if app.scrollViews.count > 0 {
+                let scrollView = app.scrollViews.firstMatch
+                scrollView.swipeUp() // Show more of the form
+                usleep(500000) // 0.5 seconds
+            }
+        case .Mac:
+            // For Mac, ensure desktop-appropriate form display
+            // Mac typically shows more content, less scrolling needed
+            usleep(300000) // Brief pause for layout
+        case .iPhone:
+            // iPhone handled in main function
+            break
+        }
+    }
+    
+    private func optimizeDetailViewForTabletOrDesktop(in app: XCUIApplication, platform: ScreenshotPlatform) {
+        switch platform {
+        case .iPad:
+            // For iPad, show enhanced detail layout
+            // iPad may have master-detail or enhanced side-by-side layout
+            if app.scrollViews.count > 0 {
+                // Position to show enhanced iPad detail features
+                usleep(500000) // Allow layout to settle
+            }
+        case .Mac:
+            // For Mac, ensure desktop detail view is optimally displayed
+            // Mac may have multi-pane or enhanced desktop layout
+            usleep(300000) // Brief pause for desktop layout
+        case .iPhone:
+            // iPhone handled elsewhere
+            break
+        }
+    }
+    
+    private func takeScreenshotForPlatform(name: String, platform: ScreenshotPlatform) {
+        let screenshot = XCUIScreen.main.screenshot()
+        let attachment = XCTAttachment(screenshot: screenshot)
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        
+        // Save to temporary directory first, then try to copy to project directory
+        let tempDir = URL(fileURLWithPath: NSTemporaryDirectory())
+        let tempFile = tempDir.appendingPathComponent("\(name).png")
+        
+        do {
+            // Save to temp directory first
+            let imageData = screenshot.pngRepresentation
+            try imageData.write(to: tempFile)
+            print("✅ \(platform.prefix) screenshot saved to temp: \(tempFile.path)")
+            
+            // Try to copy to project AppStoreScreenshots directory
+            let fileManager = FileManager.default
+            let projectDir = URL(fileURLWithPath: "/Users/davide/Dev/Projects/Domori")
+            let screenshotsDir = projectDir.appendingPathComponent("AppStoreScreenshots")
+            
+            // Create directory if it doesn't exist
+            try? fileManager.createDirectory(at: screenshotsDir, withIntermediateDirectories: true, attributes: nil)
+            
+            let finalFile = screenshotsDir.appendingPathComponent("\(name).png")
+            
+            // Remove existing file if it exists
+            try? fileManager.removeItem(at: finalFile)
+            
+            // Copy from temp to final location
+            try fileManager.copyItem(at: tempFile, to: finalFile)
+            print("✅ \(platform.prefix) screenshot copied to: \(finalFile.path)")
+            
+            // Clean up temp file
+            try? fileManager.removeItem(at: tempFile)
+            
+        } catch {
+            print("❌ Failed to save \(platform.prefix) screenshot '\(name)': \(error)")
+        }
+    }
+
+    // MARK: - Original iPhone-Only Test (Preserved for backward compatibility)
     
     @MainActor
     func testAppStoreScreenshots() throws {
@@ -235,7 +468,7 @@ final class DomoriUITests: XCTestCase {
         }
         
         // Screenshot 1: Main screen with 3 listings
-        waitForUIToSettle(in: app) // Instead of sleep(2)
+        waitForUIToSettle(in: app)
         takeScreenshot(name: "01_MainScreen_ThreeListings")
         
         // Screenshot 2: Add/Edit form with filled data (start of screen, keyboard closed)
@@ -245,7 +478,7 @@ final class DomoriUITests: XCTestCase {
             
             // Wait for the Add Property screen to appear
             XCTAssertTrue(app.navigationBars["Add Property"].waitForExistence(timeout: 5))
-            waitForFormToLoad(in: app) // Instead of sleep(1)
+            waitForFormToLoad(in: app)
             
             // Fill the form completely with proper data
             fillCompletePropertyFormWithValidation(in: app)
@@ -253,7 +486,7 @@ final class DomoriUITests: XCTestCase {
             // Ensure we're at the top of the form and keyboard is dismissed
             app.swipeDown() // Dismiss keyboard if open
             app.scrollViews.firstMatch.swipeDown() // Scroll to top
-            waitForUIToSettle(in: app) // Instead of sleep(1)
+            waitForUIToSettle(in: app)
             
             // Take screenshot of filled form
             takeScreenshot(name: "02_AddProperty_FilledForm")
@@ -266,7 +499,7 @@ final class DomoriUITests: XCTestCase {
         }
         
         // Screenshot 3: Property detail view
-        waitForUIToSettle(in: app) // Instead of sleep(1)
+        waitForUIToSettle(in: app)
         let firstProperty = app.collectionViews.firstMatch.cells.firstMatch
         if firstProperty.exists {
             firstProperty.tap()
