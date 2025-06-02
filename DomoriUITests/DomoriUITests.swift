@@ -285,6 +285,8 @@ final class DomoriUITests: XCTestCase {
     }
     
     private func createPropertyWithCompleteData(in app: XCUIApplication, title: String, location: String, price: String, size: String, bedrooms: String, link: String, rating: String) {
+        print("\n🏠 === Creating Property: \(title) ===")
+        
         // Tap add button
         let addButton = app.navigationBars["Properties"].buttons["plus"]
         guard addButton.exists else { 
@@ -293,201 +295,211 @@ final class DomoriUITests: XCTestCase {
         }
         
         addButton.tap()
+        print("✅ Tapped add button")
         
-        // Wait for form
+        // Wait for form with better verification
         guard app.navigationBars["Add Property"].waitForExistence(timeout: 5) else { 
             print("❌ Add Property form not found")
             return 
         }
         
-        sleep(1) // Let form settle
+        sleep(3) // Let form settle completely and animations finish
+        print("✅ Add Property form loaded")
         
-        // Fill title
-        let titleField = app.textFields["Property Title"]
-        if titleField.exists {
-            titleField.tap()
-            sleep(1)
-            titleField.clearAndTypeText(title)
-            print("✅ Filled title: \(title)")
-        } else {
-            print("❌ Title field not found")
-        }
+        // STEP 1: Fill basic text fields (these work reliably)
+        print("\n📝 Filling basic information...")
         
-        // Fill location
-        let locationField = app.textFields["Location"]
-        if locationField.exists {
-            locationField.tap()
-            sleep(1)
-            locationField.clearAndTypeText(location)
-            print("✅ Filled location: \(location)")
-        } else {
-            print("❌ Location field not found")
-        }
+        fillBasicTextField(in: app, identifier: "Property Title", value: title)
+        fillBasicTextField(in: app, identifier: "Location", value: location)
+        fillBasicTextField(in: app, identifier: "Property Link", value: link)
         
-        // Fill link
-        let linkField = app.textFields["Property Link"]
-        if linkField.exists {
-            linkField.tap()
-            sleep(1)
-            linkField.clearAndTypeText(link)
-            print("✅ Filled link: \(link)")
-        } else {
-            print("❌ Link field not found")
-        }
+        // STEP 2: Properly dismiss keyboard before proceeding to numeric fields
+        print("\n⌨️ Dismissing keyboard completely...")
+        dismissKeyboardProperly(in: app)
         
-        // Scroll to see numeric fields
-        app.swipeUp()
-        sleep(1)
+        // STEP 3: Navigate to numeric fields using proper scrolling
+        print("\n📊 Navigating to numeric fields...")
+        scrollToNumericFields(in: app)
         
-        // Find and fill price field more specifically
-        fillNumericField(in: app, value: price, fieldType: "price", order: 0)
+        // STEP 4: Fill numeric fields with improved targeting
+        print("\n💰 Filling numeric fields...")
+        fillNumericFieldImproved(in: app, value: price, fieldType: "price")
+        fillNumericFieldImproved(in: app, value: size, fieldType: "size")
+        fillBedroomsField(in: app, value: bedrooms)
         
-        // Find and fill size field
-        fillNumericField(in: app, value: size, fieldType: "size", order: 1)
-        
-        // Find and fill bedrooms field
-        fillNumericField(in: app, value: bedrooms, fieldType: "bedrooms", order: 2)
-        
-        // Set rating if picker is available
+        // STEP 5: Set rating
+        print("\n⭐ Setting rating...")
         setRatingInForm(in: app, rating: rating)
         
-        // Dismiss keyboard
-        app.swipeDown()
-        sleep(1)
+        // STEP 6: Final cleanup and save
+        print("\n💾 Preparing to save...")
+        dismissKeyboardProperly(in: app)
+        sleep(2) // Allow UI to settle
         
-        // Save with validation
+        // Save the property
         let saveButton = app.buttons["Save"]
         if saveButton.exists && saveButton.isEnabled {
+            print("✅ Save button available - saving property")
             saveButton.tap()
-            print("✅ Saved property: \(title)")
             
             // Wait to return to main screen
             let success = app.navigationBars["Properties"].waitForExistence(timeout: 10)
             if success {
-                sleep(2) // Allow list to update
-                print("✅ Returned to main screen")
+                sleep(3) // Allow list to update
+                print("✅ Successfully saved and returned: \(title)")
+                print("🏠 === Property Creation Complete ===\n")
             } else {
                 print("❌ Failed to return to main screen")
             }
         } else {
-            print("❌ Save button not available or not enabled")
-            // Cancel if save fails
+            print("❌ Save button not available - canceling")
             let cancelButton = app.buttons["Cancel"]
             if cancelButton.exists {
                 cancelButton.tap()
+                print("✅ Canceled property creation")
             }
         }
     }
     
-    private func fillNumericField(in app: XCUIApplication, value: String, fieldType: String, order: Int) {
-        print("🔍 Attempting to fill \(fieldType) field with value: \(value)")
-        
-        // Strategy 1: Look for text fields with placeholder "0" (these are the numeric fields)
-        let numericFields = app.textFields.matching(NSPredicate(format: "placeholderValue == '0'"))
-        print("📊 Found \(numericFields.count) fields with placeholder '0'")
-        
-        if numericFields.count > order {
-            let field = numericFields.element(boundBy: order)
-            if field.exists {
-                // For numeric fields, we need to clear and type the value
-                field.tap()
-                sleep(1)
-                
-                // Clear field by selecting all and deleting
-                field.doubleTap() // Select all text
-                sleep(1)
-                field.typeText(value)
-                sleep(1)
-                
-                print("✅ Filled \(fieldType) field (numeric strategy): \(value)")
-                return
-            }
-        }
-        
-        // Strategy 2: Look for fields containing specific text for the field type
-        let fieldLabels = ["Price", "Size", "Bedrooms"]
-        if order < fieldLabels.count {
-            let labelText = fieldLabels[order]
+    private func fillBasicTextField(in app: XCUIApplication, identifier: String, value: String) {
+        let field = app.textFields[identifier]
+        if field.exists {
+            field.tap()
+            sleep(1)
             
-            // Find fields near the label text
-            let cells = app.cells.containing(NSPredicate(format: "label CONTAINS '\(labelText)'"))
-            if cells.count > 0 {
-                let cell = cells.firstMatch
-                let textFields = cell.textFields
-                if textFields.count > 0 {
-                    let field = textFields.firstMatch
-                    field.tap()
-                    sleep(1)
-                    field.doubleTap() // Select all
-                    sleep(1)
-                    field.typeText(value)
-                    sleep(1)
-                    print("✅ Filled \(fieldType) field (label strategy): \(value)")
-                    return
-                }
+            // Clear existing content properly
+            field.clearAndTypeText(value)
+            sleep(1)
+            print("✅ Filled \(identifier): \(value)")
+        } else {
+            print("❌ Could not find field: \(identifier)")
+        }
+    }
+    
+    private func dismissKeyboardProperly(in app: XCUIApplication) {
+        // Method 1: Tap outside form areas (works for sheets)
+        let formArea = app.otherElements["Add Property"]
+        if formArea.exists {
+            // Tap on the navigation bar to dismiss keyboard
+            let navBar = app.navigationBars["Add Property"]
+            if navBar.exists {
+                navBar.tap()
+                sleep(1)
             }
         }
         
-        // Strategy 3: Look for steppers (for bedrooms) if it's a bedrooms field
-        if fieldType.contains("bedroom") {
-            let steppers = app.steppers
-            if steppers.count > 0 {
-                let stepper = steppers.firstMatch
-                if stepper.exists {
-                    // Reset stepper to 0 first by tapping decrement multiple times
-                    let decrementButton = stepper.buttons.element(boundBy: 0)
-                    for _ in 0..<10 {
-                        if decrementButton.exists {
-                            decrementButton.tap()
-                            sleep(1)
-                        }
+        // Method 2: If keyboard is still visible, use swipe down
+        if app.keyboards.count > 0 {
+            app.swipeDown()
+            sleep(1)
+        }
+        
+        print("✅ Keyboard dismissed")
+    }
+    
+    private func scrollToNumericFields(in app: XCUIApplication) {
+        // Find the form's scroll view and scroll within it (not global swipe)
+        let scrollViews = app.scrollViews
+        if scrollViews.count > 0 {
+            let formScrollView = scrollViews.firstMatch
+            if formScrollView.exists {
+                // Scroll down within the form's scroll view
+                formScrollView.swipeUp()
+                sleep(2)
+                print("✅ Scrolled to numeric fields area")
+            }
+        } else {
+            // Fallback: gentle swipe up if no scroll view found
+            app.swipeUp()
+            sleep(2)
+            print("✅ Used fallback scrolling")
+        }
+    }
+    
+    private func fillNumericFieldImproved(in app: XCUIApplication, value: String, fieldType: String) {
+        print("🔢 Filling \(fieldType) with value: \(value)")
+        
+        // Strategy: Look for specific static text labels to identify the right context
+        let labelToFind = fieldType.contains("price") ? "Price" : "Size"
+        
+        // Find the label first
+        let labels = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '\(labelToFind)'"))
+        if labels.count > 0 {
+            print("✅ Found \(labelToFind) label")
+            
+            // Now look for TextFields with placeholder "0" in the current visible area
+            let numericFields = app.textFields.matching(NSPredicate(format: "placeholderValue == '0'"))
+            
+            if fieldType.contains("price") && numericFields.count > 0 {
+                let field = numericFields.element(boundBy: 0)
+                fillSingleNumericField(field: field, value: value, fieldName: "price")
+            } else if fieldType.contains("size") && numericFields.count > 1 {
+                let field = numericFields.element(boundBy: 1)
+                fillSingleNumericField(field: field, value: value, fieldName: "size")
+            }
+        } else {
+            print("❌ Could not find \(labelToFind) label")
+        }
+    }
+    
+    private func fillSingleNumericField(field: XCUIElement, value: String, fieldName: String) {
+        if field.exists && field.isHittable {
+            print("✅ Found \(fieldName) field - attempting to fill")
+            
+            // Ensure field is visible and properly focused
+            field.tap()
+            sleep(1)
+            
+            // Double-tap to select all content
+            field.doubleTap()
+            sleep(1)
+            
+            // Type the value
+            field.typeText(value)
+            sleep(1)
+            
+            // Verify the field was filled (if possible)
+            if let fieldValue = field.value as? String, !fieldValue.isEmpty && fieldValue != "0" {
+                print("✅ Successfully filled \(fieldName): \(value) (verified: \(fieldValue))")
+            } else {
+                print("⚠️ Filled \(fieldName): \(value) (verification inconclusive)")
+            }
+        } else {
+            print("❌ \(fieldName) field not accessible")
+        }
+    }
+    
+    private func fillBedroomsField(in app: XCUIApplication, value: String) {
+        print("🛏️ Setting bedrooms to: \(value)")
+        
+        let steppers = app.steppers
+        if steppers.count > 0 {
+            let stepper = steppers.firstMatch
+            if stepper.exists {
+                print("✅ Found bedrooms stepper")
+                
+                // Get current value if possible and reset to 0
+                let decrementButton = stepper.buttons.element(boundBy: 0)
+                for _ in 0..<10 {
+                    if decrementButton.exists && decrementButton.isHittable {
+                        decrementButton.tap()
+                        sleep(1)
                     }
-                    
-                    // Now increment to desired value
-                    let incrementButton = stepper.buttons.element(boundBy: 1)
-                    let targetValue = Int(value) ?? 0
-                    for _ in 0..<targetValue {
-                        if incrementButton.exists {
-                            incrementButton.tap()
-                            sleep(1)
-                        }
-                    }
-                    print("✅ Filled \(fieldType) field (stepper strategy): \(value)")
-                    return
                 }
+                
+                // Increment to target value
+                let incrementButton = stepper.buttons.element(boundBy: 1)
+                let targetValue = Int(value) ?? 0
+                for _ in 0..<targetValue {
+                    if incrementButton.exists && incrementButton.isHittable {
+                        incrementButton.tap()
+                        sleep(1)
+                    }
+                }
+                print("✅ Set bedrooms to \(value)")
             }
-        }
-        
-        // Strategy 4: Find all text fields and use by index
-        let allTextFields = app.textFields
-        let startIndex = 3 // Skip title, location, link fields
-        let targetIndex = startIndex + order
-        
-        if allTextFields.count > targetIndex {
-            let field = allTextFields.element(boundBy: targetIndex)
-            if field.exists {
-                field.tap()
-                sleep(1)
-                field.doubleTap() // Select all text
-                sleep(1)
-                field.typeText(value)
-                sleep(1)
-                print("✅ Filled \(fieldType) field (index strategy): \(value)")
-                return
-            }
-        }
-        
-        print("❌ Could not find \(fieldType) field using any strategy")
-        
-        // Debug: Print all available text fields
-        print("🔍 Available text fields:")
-        for i in 0..<min(allTextFields.count, 10) {
-            let field = allTextFields.element(boundBy: i)
-            if field.exists {
-                let placeholder = field.placeholderValue ?? "no placeholder"
-                let value = field.value as? String ?? "no value"
-                print("  Field \(i): placeholder='\(placeholder)', value='\(value)'")
-            }
+        } else {
+            print("❌ No steppers found for bedrooms")
         }
     }
     
@@ -551,9 +563,9 @@ final class DomoriUITests: XCTestCase {
         sleep(1)
         
         // Fill numeric fields with validation
-        fillNumericField(in: app, value: propertyData.price, fieldType: "price", order: 0)
-        fillNumericField(in: app, value: propertyData.size, fieldType: "size", order: 1)
-        fillNumericField(in: app, value: propertyData.bedrooms, fieldType: "bedrooms", order: 2)
+        fillNumericFieldImproved(in: app, value: propertyData.price, fieldType: "price")
+        fillNumericFieldImproved(in: app, value: propertyData.size, fieldType: "size")
+        fillBedroomsField(in: app, value: propertyData.bedrooms)
         
         // Dismiss keyboard
         app.swipeDown()
