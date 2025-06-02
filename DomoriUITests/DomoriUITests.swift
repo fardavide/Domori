@@ -368,12 +368,13 @@ final class DomoriUITests: XCTestCase {
             if app.scrollViews.count > 0 {
                 let scrollView = app.scrollViews.firstMatch
                 scrollView.swipeUp() // Show more of the form
-                usleep(500000) // 0.5 seconds
+                // No delay needed - swipe action is synchronous
             }
         case .Mac:
             // For Mac, ensure desktop-appropriate form display
             // Mac typically shows more content, less scrolling needed
-            usleep(300000) // Brief pause for layout
+            // No delay needed
+            break
         case .iPhone:
             // iPhone handled in main function
             break
@@ -385,17 +386,320 @@ final class DomoriUITests: XCTestCase {
         case .iPad:
             // For iPad, show enhanced detail layout
             // iPad may have master-detail or enhanced side-by-side layout
-            if app.scrollViews.count > 0 {
-                // Position to show enhanced iPad detail features
-                usleep(500000) // Allow layout to settle
-            }
+            // No delay needed - layout is immediate
+            break
         case .Mac:
             // For Mac, ensure desktop detail view is optimally displayed
             // Mac may have multi-pane or enhanced desktop layout
-            usleep(300000) // Brief pause for desktop layout
+            // No delay needed - layout is immediate
+            break
         case .iPhone:
             // iPhone handled elsewhere
             break
+        }
+    }
+    
+    private func waitForFormToLoad(in app: XCUIApplication) {
+        // Wait for essential form elements to be ready
+        let titleField = app.textFields["Property Title"]
+        
+        // Use XCTWaiter for efficient waiting - no fixed delays
+        let expectation = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == true AND isHittable == true"),
+            object: titleField
+        )
+        _ = XCTWaiter.wait(for: [expectation], timeout: 3.0)
+    }
+    
+    private func waitForUIToSettle(in app: XCUIApplication) {
+        // Only wait if keyboard actually exists
+        if app.keyboards.count > 0 {
+            let predicate = NSPredicate(format: "count == 0")
+            let keyboardExpectation = XCTNSPredicateExpectation(predicate: predicate, object: app.keyboards)
+            _ = XCTWaiter.wait(for: [keyboardExpectation], timeout: 1.0)
+        }
+        // No additional delay needed - UI operations are synchronous
+    }
+    
+    private func waitForListToUpdate(in app: XCUIApplication) {
+        // Wait for collection view to be interactive
+        let collectionView = app.collectionViews.firstMatch
+        if collectionView.exists {
+            let expectation = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "isHittable == true"),
+                object: collectionView
+            )
+            _ = XCTWaiter.wait(for: [expectation], timeout: 2.0)
+        }
+    }
+    
+    private func fillBasicTextField(in app: XCUIApplication, identifier: String, value: String) {
+        let field = app.textFields[identifier]
+        if field.exists && field.isHittable {
+            field.tap()
+            
+            // Wait for field to become focused instead of fixed delay
+            let focusExpectation = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "hasKeyboardFocus == true"),
+                object: field
+            )
+            let focusResult = XCTWaiter.wait(for: [focusExpectation], timeout: 1.0)
+            
+            // If focus detection fails, proceed anyway - field might still work
+            if focusResult == .timedOut {
+                print("⚠️ Focus detection timed out for \(identifier), proceeding anyway")
+            }
+            
+            field.clearAndTypeText(value)
+            print("✅ Filled \(identifier): \(value)")
+        } else {
+            print("❌ Could not find field: \(identifier)")
+        }
+    }
+    
+    private func dismissKeyboardProperly(in app: XCUIApplication) {
+        // Check if keyboard is actually present before trying to dismiss
+        if app.keyboards.count > 0 {
+            // Method 1: Tap outside form areas (works for sheets)
+            let navBar = app.navigationBars["Add Property"]
+            if navBar.exists {
+                navBar.tap()
+                
+                // Wait for keyboard to dismiss
+                let keyboardGoneExpectation = XCTNSPredicateExpectation(
+                    predicate: NSPredicate(format: "count == 0"),
+                    object: app.keyboards
+                )
+                _ = XCTWaiter.wait(for: [keyboardGoneExpectation], timeout: 1.0)
+            } else {
+                // Fallback: swipe down
+                app.swipeDown()
+                // Wait for keyboard dismissal
+                let keyboardGoneExpectation = XCTNSPredicateExpectation(
+                    predicate: NSPredicate(format: "count == 0"),
+                    object: app.keyboards
+                )
+                _ = XCTWaiter.wait(for: [keyboardGoneExpectation], timeout: 1.0)
+            }
+        }
+        
+        print("✅ Keyboard dismissed")
+    }
+    
+    private func scrollToNumericFields(in app: XCUIApplication) {
+        // Find the form's scroll view and scroll within it
+        let scrollViews = app.scrollViews
+        if scrollViews.count > 0 {
+            let formScrollView = scrollViews.firstMatch
+            if formScrollView.exists {
+                // Scroll down within the form's scroll view
+                formScrollView.swipeUp()
+                print("✅ Scrolled to numeric fields area")
+            }
+        } else {
+            // Fallback: gentle swipe up if no scroll view found
+            app.swipeUp()
+            print("✅ Used fallback scrolling")
+        }
+        // No delay needed - scroll operations are synchronous
+    }
+    
+    private func fillSingleNumericField(field: XCUIElement, value: String, fieldName: String) {
+        if field.exists && field.isHittable {
+            print("✅ Found \(fieldName) field - attempting to fill")
+            
+            // Ensure field is visible and properly focused
+            field.tap()
+            
+            // Wait for field to become focused
+            let focusExpectation = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "hasKeyboardFocus == true"),
+                object: field
+            )
+            let focusResult = XCTWaiter.wait(for: [focusExpectation], timeout: 1.0)
+            
+            if focusResult == .timedOut {
+                print("⚠️ Focus detection timed out for \(fieldName), proceeding anyway")
+            }
+            
+            // Double-tap to select all content, then type new value
+            field.doubleTap()
+            field.typeText(value)
+            
+            // Verify the field was filled (if possible)
+            if let fieldValue = field.value as? String, !fieldValue.isEmpty && fieldValue != "0" {
+                print("✅ Successfully filled \(fieldName): \(value) (verified: \(fieldValue))")
+            } else {
+                print("⚠️ Filled \(fieldName): \(value) (verification inconclusive)")
+            }
+        } else {
+            print("❌ \(fieldName) field not accessible")
+        }
+    }
+    
+    private func fillBedroomsField(in app: XCUIApplication, value: String) {
+        print("🛏️ Setting bedrooms to: \(value)")
+        
+        let steppers = app.steppers
+        if steppers.count > 0 {
+            let stepper = steppers.firstMatch
+            if stepper.exists && stepper.isHittable {
+                print("✅ Found bedrooms stepper")
+                
+                // Get current value if possible and reset to 0
+                let decrementButton = stepper.buttons.element(boundBy: 0)
+                for _ in 0..<10 {
+                    if decrementButton.exists && decrementButton.isHittable {
+                        decrementButton.tap()
+                        // No delay needed - button taps are synchronous
+                    } else {
+                        break // Stop if button becomes unavailable
+                    }
+                }
+                
+                // Increment to target value
+                let incrementButton = stepper.buttons.element(boundBy: 1)
+                let targetValue = Int(value) ?? 0
+                for _ in 0..<targetValue {
+                    if incrementButton.exists && incrementButton.isHittable {
+                        incrementButton.tap()
+                        // No delay needed - button taps are synchronous
+                    } else {
+                        break // Stop if button becomes unavailable
+                    }
+                }
+                
+                print("✅ Set bedrooms to: \(value)")
+            } else {
+                print("❌ Bedrooms stepper not accessible")
+            }
+        } else {
+            print("❌ No steppers found for bedrooms")
+        }
+    }
+    
+    private func fillCompletePropertyFormWithValidation(in app: XCUIApplication) {
+        let propertyData = (
+            title: "Elegant Apartment",
+            location: "Via del Corso 156, Roma, Italy",
+            link: "https://example.com/roma-apartment",
+            price: "425000",
+            size: "75",
+            bedrooms: "2"
+        )
+        
+        // Fill title - wait for field to be ready
+        let titleField = app.textFields["Property Title"]
+        if titleField.exists {
+            titleField.tap()
+            
+            let titleFocusExpectation = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "hasKeyboardFocus == true"),
+                object: titleField
+            )
+            let titleResult = XCTWaiter.wait(for: [titleFocusExpectation], timeout: 1.0)
+            
+            if titleResult == .timedOut {
+                print("⚠️ Title field focus detection timed out, proceeding anyway")
+            }
+            
+            titleField.clearAndTypeText(propertyData.title)
+            print("✅ Form: Filled title")
+        }
+        
+        // Fill location - wait for field to be ready
+        let locationField = app.textFields["Location"]
+        if locationField.exists {
+            locationField.tap()
+            
+            let locationFocusExpectation = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "hasKeyboardFocus == true"),
+                object: locationField
+            )
+            let locationResult = XCTWaiter.wait(for: [locationFocusExpectation], timeout: 1.0)
+            
+            if locationResult == .timedOut {
+                print("⚠️ Location field focus detection timed out, proceeding anyway")
+            }
+            
+            locationField.clearAndTypeText(propertyData.location)
+            print("✅ Form: Filled location")
+        }
+        
+        // Fill link - wait for field to be ready
+        let linkField = app.textFields["Property Link"]
+        if linkField.exists {
+            linkField.tap()
+            
+            let linkFocusExpectation = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "hasKeyboardFocus == true"),
+                object: linkField
+            )
+            let linkResult = XCTWaiter.wait(for: [linkFocusExpectation], timeout: 1.0)
+            
+            if linkResult == .timedOut {
+                print("⚠️ Link field focus detection timed out, proceeding anyway")
+            }
+            
+            linkField.clearAndTypeText(propertyData.link)
+            print("✅ Form: Filled link")
+        }
+        
+        // Scroll down to see numeric fields - no delay needed
+        app.swipeUp()
+        
+        // Fill numeric fields with validation
+        fillNumericFieldImproved(in: app, value: propertyData.price, fieldType: "price")
+        fillNumericFieldImproved(in: app, value: propertyData.size, fieldType: "size")
+        fillBedroomsField(in: app, value: propertyData.bedrooms)
+        
+        // Dismiss keyboard - no delay needed after swipe
+        app.swipeDown()
+        
+        print("✅ Form: Completed filling all fields")
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func takeScreenshot(name: String) {
+        let screenshot = XCUIScreen.main.screenshot()
+        let attachment = XCTAttachment(screenshot: screenshot)
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        
+        // Save to temporary directory first, then try to copy to project directory
+        let tempDir = URL(fileURLWithPath: NSTemporaryDirectory())
+        let tempFile = tempDir.appendingPathComponent("\(name).png")
+        
+        do {
+            // Save to temp directory first
+            let imageData = screenshot.pngRepresentation
+            try imageData.write(to: tempFile)
+            print("✅ Screenshot saved to temp: \(tempFile.path)")
+            
+            // Try to copy to project AppStoreScreenshots directory
+            let fileManager = FileManager.default
+            let projectDir = URL(fileURLWithPath: "/Users/davide/Dev/Projects/Domori")
+            let screenshotsDir = projectDir.appendingPathComponent("AppStoreScreenshots")
+            
+            // Create directory if it doesn't exist
+            try? fileManager.createDirectory(at: screenshotsDir, withIntermediateDirectories: true, attributes: nil)
+            
+            let finalFile = screenshotsDir.appendingPathComponent("\(name).png")
+            
+            // Remove existing file if it exists
+            try? fileManager.removeItem(at: finalFile)
+            
+            // Copy from temp to final location
+            try fileManager.copyItem(at: tempFile, to: finalFile)
+            print("✅ Screenshot copied to: \(finalFile.path)")
+            
+            // Clean up temp file
+            try? fileManager.removeItem(at: tempFile)
+            
+        } catch {
+            print("❌ Failed to save screenshot '\(name)': \(error)")
         }
     }
     
@@ -440,7 +744,129 @@ final class DomoriUITests: XCTestCase {
             print("❌ Failed to save \(platform.prefix) screenshot '\(name)': \(error)")
         }
     }
-
+    
+    private func createPropertyWithCompleteData(in app: XCUIApplication, title: String, location: String, price: String, size: String, bedrooms: String, link: String, rating: String) {
+        print("\n🏠 === Creating Property: \(title) ===")
+        
+        // Tap add button
+        let addButton = app.navigationBars["Properties"].buttons["plus"]
+        guard addButton.exists else { 
+            print("❌ Add button not found")
+            return 
+        }
+        
+        addButton.tap()
+        print("✅ Tapped add button")
+        
+        // Wait for form with better verification
+        guard app.navigationBars["Add Property"].waitForExistence(timeout: 5) else { 
+            print("❌ Add Property form not found")
+            return 
+        }
+        
+        // Wait for form to be fully loaded
+        waitForFormToLoad(in: app)
+        print("✅ Add Property form loaded")
+        
+        // STEP 1: Fill basic text fields (these work reliably)
+        print("\n📝 Filling basic information...")
+        
+        fillBasicTextField(in: app, identifier: "Property Title", value: title)
+        fillBasicTextField(in: app, identifier: "Location", value: location)
+        fillBasicTextField(in: app, identifier: "Property Link", value: link)
+        
+        // STEP 2: Properly dismiss keyboard before proceeding to numeric fields
+        print("\n⌨️ Dismissing keyboard completely...")
+        dismissKeyboardProperly(in: app)
+        
+        // STEP 3: Navigate to numeric fields using proper scrolling
+        print("\n📊 Navigating to numeric fields...")
+        scrollToNumericFields(in: app)
+        
+        // STEP 4: Fill numeric fields with improved targeting
+        print("\n💰 Filling numeric fields...")
+        fillNumericFieldImproved(in: app, value: price, fieldType: "price")
+        fillNumericFieldImproved(in: app, value: size, fieldType: "size")
+        fillBedroomsField(in: app, value: bedrooms)
+        
+        // STEP 5: Set rating
+        print("\n⭐ Setting rating...")
+        setRatingInForm(in: app, rating: rating)
+        
+        // STEP 6: Final cleanup and save
+        print("\n💾 Preparing to save...")
+        dismissKeyboardProperly(in: app)
+        waitForUIToSettle(in: app)
+        
+        // Save the property
+        let saveButton = app.buttons["Save"]
+        if saveButton.exists && saveButton.isEnabled {
+            print("✅ Save button available - saving property")
+            saveButton.tap()
+            
+            // Wait to return to main screen
+            let success = app.navigationBars["Properties"].waitForExistence(timeout: 10)
+            if success {
+                waitForListToUpdate(in: app)
+                print("✅ Successfully saved and returned: \(title)")
+                print("🏠 === Property Creation Complete ===\n")
+            } else {
+                print("❌ Failed to return to main screen")
+            }
+        } else {
+            print("❌ Save button not available - canceling")
+            let cancelButton = app.buttons["Cancel"]
+            if cancelButton.exists {
+                cancelButton.tap()
+                print("✅ Canceled property creation")
+            }
+        }
+    }
+    
+    private func fillNumericFieldImproved(in app: XCUIApplication, value: String, fieldType: String) {
+        print("🔢 Filling \(fieldType) with value: \(value)")
+        
+        // Strategy: Look for specific static text labels to identify the right context
+        let labelToFind = fieldType.contains("price") ? "Price" : "Size"
+        
+        // Find the label first
+        let labels = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '\(labelToFind)'"))
+        if labels.count > 0 {
+            print("✅ Found \(labelToFind) label")
+            
+            // Now look for TextFields with placeholder "0" in the current visible area
+            let numericFields = app.textFields.matching(NSPredicate(format: "placeholderValue == '0'"))
+            
+            if fieldType.contains("price") && numericFields.count > 0 {
+                let field = numericFields.element(boundBy: 0)
+                fillSingleNumericField(field: field, value: value, fieldName: "price")
+            } else if fieldType.contains("size") && numericFields.count > 1 {
+                let field = numericFields.element(boundBy: 1)
+                fillSingleNumericField(field: field, value: value, fieldName: "size")
+            }
+        } else {
+            print("❌ Could not find \(labelToFind) label")
+        }
+    }
+    
+    private func setRatingInForm(in app: XCUIApplication, rating: String) {
+        // Look for rating picker or buttons
+        let ratingButton = app.buttons[rating]
+        if ratingButton.exists {
+            ratingButton.tap()
+            print("✅ Set rating to: \(rating)")
+        } else {
+            // Try alternative approaches for rating
+            let ratingPicker = app.pickerWheels.firstMatch
+            if ratingPicker.exists {
+                ratingPicker.adjust(toPickerWheelValue: rating)
+                print("✅ Set rating via picker to: \(rating)")
+            } else {
+                print("❌ Could not find rating control")
+            }
+        }
+    }
+    
     // MARK: - Original iPhone-Only Test (Preserved for backward compatibility)
     
     @MainActor
@@ -537,389 +963,6 @@ final class DomoriUITests: XCTestCase {
             } else {
                 app.swipeRight()
             }
-        }
-    }
-    
-    private func createPropertyWithCompleteData(in app: XCUIApplication, title: String, location: String, price: String, size: String, bedrooms: String, link: String, rating: String) {
-        print("\n🏠 === Creating Property: \(title) ===")
-        
-        // Tap add button
-        let addButton = app.navigationBars["Properties"].buttons["plus"]
-        guard addButton.exists else { 
-            print("❌ Add button not found")
-            return 
-        }
-        
-        addButton.tap()
-        print("✅ Tapped add button")
-        
-        // Wait for form with better verification
-        guard app.navigationBars["Add Property"].waitForExistence(timeout: 5) else { 
-            print("❌ Add Property form not found")
-            return 
-        }
-        
-        // Wait for form to be fully loaded instead of fixed delay
-        waitForFormToLoad(in: app)
-        print("✅ Add Property form loaded")
-        
-        // STEP 1: Fill basic text fields (these work reliably)
-        print("\n📝 Filling basic information...")
-        
-        fillBasicTextField(in: app, identifier: "Property Title", value: title)
-        fillBasicTextField(in: app, identifier: "Location", value: location)
-        fillBasicTextField(in: app, identifier: "Property Link", value: link)
-        
-        // STEP 2: Properly dismiss keyboard before proceeding to numeric fields
-        print("\n⌨️ Dismissing keyboard completely...")
-        dismissKeyboardProperly(in: app)
-        
-        // STEP 3: Navigate to numeric fields using proper scrolling
-        print("\n📊 Navigating to numeric fields...")
-        scrollToNumericFields(in: app)
-        
-        // STEP 4: Fill numeric fields with improved targeting
-        print("\n💰 Filling numeric fields...")
-        fillNumericFieldImproved(in: app, value: price, fieldType: "price")
-        fillNumericFieldImproved(in: app, value: size, fieldType: "size")
-        fillBedroomsField(in: app, value: bedrooms)
-        
-        // STEP 5: Set rating
-        print("\n⭐ Setting rating...")
-        setRatingInForm(in: app, rating: rating)
-        
-        // STEP 6: Final cleanup and save
-        print("\n💾 Preparing to save...")
-        dismissKeyboardProperly(in: app)
-        waitForUIToSettle(in: app)
-        
-        // Save the property
-        let saveButton = app.buttons["Save"]
-        if saveButton.exists && saveButton.isEnabled {
-            print("✅ Save button available - saving property")
-            saveButton.tap()
-            
-            // Wait to return to main screen
-            let success = app.navigationBars["Properties"].waitForExistence(timeout: 10)
-            if success {
-                waitForListToUpdate(in: app)
-                print("✅ Successfully saved and returned: \(title)")
-                print("🏠 === Property Creation Complete ===\n")
-            } else {
-                print("❌ Failed to return to main screen")
-            }
-        } else {
-            print("❌ Save button not available - canceling")
-            let cancelButton = app.buttons["Cancel"]
-            if cancelButton.exists {
-                cancelButton.tap()
-                print("✅ Canceled property creation")
-            }
-        }
-    }
-    
-    private func waitForFormToLoad(in app: XCUIApplication) {
-        // Wait for essential form elements to be ready
-        let titleField = app.textFields["Property Title"]
-        let locationField = app.textFields["Location"]
-        let linkField = app.textFields["Property Link"]
-        
-        // Use XCTWaiter for more efficient waiting
-        let expectation = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "exists == true"),
-            object: titleField
-        )
-        _ = XCTWaiter.wait(for: [expectation], timeout: 3.0)
-        
-        // Small additional delay for animation completion
-        usleep(1000000) // 1 second instead of 1
-    }
-    
-    private func waitForUIToSettle(in app: XCUIApplication) {
-        // Reduced from sleep(2) to more targeted waiting
-        let predicate = NSPredicate(format: "exists == false")
-        let keyboardExpectation = XCTNSPredicateExpectation(predicate: predicate, object: app.keyboards.firstMatch)
-        _ = XCTWaiter.wait(for: [keyboardExpectation], timeout: 2.0)
-        
-        // Brief pause for UI animations
-        usleep(500000) // 0.5 seconds instead of 2
-    }
-    
-    private func waitForListToUpdate(in app: XCUIApplication) {
-        // Wait for collection view to update instead of fixed 3 second delay
-        let collectionView = app.collectionViews.firstMatch
-        if collectionView.exists {
-            // Wait a bit for the new item to appear
-            usleep(1000000) // 1 second instead of 1
-        }
-    }
-    
-    private func fillBasicTextField(in app: XCUIApplication, identifier: String, value: String) {
-        let field = app.textFields[identifier]
-        if field.exists {
-            field.tap()
-            
-            // Wait for field to become active instead of fixed delay
-            let activeExpectation = XCTNSPredicateExpectation(
-                predicate: NSPredicate(format: "hasKeyboardFocus == true"),
-                object: field
-            )
-            _ = XCTWaiter.wait(for: [activeExpectation], timeout: 2.0)
-            
-            // Clear existing content properly
-            field.clearAndTypeText(value)
-            print("✅ Filled \(identifier): \(value)")
-        } else {
-            print("❌ Could not find field: \(identifier)")
-        }
-    }
-    
-    private func dismissKeyboardProperly(in app: XCUIApplication) {
-        // Check if keyboard is actually present before trying to dismiss
-        if app.keyboards.count > 0 {
-            // Method 1: Tap outside form areas (works for sheets)
-            let navBar = app.navigationBars["Add Property"]
-            if navBar.exists {
-                navBar.tap()
-                
-                // Wait for keyboard to dismiss instead of fixed delay
-                let keyboardGoneExpectation = XCTNSPredicateExpectation(
-                    predicate: NSPredicate(format: "count == 0"),
-                    object: app.keyboards
-                )
-                _ = XCTWaiter.wait(for: [keyboardGoneExpectation], timeout: 2.0)
-            } else {
-                // Fallback: swipe down
-                app.swipeDown()
-                usleep(1000000) // 1 second instead of 1
-            }
-        }
-        
-        print("✅ Keyboard dismissed")
-    }
-    
-    private func scrollToNumericFields(in app: XCUIApplication) {
-        // Find the form's scroll view and scroll within it (not global swipe)
-        let scrollViews = app.scrollViews
-        if scrollViews.count > 0 {
-            let formScrollView = scrollViews.firstMatch
-            if formScrollView.exists {
-                // Scroll down within the form's scroll view
-                formScrollView.swipeUp()
-                
-                // Wait for scroll animation to complete
-                usleep(800000) // 0.8 seconds instead of 2
-                print("✅ Scrolled to numeric fields area")
-            }
-        } else {
-            // Fallback: gentle swipe up if no scroll view found
-            app.swipeUp()
-            usleep(800000) // 0.8 seconds instead of 2
-            print("✅ Used fallback scrolling")
-        }
-    }
-    
-    private func fillNumericFieldImproved(in app: XCUIApplication, value: String, fieldType: String) {
-        print("🔢 Filling \(fieldType) with value: \(value)")
-        
-        // Strategy: Look for specific static text labels to identify the right context
-        let labelToFind = fieldType.contains("price") ? "Price" : "Size"
-        
-        // Find the label first
-        let labels = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '\(labelToFind)'"))
-        if labels.count > 0 {
-            print("✅ Found \(labelToFind) label")
-            
-            // Now look for TextFields with placeholder "0" in the current visible area
-            let numericFields = app.textFields.matching(NSPredicate(format: "placeholderValue == '0'"))
-            
-            if fieldType.contains("price") && numericFields.count > 0 {
-                let field = numericFields.element(boundBy: 0)
-                fillSingleNumericField(field: field, value: value, fieldName: "price")
-            } else if fieldType.contains("size") && numericFields.count > 1 {
-                let field = numericFields.element(boundBy: 1)
-                fillSingleNumericField(field: field, value: value, fieldName: "size")
-            }
-        } else {
-            print("❌ Could not find \(labelToFind) label")
-        }
-    }
-    
-    private func fillSingleNumericField(field: XCUIElement, value: String, fieldName: String) {
-        if field.exists && field.isHittable {
-            print("✅ Found \(fieldName) field - attempting to fill")
-            
-            // Ensure field is visible and properly focused
-            field.tap()
-            
-            // Wait for field focus instead of fixed delay
-            usleep(500000) // 0.5 seconds instead of 1
-            
-            // Double-tap to select all content
-            field.doubleTap()
-            usleep(500000) // 0.5 seconds instead of 1
-            
-            // Type the value
-            field.typeText(value)
-            usleep(500000) // 0.5 seconds instead of 1
-            
-            // Verify the field was filled (if possible)
-            if let fieldValue = field.value as? String, !fieldValue.isEmpty && fieldValue != "0" {
-                print("✅ Successfully filled \(fieldName): \(value) (verified: \(fieldValue))")
-            } else {
-                print("⚠️ Filled \(fieldName): \(value) (verification inconclusive)")
-            }
-        } else {
-            print("❌ \(fieldName) field not accessible")
-        }
-    }
-    
-    private func fillBedroomsField(in app: XCUIApplication, value: String) {
-        print("🛏️ Setting bedrooms to: \(value)")
-        
-        let steppers = app.steppers
-        if steppers.count > 0 {
-            let stepper = steppers.firstMatch
-            if stepper.exists {
-                print("✅ Found bedrooms stepper")
-                
-                // Get current value if possible and reset to 0
-                let decrementButton = stepper.buttons.element(boundBy: 0)
-                for _ in 0..<10 {
-                    if decrementButton.exists && decrementButton.isHittable {
-                        decrementButton.tap()
-                        usleep(300000) // 0.3 seconds instead of 1
-                    }
-                }
-                
-                // Increment to target value
-                let incrementButton = stepper.buttons.element(boundBy: 1)
-                let targetValue = Int(value) ?? 0
-                for _ in 0..<targetValue {
-                    if incrementButton.exists && incrementButton.isHittable {
-                        incrementButton.tap()
-                        usleep(300000) // 0.3 seconds instead of 1
-                    }
-                }
-                print("✅ Set bedrooms to \(value)")
-            }
-        } else {
-            print("❌ No steppers found for bedrooms")
-        }
-    }
-    
-    private func setRatingInForm(in app: XCUIApplication, rating: String) {
-        // Look for rating picker or buttons
-        let ratingButton = app.buttons[rating]
-        if ratingButton.exists {
-            ratingButton.tap()
-            print("✅ Set rating to: \(rating)")
-        } else {
-            // Try alternative approaches for rating
-            let ratingPicker = app.pickerWheels.firstMatch
-            if ratingPicker.exists {
-                ratingPicker.adjust(toPickerWheelValue: rating)
-                print("✅ Set rating via picker to: \(rating)")
-            } else {
-                print("❌ Could not find rating control")
-            }
-        }
-    }
-    
-    private func fillCompletePropertyFormWithValidation(in app: XCUIApplication) {
-        let propertyData = (
-            title: "Elegant Apartment",
-            location: "Via del Corso 156, Roma, Italy",
-            link: "https://example.com/roma-apartment",
-            price: "425000",
-            size: "75",
-            bedrooms: "2"
-        )
-        
-        // Fill title
-        let titleField = app.textFields["Property Title"]
-        if titleField.exists {
-            titleField.tap()
-            usleep(500000) // 0.5 seconds instead of 1
-            titleField.clearAndTypeText(propertyData.title)
-            print("✅ Form: Filled title")
-        }
-        
-        // Fill location
-        let locationField = app.textFields["Location"]
-        if locationField.exists {
-            locationField.tap()
-            usleep(500000) // 0.5 seconds instead of 1
-            locationField.clearAndTypeText(propertyData.location)
-            print("✅ Form: Filled location")
-        }
-        
-        // Fill link
-        let linkField = app.textFields["Property Link"]
-        if linkField.exists {
-            linkField.tap()
-            usleep(500000) // 0.5 seconds instead of 1
-            linkField.clearAndTypeText(propertyData.link)
-            print("✅ Form: Filled link")
-        }
-        
-        // Scroll down to see numeric fields
-        app.swipeUp()
-        usleep(800000) // 0.8 seconds instead of 1
-        
-        // Fill numeric fields with validation
-        fillNumericFieldImproved(in: app, value: propertyData.price, fieldType: "price")
-        fillNumericFieldImproved(in: app, value: propertyData.size, fieldType: "size")
-        fillBedroomsField(in: app, value: propertyData.bedrooms)
-        
-        // Dismiss keyboard
-        app.swipeDown()
-        usleep(500000) // 0.5 seconds instead of 1
-        
-        print("✅ Form: Completed filling all fields")
-    }
-    
-    // MARK: - Helper Methods
-    
-    private func takeScreenshot(name: String) {
-        let screenshot = XCUIScreen.main.screenshot()
-        let attachment = XCTAttachment(screenshot: screenshot)
-        attachment.name = name
-        attachment.lifetime = .keepAlways
-        add(attachment)
-        
-        // Save to temporary directory first, then try to copy to project directory
-        let tempDir = URL(fileURLWithPath: NSTemporaryDirectory())
-        let tempFile = tempDir.appendingPathComponent("\(name).png")
-        
-        do {
-            // Save to temp directory first
-            let imageData = screenshot.pngRepresentation
-            try imageData.write(to: tempFile)
-            print("✅ Screenshot saved to temp: \(tempFile.path)")
-            
-            // Try to copy to project AppStoreScreenshots directory
-            let fileManager = FileManager.default
-            let projectDir = URL(fileURLWithPath: "/Users/davide/Dev/Projects/Domori")
-            let screenshotsDir = projectDir.appendingPathComponent("AppStoreScreenshots")
-            
-            // Create directory if it doesn't exist
-            try? fileManager.createDirectory(at: screenshotsDir, withIntermediateDirectories: true, attributes: nil)
-            
-            let finalFile = screenshotsDir.appendingPathComponent("\(name).png")
-            
-            // Remove existing file if it exists
-            try? fileManager.removeItem(at: finalFile)
-            
-            // Copy from temp to final location
-            try fileManager.copyItem(at: tempFile, to: finalFile)
-            print("✅ Screenshot copied to: \(finalFile.path)")
-            
-            // Clean up temp file
-            try? fileManager.removeItem(at: tempFile)
-            
-        } catch {
-            print("❌ Failed to save screenshot '\(name)': \(error)")
         }
     }
     
