@@ -21,9 +21,30 @@ struct PropertyDetailView: View {
                                 .font(.title2)
                                 .fontWeight(.semibold)
                             
-                            Text(listing.address)
+                            Text(listing.location)
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
+                            
+                            // Display link if available
+                            if let link = listing.link, !link.isEmpty {
+                                Button(action: {
+                                    if let url = URL(string: link) {
+#if os(iOS)
+                                        UIApplication.shared.open(url)
+#else
+                                        NSWorkspace.shared.open(url)
+#endif
+                                    }
+                                }) {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "link")
+                                        Text("View Listing")
+                                    }
+                                    .font(.caption)
+                                    .foregroundColor(.blue)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
                         }
                         
                         Spacer()

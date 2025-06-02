@@ -34,7 +34,7 @@ struct PropertyListRowView: View {
                             .fontWeight(.semibold)
                             .lineLimit(1)
                         
-                        Text(listing.address)
+                        Text(listing.location)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                             .lineLimit(1)

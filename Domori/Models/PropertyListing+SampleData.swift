@@ -3,13 +3,14 @@ import Foundation
 extension PropertyListing {
     static var sampleData: [PropertyListing] {
         // Determine if we should use metric or imperial measurements
-        let isMetric = Locale.current.usesMetricSystem
+        let isMetric = Locale.current.measurementSystem == .metric
         
         // Sample properties with locale-appropriate values
-        let properties: [(title: String, address: String, price: Double, size: Double, bedrooms: Int, bathrooms: Double, type: PropertyType, rating: PropertyRating, notes: String)] = [
+        let properties: [(title: String, location: String, link: String, price: Double, size: Double, bedrooms: Int, bathrooms: Double, type: PropertyType, rating: PropertyRating, notes: String)] = [
             (
                 title: "Charming Victorian Home",
-                address: "123 Oak Street, San Francisco, CA 94102",
+                location: "123 Oak Street, San Francisco, CA 94102",
+                link: "https://example.com/listings/victorian-home-123-oak",
                 price: isMetric ? 1_150_000 : 1_250_000, // Adjusted for different markets
                 size: isMetric ? 223 : 2400, // ~223 sqm = ~2400 sqft
                 bedrooms: 3,
@@ -20,7 +21,8 @@ extension PropertyListing {
             ),
             (
                 title: "Modern Downtown Condo",
-                address: "456 Market Street, #2501, San Francisco, CA 94105",
+                location: "456 Market Street, #2501, San Francisco, CA 94105",
+                link: "https://example.com/listings/modern-condo-456-market",
                 price: isMetric ? 950_000 : 1_100_000,
                 size: isMetric ? 102 : 1100, // ~102 sqm = ~1100 sqft
                 bedrooms: 2,
@@ -31,7 +33,8 @@ extension PropertyListing {
             ),
             (
                 title: "Spacious Family Townhouse",
-                address: "789 Pine Avenue, Oakland, CA 94610",
+                location: "789 Pine Avenue, Oakland, CA 94610",
+                link: "https://example.com/listings/townhouse-789-pine",
                 price: isMetric ? 750_000 : 850_000,
                 size: isMetric ? 186 : 2000, // ~186 sqm = ~2000 sqft
                 bedrooms: 4,
@@ -42,7 +45,8 @@ extension PropertyListing {
             ),
             (
                 title: "Luxury Penthouse Suite",
-                address: "321 California Street, #PH, San Francisco, CA 94108",
+                location: "321 California Street, #PH, San Francisco, CA 94108",
+                link: "https://example.com/listings/penthouse-321-california",
                 price: isMetric ? 2_800_000 : 3_200_000,
                 size: isMetric ? 279 : 3000, // ~279 sqm = ~3000 sqft
                 bedrooms: 3,
@@ -53,7 +57,8 @@ extension PropertyListing {
             ),
             (
                 title: "Cozy Studio Apartment",
-                address: "654 Mission Street, #12, San Francisco, CA 94103",
+                location: "654 Mission Street, #12, San Francisco, CA 94103",
+                link: "https://example.com/listings/studio-654-mission",
                 price: isMetric ? 485_000 : 550_000,
                 size: isMetric ? 46 : 500, // ~46 sqm = ~500 sqft
                 bedrooms: 0,
@@ -64,7 +69,8 @@ extension PropertyListing {
             ),
             (
                 title: "Suburban Family Home",
-                address: "987 Elm Drive, San Mateo, CA 94403",
+                location: "987 Elm Drive, San Mateo, CA 94403",
+                link: "https://example.com/listings/family-home-987-elm",
                 price: isMetric ? 1_050_000 : 1_400_000,
                 size: isMetric ? 204 : 2200, // ~204 sqm = ~2200 sqft
                 bedrooms: 4,
@@ -78,7 +84,8 @@ extension PropertyListing {
         return properties.map { property in
             PropertyListing(
                 title: property.title,
-                address: property.address,
+                location: property.location,
+                link: property.link,
                 price: property.price,
                 size: property.size,
                 bedrooms: property.bedrooms,

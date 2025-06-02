@@ -73,11 +73,18 @@ final class DomoriUITests: XCTestCase {
                 titleField.tap()
                 titleField.typeText("UI Test Property")
                 
-                // Fill in address
-                let addressField = app.textFields["Address"]
-                if addressField.exists {
-                    addressField.tap()
-                    addressField.typeText("123 UI Test Street")
+                // Fill in location (updated from address)
+                let locationField = app.textFields["Location"]
+                if locationField.exists {
+                    locationField.tap()
+                    locationField.typeText("123 UI Test Street")
+                }
+                
+                // Fill in link (new mandatory field)
+                let linkField = app.textFields["Property Link"]
+                if linkField.exists {
+                    linkField.tap()
+                    linkField.typeText("https://example.com/ui-test-property")
                 }
                 
                 // Save the property

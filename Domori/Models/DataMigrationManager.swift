@@ -19,7 +19,7 @@ class DataMigrationManager {
                 // Case 1: propertyRating is nil (needs migration)
                 // Case 2: propertyRating is .none but has meaningful legacy rating (inconsistent)
                 let needsMigration = property.propertyRating == nil || 
-                                   (property.propertyRating == .none && property.rating > 0)
+                                   (property.propertyRating == PropertyRating.none && property.rating > 0)
                 
                 if needsMigration {
                     if property.rating > 0 {
@@ -27,7 +27,7 @@ class DataMigrationManager {
                         property.propertyRating = PropertyRating.fromLegacy(rating: property.rating, isFavorite: false)
                     } else {
                         // Default to .none for properties with no rating
-                        property.propertyRating = .none
+                        property.propertyRating = PropertyRating.none
                     }
                     migrationCount += 1
                 }
@@ -55,7 +55,7 @@ class DataMigrationManager {
             // Check if any property needs migration
             for property in properties {
                 let needsMigration = property.propertyRating == nil || 
-                                   (property.propertyRating == .none && property.rating > 0)
+                                   (property.propertyRating == PropertyRating.none && property.rating > 0)
                 if needsMigration {
                     return true
                 }

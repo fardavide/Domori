@@ -22,7 +22,8 @@ struct DomoriTests {
         // Create a property
         let property = PropertyListing(
             title: "Test Integration Property",
-            address: "123 Integration Street",
+            location: "123 Integration Street",
+            link: "https://example.com/listing/integration",
             price: 800_000,
             size: 1800,
             bedrooms: 3,
@@ -77,9 +78,9 @@ struct DomoriTests {
     func propertyFilteringAndSorting() throws {
         // Create sample properties with different attributes
         let properties = [
-            PropertyListing(title: "A Cheap House", address: "1 A St", price: 200_000, size: 1000, bedrooms: 2, bathrooms: 1, propertyType: .house, rating: 2.0),
-            PropertyListing(title: "B Expensive Condo", address: "2 B St", price: 800_000, size: 1200, bedrooms: 2, bathrooms: 2, propertyType: .condo, rating: 5.0, propertyRating: .excellent),
-            PropertyListing(title: "C Medium Apartment", address: "3 C St", price: 400_000, size: 1100, bedrooms: 3, bathrooms: 1.5, propertyType: .apartment, rating: 3.5),
+            PropertyListing(title: "A Cheap House", location: "1 A St", link: "https://example.com/1", price: 200_000, size: 1000, bedrooms: 2, bathrooms: 1, propertyType: .house, rating: 2.0),
+            PropertyListing(title: "B Expensive Condo", location: "2 B St", link: "https://example.com/2", price: 800_000, size: 1200, bedrooms: 2, bathrooms: 2, propertyType: .condo, rating: 5.0, propertyRating: .excellent),
+            PropertyListing(title: "C Medium Apartment", location: "3 C St", link: "https://example.com/3", price: 400_000, size: 1100, bedrooms: 3, bathrooms: 1.5, propertyType: .apartment, rating: 3.5),
         ]
         
         // Test sorting by price
@@ -107,7 +108,8 @@ struct DomoriTests {
     func noteCategoriesValidation() {
         let property = PropertyListing(
             title: "Test Property",
-            address: "Test Address",
+            location: "Test Location",
+            link: "https://example.com/test",
             price: 500_000,
             size: 1500,
             bedrooms: 3,
@@ -181,7 +183,8 @@ struct DomoriTests {
     func currencyFormattingAcrossLocales() {
         let property = PropertyListing(
             title: "Test Property",
-            address: "Test Address",
+            location: "Test Location",
+            link: "https://example.com/test",
             price: 1_500_000,
             size: 2000,
             bedrooms: 4,
@@ -210,7 +213,8 @@ struct DomoriTests {
         for propertyType in PropertyType.allCases {
             let property = PropertyListing(
                 title: "Test \(propertyType.rawValue)",
-                address: "Test Address",
+                location: "Test Location",
+                link: "https://example.com/test",
                 price: 500_000,
                 size: 1500,
                 bedrooms: 2,
@@ -237,14 +241,15 @@ struct DomoriTests {
         // Test that all properties have valid data
         for property in sampleData {
             #expect(!property.title.isEmpty, "Property should have a title")
-            #expect(!property.address.isEmpty, "Property should have an address")
+            #expect(!property.location.isEmpty, "Property should have a location")
             #expect(property.price > 0, "Property should have a positive price")
             #expect(property.size > 0, "Property should have a positive size")
+            #expect(property.link != nil, "New sample properties should have links")
         }
         
-        // Test that addresses are unique
-        let uniqueAddresses = Set(sampleData.map { $0.address })
-        #expect(uniqueAddresses.count == sampleData.count)
+        // Test that locations are unique
+        let uniqueLocations = Set(sampleData.map { $0.location })
+        #expect(uniqueLocations.count == sampleData.count)
     }
     
     @Test("PropertyDetailBadge creation and validation")
@@ -323,5 +328,37 @@ struct DomoriTests {
         // Note: In a real test environment, we would simulate the tap gesture
         // For now, we just verify the callback structure is correct
         #expect(selectionChanged == false) // Not triggered until tap
+    }
+
+    @Test("App integration test - Link property validation")
+    func linkPropertyValidation() {
+        // Test new property with link
+        let newProperty = PropertyListing(
+            title: "New Property with Link",
+            location: "123 New Street",
+            link: "https://example.com/new-property",
+            price: 750_000,
+            size: 1600,
+            bedrooms: 3,
+            bathrooms: 2,
+            propertyType: .house
+        )
+        
+        #expect(newProperty.link == "https://example.com/new-property")
+        #expect(newProperty.location == "123 New Street")
+        
+        // Test legacy property without link
+        let legacyProperty = PropertyListing(
+            title: "Legacy Property",
+            address: "456 Legacy Street",
+            price: 600_000,
+            size: 1400,
+            bedrooms: 2,
+            bathrooms: 1.5,
+            propertyType: .condo
+        )
+        
+        #expect(legacyProperty.link == nil)
+        #expect(legacyProperty.location == "456 Legacy Street") // address mapped to location
     }
 }

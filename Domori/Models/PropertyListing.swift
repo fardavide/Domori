@@ -4,7 +4,8 @@ import SwiftData
 @Model
 final class PropertyListing {
     var title: String
-    var address: String
+    var location: String // Renamed from address
+    var link: String? // New mandatory property for new listings, optional for legacy support
     var price: Double
     var size: Double // in square meters or square feet based on locale
     var bedrooms: Int
@@ -26,7 +27,8 @@ final class PropertyListing {
     
     init(
         title: String,
-        address: String,
+        location: String, // Renamed from address
+        link: String? = nil, // New optional parameter for link
         price: Double,
         size: Double,
         bedrooms: Int,
@@ -37,7 +39,8 @@ final class PropertyListing {
         propertyRating: PropertyRating? = nil
     ) {
         self.title = title
-        self.address = address
+        self.location = location // Renamed from address
+        self.link = link // New property assignment
         self.price = price
         self.size = size
         self.bedrooms = bedrooms
@@ -58,9 +61,37 @@ final class PropertyListing {
             self.rating = rating
         } else {
             // Default: no rating
-            self.propertyRating = .none
+            self.propertyRating = PropertyRating.none
             self.rating = 0.0
         }
+    }
+    
+    // Legacy initializer to support migration from address-based properties
+    convenience init(
+        title: String,
+        address: String, // Legacy parameter name
+        price: Double,
+        size: Double,
+        bedrooms: Int,
+        bathrooms: Double,
+        propertyType: PropertyType,
+        rating: Double = 0,
+        notes: String = "",
+        propertyRating: PropertyRating? = nil
+    ) {
+        self.init(
+            title: title,
+            location: address, // Map address to location
+            link: nil, // Legacy listings don't have links
+            price: price,
+            size: size,
+            bedrooms: bedrooms,
+            bathrooms: bathrooms,
+            propertyType: propertyType,
+            rating: rating,
+            notes: notes,
+            propertyRating: propertyRating
+        )
     }
     
     // Migration helper method - can be called to sync legacy data
@@ -98,7 +129,7 @@ final class PropertyListing {
         measurementFormatter.numberFormatter = formatter
         
         // Use metric system for most of the world, imperial for US, UK, and a few others
-        let isMetric = Locale.current.usesMetricSystem
+        let isMetric = Locale.current.measurementSystem == .metric
         
         if isMetric {
             let measurement = Measurement(value: size, unit: UnitArea.squareMeters)
@@ -110,7 +141,7 @@ final class PropertyListing {
     }
     
     var sizeUnit: String {
-        return Locale.current.usesMetricSystem ? "m²" : "sq ft"
+        return Locale.current.measurementSystem == .metric ? "m²" : "sq ft"
     }
     
     var bathroomText: String {

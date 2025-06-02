@@ -3,11 +3,12 @@ import SwiftData
 import Foundation
 @testable import Domori
 
-@Test("PropertyListing initialization")
+@Test("PropertyListing initialization with new structure")
 func propertyListingCreation() {
     let listing = PropertyListing(
         title: "Test Property",
-        address: "123 Test Street",
+        location: "123 Test Street",
+        link: "https://example.com/listing/123",
         price: 500_000,
         size: 1500,
         bedrooms: 3,
@@ -19,7 +20,8 @@ func propertyListingCreation() {
     )
     
     #expect(listing.title == "Test Property")
-    #expect(listing.address == "123 Test Street")
+    #expect(listing.location == "123 Test Street")
+    #expect(listing.link == "https://example.com/listing/123")
     #expect(listing.price == 500_000)
     #expect(listing.size == 1500)
     #expect(listing.bedrooms == 3)
@@ -32,11 +34,39 @@ func propertyListingCreation() {
     #expect(listing.updatedDate <= Date())
 }
 
+@Test("PropertyListing legacy initializer compatibility")
+func propertyListingLegacyCreation() {
+    let listing = PropertyListing(
+        title: "Legacy Property",
+        address: "456 Legacy Street",
+        price: 600_000,
+        size: 1800,
+        bedrooms: 4,
+        bathrooms: 2.5,
+        propertyType: .condo,
+        rating: 3.5,
+        notes: "Legacy property for testing",
+        propertyRating: .considering
+    )
+    
+    #expect(listing.title == "Legacy Property")
+    #expect(listing.location == "456 Legacy Street") // address mapped to location
+    #expect(listing.link == nil) // legacy listings don't have links
+    #expect(listing.price == 600_000)
+    #expect(listing.size == 1800)
+    #expect(listing.bedrooms == 4)
+    #expect(listing.bathrooms == 2.5)
+    #expect(listing.propertyType == .condo)
+    #expect(listing.rating == 3.5)
+    #expect(listing.propertyRating == .considering)
+    #expect(listing.notes == "Legacy property for testing")
+}
+
 @Test("PropertyListing default values")
 func propertyListingDefaults() {
     let listing = PropertyListing(
         title: "Test Property",
-        address: "123 Test Street",
+        location: "123 Test Street",
         price: 500_000,
         size: 1500,
         bedrooms: 3,
@@ -47,6 +77,7 @@ func propertyListingDefaults() {
     #expect(listing.rating == 0)
     #expect(listing.propertyRating == .none)
     #expect(listing.notes == "")
+    #expect(listing.link == nil) // default is nil
     #expect(listing.propertyNotes.isEmpty)
     #expect(listing.photos.isEmpty)
     #expect(listing.tags.isEmpty)
@@ -56,7 +87,8 @@ func propertyListingDefaults() {
 func propertyListingComputedProperties() {
     let listing = PropertyListing(
         title: "Test Property",
-        address: "123 Test Street",
+        location: "123 Test Street",
+        link: "https://example.com/listing/123",
         price: 750_000,
         size: 2000,
         bedrooms: 3,
@@ -87,7 +119,7 @@ func propertyListingComputedProperties() {
 func bathroomTextFormatting() {
     let listing1 = PropertyListing(
         title: "Test Property 1",
-        address: "123 Test Street",
+        location: "123 Test Street",
         price: 500_000,
         size: 1500,
         bedrooms: 3,
@@ -97,7 +129,7 @@ func bathroomTextFormatting() {
     
     let listing2 = PropertyListing(
         title: "Test Property 2",
-        address: "456 Test Avenue",
+        location: "456 Test Avenue",
         price: 600_000,
         size: 1800,
         bedrooms: 3,
@@ -107,7 +139,7 @@ func bathroomTextFormatting() {
     
     let listing3 = PropertyListing(
         title: "Test Property 3",
-        address: "789 Test Boulevard",
+        location: "789 Test Boulevard",
         price: 400_000,
         size: 1200,
         bedrooms: 2,
@@ -124,7 +156,8 @@ func bathroomTextFormatting() {
 func pricePerUnitCalculation() {
     let listing = PropertyListing(
         title: "Test Property",
-        address: "123 Test Street",
+        location: "123 Test Street",
+        link: "https://example.com/listing/123",
         price: 1_000_000,
         size: 2000,
         bedrooms: 3,
@@ -478,7 +511,7 @@ func sampleDataCreation() {
     
     // Test that properties have proper values
     #expect(sampleData.allSatisfy { !$0.title.isEmpty })
-    #expect(sampleData.allSatisfy { !$0.address.isEmpty })
+    #expect(sampleData.allSatisfy { !$0.location.isEmpty })
     #expect(sampleData.allSatisfy { $0.price > 0 })
     #expect(sampleData.allSatisfy { $0.size > 0 })
     #expect(sampleData.allSatisfy { $0.bedrooms >= 0 })

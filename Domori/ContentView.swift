@@ -120,7 +120,7 @@ struct ContentView: View {
         return true
       }
       return listing.title.localizedCaseInsensitiveContains(searchText) ||
-      listing.address.localizedCaseInsensitiveContains(searchText)
+      listing.location.localizedCaseInsensitiveContains(searchText)
     }
     
     return filtered.sorted { first, second in

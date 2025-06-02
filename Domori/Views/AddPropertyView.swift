@@ -9,7 +9,8 @@ struct AddPropertyView: View {
     
     // Form fields
     @State private var title = ""
-    @State private var address = ""
+    @State private var location = ""
+    @State private var link = ""
     @State private var price: Double = 0
     @State private var size: Double = 0
     @State private var bedrooms = 0
@@ -20,6 +21,17 @@ struct AddPropertyView: View {
     
     private var isEditing: Bool {
         listing != nil
+    }
+    
+    // Validation computed properties
+    private var isValidForSaving: Bool {
+        if isEditing {
+            // For editing, only require title and location (link is optional for legacy listings)
+            return !title.isEmpty && !location.isEmpty
+        } else {
+            // For new listings, require title, location, and link
+            return !title.isEmpty && !location.isEmpty && !link.isEmpty
+        }
     }
     
     // Locale-aware formatters and labels
@@ -61,8 +73,27 @@ struct AddPropertyView: View {
     private var basicInformationSection: some View {
         Section("Basic Information") {
             TextField("Property Title", text: $title)
-            TextField("Address", text: $address, axis: .vertical)
+            TextField("Location", text: $location, axis: .vertical)
                 .lineLimit(2...4)
+            
+            HStack {
+                TextField("Property Link", text: $link)
+                if !link.isEmpty && URL(string: link) != nil {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                }
+            }
+            .help(isEditing ? "Link is optional for existing properties" : "Link is required for new properties")
+            
+            if !isEditing && link.isEmpty {
+                Text("Link is required for new listings")
+                    .font(.caption)
+                    .foregroundColor(.orange)
+            } else if !link.isEmpty && URL(string: link) == nil {
+                Text("Please enter a valid URL")
+                    .font(.caption)
+                    .foregroundColor(.red)
+            }
         }
     }
     
@@ -215,7 +246,7 @@ struct AddPropertyView: View {
             Button(isEditing ? "Update" : "Save") {
                 saveProperty()
             }
-            .disabled(title.isEmpty || address.isEmpty)
+            .disabled(!isValidForSaving)
         }
 #else
         ToolbarItem(placement: .cancellationAction) {
@@ -228,14 +259,15 @@ struct AddPropertyView: View {
             Button(isEditing ? "Update" : "Save") {
                 saveProperty()
             }
-            .disabled(title.isEmpty || address.isEmpty)
+            .disabled(!isValidForSaving)
         }
 #endif
     }
     
     private func loadPropertyData(_ listing: PropertyListing) {
         title = listing.title
-        address = listing.address
+        location = listing.location
+        link = listing.link ?? ""
         price = listing.price
         size = listing.size
         bedrooms = listing.bedrooms
@@ -249,7 +281,8 @@ struct AddPropertyView: View {
         if let listing = listing {
             // Update existing listing
             listing.title = title
-            listing.address = address
+            listing.location = location
+            listing.link = link.isEmpty ? nil : link
             listing.price = price
             listing.size = size
             listing.bedrooms = bedrooms
@@ -262,7 +295,8 @@ struct AddPropertyView: View {
             // Create new listing
             let newListing = PropertyListing(
                 title: title,
-                address: address,
+                location: location,
+                link: link,
                 price: price,
                 size: size,
                 bedrooms: bedrooms,

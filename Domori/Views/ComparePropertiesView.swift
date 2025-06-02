@@ -130,8 +130,8 @@ struct ComparePropertiesView: View {
                     )
                     
                     ComparisonRow(
-                        label: "Address",
-                        values: listings.map { $0.address }
+                        label: "Location",
+                        values: listings.map { $0.location }
                     )
                     
                     // Tags comparison

@@ -38,6 +38,8 @@ final class MigrationTests: XCTestCase {
         
         // Verify the legacy property got migrated to the new rating system
         XCTAssertEqual(legacyProperty.propertyRating, .good, "Property with rating 4.5 should be good")
+        XCTAssertEqual(legacyProperty.location, "123 Legacy St", "Address should be mapped to location")
+        XCTAssertNil(legacyProperty.link, "Legacy property should not have a link")
         
         // Test the migration helper directly
         let testProperty = PropertyListing(
@@ -55,6 +57,8 @@ final class MigrationTests: XCTestCase {
         try context.save()
         
         XCTAssertEqual(testProperty.propertyRating, .excluded, "Property with rating 2.0 should be excluded")
+        XCTAssertEqual(testProperty.location, "456 Test Ave", "Address should be mapped to location")
+        XCTAssertNil(testProperty.link, "Legacy property should not have a link")
     }
     
     func testPropertyRatingConversion() {
@@ -74,7 +78,8 @@ final class MigrationTests: XCTestCase {
         // Test that new properties can still be read with legacy values
         let newProperty = PropertyListing(
             title: "New Property",
-            address: "789 New Blvd",
+            location: "789 New Blvd",
+            link: "https://example.com/new-property",
             price: 750000,
             size: 150,
             bedrooms: 3,
@@ -87,6 +92,8 @@ final class MigrationTests: XCTestCase {
         
         // Verify legacy values are set correctly
         XCTAssertEqual(newProperty.rating, 4.0, "Good rating should convert to 4.0")
+        XCTAssertEqual(newProperty.location, "789 New Blvd", "Location should be set correctly")
+        XCTAssertEqual(newProperty.link, "https://example.com/new-property", "Link should be set correctly")
     }
     
     func testDataMigrationManager() async throws {
@@ -134,6 +141,12 @@ final class MigrationTests: XCTestCase {
         // Check specific properties - property1 has rating 0.0 and no favorite, should stay nil after migration
         XCTAssertEqual(property1.propertyRating, nil, "Property with no rating should stay as nil")
         XCTAssertEqual(property2.propertyRating, .considering, "Property with rating 3.5 should be considering")
+        
+        // Verify location mapping worked
+        XCTAssertEqual(property1.location, "100 Test St", "Address should be mapped to location")
+        XCTAssertEqual(property2.location, "200 Test St", "Address should be mapped to location")
+        XCTAssertNil(property1.link, "Legacy property should not have a link")
+        XCTAssertNil(property2.link, "Legacy property should not have a link")
     }
     
     func testMigrationRobustness() {
@@ -153,13 +166,16 @@ final class MigrationTests: XCTestCase {
         
         // Should handle invalid rating gracefully - negative rating should result in .none
         XCTAssertEqual(edgeProperty.propertyRating, PropertyRating.none, "Property with invalid rating should be .none")
+        XCTAssertEqual(edgeProperty.location, "999 Edge St", "Address should be mapped to location")
+        XCTAssertNil(edgeProperty.link, "Legacy property should not have a link")
     }
     
     func testRemovingIsFavoriteField() async throws {
         // Create a property with the current model (which still has isFavorite)
         let property = PropertyListing(
             title: "Test Property",
-            address: "123 Test St",
+            location: "123 Test St",
+            link: "https://example.com/test",
             price: 500000,
             size: 100,
             bedrooms: 2,
@@ -179,10 +195,40 @@ final class MigrationTests: XCTestCase {
         
         let savedProperty = properties[0]
         XCTAssertEqual(savedProperty.title, "Test Property")
+        XCTAssertEqual(savedProperty.location, "123 Test St")
+        XCTAssertEqual(savedProperty.link, "https://example.com/test")
         XCTAssertEqual(savedProperty.propertyRating, .good)
         
         // The key test: if we remove isFavorite from the model but the data still exists,
         // SwiftData should handle it gracefully since we're using propertyRating now
         print("✅ Property can be accessed without isFavorite field causing issues")
+    }
+    
+    func testNewPropertyStructure() throws {
+        // Test that new properties with links work correctly
+        let newProperty = PropertyListing(
+            title: "New Property with Link",
+            location: "456 Modern Ave",
+            link: "https://example.com/modern-property",
+            price: 850000,
+            size: 180,
+            bedrooms: 4,
+            bathrooms: 2.5,
+            propertyType: .house,
+            propertyRating: .excellent
+        )
+        
+        context.insert(newProperty)
+        try context.save()
+        
+        // Verify all new fields are set correctly
+        XCTAssertEqual(newProperty.title, "New Property with Link")
+        XCTAssertEqual(newProperty.location, "456 Modern Ave")
+        XCTAssertEqual(newProperty.link, "https://example.com/modern-property")
+        XCTAssertEqual(newProperty.price, 850000)
+        XCTAssertEqual(newProperty.propertyRating, .excellent)
+        
+        // Verify legacy rating is also set correctly
+        XCTAssertEqual(newProperty.rating, 5.0, "Excellent rating should convert to 5.0")
     }
 } 
