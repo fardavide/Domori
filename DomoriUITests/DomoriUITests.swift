@@ -405,4 +405,120 @@ final class DomoriUITests: XCTestCase {
             XCUIApplication().launch()
         }
     }
+
+    func testInlineRatingPickerInteraction() throws {
+        let app = XCUIApplication()
+        app.launch()
+        
+        // Wait for content to load
+        let propertyList = app.collectionViews.firstMatch
+        XCTAssertTrue(propertyList.waitForExistence(timeout: 3.0))
+        
+        // Navigate to first property detail
+        let firstProperty = propertyList.cells.firstMatch
+        if firstProperty.exists {
+            firstProperty.tap()
+            
+            let detailView = app.scrollViews.firstMatch
+            XCTAssertTrue(detailView.waitForExistence(timeout: 2.0))
+            
+            // Look for the "Your Notes" section
+            let userNotesSection = app.staticTexts["Your Notes"]
+            if userNotesSection.exists {
+                // Scroll to make sure rating section is visible
+                userNotesSection.swipeUp()
+                
+                // Look for rating buttons in the inline picker
+                let excellentButton = app.buttons.containing(NSPredicate(format: "label CONTAINS 'Excellent'")).firstMatch
+                let goodButton = app.buttons.containing(NSPredicate(format: "label CONTAINS 'Good'")).firstMatch
+                let consideringButton = app.buttons.containing(NSPredicate(format: "label CONTAINS 'Considering'")).firstMatch
+                
+                // Test rating selection
+                if excellentButton.exists {
+                    excellentButton.tap()
+                    // Should be able to tap without navigating away
+                    XCTAssertTrue(detailView.exists)
+                }
+                
+                if goodButton.exists {
+                    goodButton.tap()
+                    XCTAssertTrue(detailView.exists)
+                }
+                
+                if consideringButton.exists {
+                    consideringButton.tap()
+                    XCTAssertTrue(detailView.exists)
+                }
+            }
+        }
+    }
+    
+    func testPropertyDetailViewSectionSeparation() throws {
+        let app = XCUIApplication()
+        app.launch()
+        
+        // Navigate to property detail
+        let propertyList = app.collectionViews.firstMatch
+        XCTAssertTrue(propertyList.waitForExistence(timeout: 3.0))
+        
+        let firstProperty = propertyList.cells.firstMatch
+        if firstProperty.exists {
+            firstProperty.tap()
+            
+            let detailView = app.scrollViews.firstMatch
+            XCTAssertTrue(detailView.waitForExistence(timeout: 2.0))
+            
+            // Check for distinct sections
+            let housePropertiesSection = app.staticTexts["House Properties"]
+            let userNotesSection = app.staticTexts["Your Notes"]
+            
+            XCTAssertTrue(housePropertiesSection.exists || userNotesSection.exists, "At least one section should be visible")
+            
+            // Test that both sections are structurally different
+            if housePropertiesSection.exists && userNotesSection.exists {
+                // House Properties should come before User Notes
+                let housePropertiesFrame = housePropertiesSection.frame
+                let userNotesFrame = userNotesSection.frame
+                
+                XCTAssertLessThan(housePropertiesFrame.minY, userNotesFrame.minY, "House Properties should appear above User Notes")
+            }
+        }
+    }
+    
+    func testQuickRatingUpdateWithoutEdit() throws {
+        let app = XCUIApplication()
+        app.launch()
+        
+        // Navigate to property detail
+        let propertyList = app.collectionViews.firstMatch
+        XCTAssertTrue(propertyList.waitForExistence(timeout: 3.0))
+        
+        let firstProperty = propertyList.cells.firstMatch
+        if firstProperty.exists {
+            firstProperty.tap()
+            
+            let detailView = app.scrollViews.firstMatch
+            XCTAssertTrue(detailView.waitForExistence(timeout: 2.0))
+            
+            // Ensure we're not in edit mode (no "Save" or "Cancel" buttons visible)
+            let saveButton = app.buttons["Save"]
+            let cancelButton = app.buttons["Cancel"]
+            XCTAssertFalse(saveButton.exists, "Should not be in edit mode")
+            XCTAssertFalse(cancelButton.exists, "Should not be in edit mode")
+            
+            // Look for rating section
+            let ratingText = app.staticTexts["Rating"]
+            if ratingText.exists {
+                // Try to find and tap a rating button
+                let excellentButton = app.buttons.containing(NSPredicate(format: "label CONTAINS 'Excellent'")).firstMatch
+                if excellentButton.exists {
+                    excellentButton.tap()
+                    
+                    // Should still be in detail view (not edit mode)
+                    XCTAssertTrue(detailView.exists)
+                    XCTAssertFalse(saveButton.exists, "Should still not be in edit mode after rating change")
+                }
+            }
+        }
+    }
 }

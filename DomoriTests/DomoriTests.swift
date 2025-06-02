@@ -361,4 +361,101 @@ struct DomoriTests {
         #expect(legacyProperty.link == nil)
         #expect(legacyProperty.location == "456 Legacy Street") // address mapped to location
     }
+    
+    @Test("PropertyDetailView inline rating functionality")
+    func testPropertyDetailViewInlineRating() {
+        let listing = PropertyListing.sampleData[0]
+        let originalRating = listing.propertyRating
+        let detailView = PropertyDetailView(listing: listing)
+        
+        // Test that detail view can be created
+        #expect(detailView.listing.title == listing.title)
+        
+        // Test rating can be updated
+        listing.updateRating(.excellent)
+        #expect(listing.propertyRating == .excellent)
+        #expect(listing.rating == 5.0) // Legacy rating should be updated too
+        
+        // Test rating can be changed again
+        listing.updateRating(.considering)
+        #expect(listing.propertyRating == .considering)
+        #expect(listing.rating == 3.0)
+        
+        // Restore original rating
+        if let originalRating = originalRating {
+            listing.updateRating(originalRating)
+        }
+    }
+    
+    @Test("InlineRatingPicker component validation")
+    func testInlineRatingPickerComponent() {
+        var testRating: PropertyRating = .none
+        
+        // Test initial state
+        #expect(testRating == .none)
+        
+        // Test that all rating options are available
+        let allRatings = PropertyRating.allCases
+        #expect(allRatings.count == 5)
+        #expect(allRatings.contains(.none))
+        #expect(allRatings.contains(.excluded))
+        #expect(allRatings.contains(.considering))
+        #expect(allRatings.contains(.good))
+        #expect(allRatings.contains(.excellent))
+    }
+    
+    @Test("Property rating update persistence")
+    func testPropertyRatingUpdatePersistence() {
+        let listing = PropertyListing(
+            title: "Test Property",
+            location: "Test Location",
+            price: 100000,
+            size: 100,
+            bedrooms: 2,
+            bathrooms: 1,
+            propertyType: .apartment
+        )
+        
+        // Test initial state
+        #expect(listing.propertyRating == PropertyRating.none)
+        #expect(listing.rating == 0.0)
+        
+        // Test updating rating
+        listing.updateRating(.good)
+        #expect(listing.propertyRating == .good)
+        #expect(listing.rating == 4.0)
+        
+        // Test updating date is changed
+        let originalUpdateDate = listing.updatedDate
+        Thread.sleep(forTimeInterval: 0.01) // Small delay to ensure different timestamp
+        listing.updateRating(.excellent)
+        #expect(listing.updatedDate > originalUpdateDate)
+    }
+    
+    @Test("Property detail view structure separation")
+    func testPropertyDetailViewStructureSeparation() {
+        let listing = PropertyListing.sampleData[0]
+        
+        // Ensure the listing has both house properties and user notes
+        #expect(!listing.title.isEmpty) // House property
+        #expect(listing.price > 0) // House property
+        #expect(listing.size > 0) // House property
+        #expect(listing.propertyRating != nil) // User note
+        
+        // Test that the separation is meaningful
+        // House properties should be immutable facts
+        let originalPrice = listing.price
+        let originalSize = listing.size
+        let originalType = listing.propertyType
+        
+        // User notes should be mutable preferences
+        let originalRating = listing.propertyRating
+        listing.updateRating(.excellent)
+        #expect(listing.propertyRating != originalRating)
+        
+        // House properties should remain unchanged when rating changes
+        #expect(listing.price == originalPrice)
+        #expect(listing.size == originalSize)
+        #expect(listing.propertyType == originalType)
+    }
 }

@@ -13,7 +13,7 @@ struct PropertyDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                // Header
+                // Header - Basic Info Only
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
@@ -48,24 +48,18 @@ struct PropertyDetailView: View {
                         }
                         
                         Spacer()
-                        
-                        // Color-based rating
-                        if let propertyRating = listing.propertyRating, propertyRating != .none {
-                            HStack(spacing: 6) {
-                                Image(systemName: propertyRating.systemImage)
-                                    .foregroundColor(Color(propertyRating.color))
-                                    .font(.title2)
-                                Text(propertyRating.displayName)
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(Color(propertyRating.color))
-                            }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color(propertyRating.color).opacity(0.1))
-                            .cornerRadius(16)
-                        }
                     }
+                }
+                .padding()
+                .background(systemBackgroundColor)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
+                
+                // House Properties Section
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("House Properties")
+                        .font(.headline)
+                        .fontWeight(.semibold)
                     
                     // Key metrics
                     HStack(spacing: 24) {
@@ -123,6 +117,49 @@ struct PropertyDetailView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
                 
+                // User Notes Section
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Your Notes")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                    
+                    // Inline Rating Picker
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Rating")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        
+                        InlineRatingPicker(
+                            selectedRating: Binding(
+                                get: { listing.propertyRating ?? .none },
+                                set: { newRating in
+                                    listing.updateRating(newRating)
+                                    try? modelContext.save()
+                                }
+                            )
+                        )
+                    }
+                    
+                    Divider()
+                    
+                    // General Notes
+                    if !listing.notes.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("General Notes")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                            
+                            Text(listing.notes)
+                                .font(.body)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .padding()
+                .background(systemBackgroundColor)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
+
                 // Tags
                 if !listing.tags.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
@@ -214,20 +251,8 @@ struct PropertyDetailView: View {
     
     private var overviewTab: some View {
         VStack(alignment: .leading, spacing: 16) {
-            if !listing.notes.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Notes")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                    
-                    Text(listing.notes)
-                        .font(.body)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            
             VStack(alignment: .leading, spacing: 8) {
-                Text("Details")
+                Text("Property Information")
                     .font(.subheadline)
                     .fontWeight(.semibold)
                 
@@ -436,6 +461,68 @@ struct PropertyDetailView: View {
         Color(.secondarySystemBackground)
 #else
         Color(NSColor.separatorColor).opacity(0.2)
+#endif
+    }
+}
+
+// MARK: - Inline Rating Picker Component
+struct InlineRatingPicker: View {
+    @Binding var selectedRating: PropertyRating
+    
+    var body: some View {
+        LazyVGrid(columns: [
+            GridItem(.flexible()),
+            GridItem(.flexible())
+        ], spacing: 8) {
+            ForEach(PropertyRating.allCases, id: \.self) { rating in
+                ratingButton(for: rating)
+            }
+        }
+    }
+    
+    private func ratingButton(for rating: PropertyRating) -> some View {
+        Button(action: {
+            selectedRating = rating
+        }) {
+            HStack(spacing: 6) {
+                Image(systemName: rating.systemImage)
+                    .foregroundColor(Color(rating.color))
+                    .font(.subheadline)
+                
+                Text(rating.displayName)
+                    .font(.caption)
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                if selectedRating == rating {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.blue)
+                        .font(.caption)
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(ratingBackground(for: rating))
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+    
+    private func ratingBackground(for rating: PropertyRating) -> some View {
+        let isSelected = selectedRating == rating
+        let fillColor = isSelected ? Color(rating.color).opacity(0.15) : systemGray6Color
+        let strokeColor = isSelected ? Color(rating.color).opacity(0.4) : Color.clear
+        
+        return RoundedRectangle(cornerRadius: 8)
+            .fill(fillColor)
+            .stroke(strokeColor, lineWidth: 1)
+    }
+    
+    private var systemGray6Color: Color {
+#if os(iOS)
+        Color(.systemGray6)
+#else
+        Color(NSColor.controlBackgroundColor)
 #endif
     }
 }
