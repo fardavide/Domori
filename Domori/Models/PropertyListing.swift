@@ -12,7 +12,6 @@ final class PropertyListing {
     var bathrooms: Double
     var propertyType: PropertyType
     var rating: Double // 1-5 stars (legacy)
-    var notes: String
     
     // New property rating system (added for migration)
     var propertyRating: PropertyRating?
@@ -21,8 +20,6 @@ final class PropertyListing {
     var updatedDate: Date
     
     // Relationships
-    @Relationship(deleteRule: .cascade) var propertyNotes: [PropertyNote] = []
-    @Relationship(deleteRule: .cascade) var photos: [PropertyPhoto] = []
     @Relationship(deleteRule: .nullify) var tags: [PropertyTag] = []
     
     init(
@@ -35,7 +32,6 @@ final class PropertyListing {
         bathrooms: Double,
         propertyType: PropertyType,
         rating: Double = 0,
-        notes: String = "",
         propertyRating: PropertyRating? = nil
     ) {
         self.title = title
@@ -46,7 +42,6 @@ final class PropertyListing {
         self.bedrooms = bedrooms
         self.bathrooms = bathrooms
         self.propertyType = propertyType
-        self.notes = notes
         self.createdDate = Date()
         self.updatedDate = Date()
         
@@ -76,7 +71,6 @@ final class PropertyListing {
         bathrooms: Double,
         propertyType: PropertyType,
         rating: Double = 0,
-        notes: String = "",
         propertyRating: PropertyRating? = nil
     ) {
         self.init(
@@ -89,7 +83,6 @@ final class PropertyListing {
             bathrooms: bathrooms,
             propertyType: propertyType,
             rating: rating,
-            notes: notes,
             propertyRating: propertyRating
         )
     }
@@ -144,24 +137,22 @@ final class PropertyListing {
         return Locale.current.measurementSystem == .metric ? "m²" : "sq ft"
     }
     
-    var bathroomText: String {
-        if bathrooms.truncatingRemainder(dividingBy: 1) == 0 {
-            return "\(Int(bathrooms))"
-        } else {
-            return String(format: "%.1f", bathrooms)
-        }
-    }
-    
-    // Price per unit area with locale formatting
     var formattedPricePerUnit: String {
         let pricePerUnit = price / size
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.maximumFractionDigits = 0
         formatter.locale = Locale.current
-        
-        let formattedPrice = formatter.string(from: NSNumber(value: pricePerUnit)) ?? "0"
+        let formattedPrice = formatter.string(from: NSNumber(value: pricePerUnit)) ?? formatter.currencySymbol + "0"
         return "\(formattedPrice)/\(sizeUnit)"
+    }
+    
+    var bathroomText: String {
+        if bathrooms == floor(bathrooms) {
+            return "\(Int(bathrooms))"
+        } else {
+            return String(format: "%.1f", bathrooms)
+        }
     }
 }
 

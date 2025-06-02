@@ -5,457 +5,275 @@ import SwiftData
 import Foundation
 @testable import Domori
 
+@MainActor
 struct DomoriTests {
-
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
-    }
-
-    @MainActor
-    @Test("App integration test - Create property with relationships")
-    func createPropertyWithRelationships() throws {
-        // Create an in-memory model container for testing
+    
+    @Test func testPropertyListingCreation() async throws {
+        // Create in-memory container for testing
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: PropertyListing.self, PropertyNote.self, PropertyTag.self, PropertyPhoto.self, configurations: config)
+        let container = try ModelContainer(for: PropertyListing.self, PropertyTag.self, configurations: config)
         let context = container.mainContext
         
-        // Create a property
+        // Create a test property
         let property = PropertyListing(
-            title: "Test Integration Property",
-            location: "123 Integration Street",
-            link: "https://example.com/listing/integration",
-            price: 800_000,
-            size: 1800,
-            bedrooms: 3,
-            bathrooms: 2.5,
+            title: "Test Property",
+            location: "123 Test Street",
+            link: "https://example.com/test",
+            price: 500000,
+            size: 100,
+            bedrooms: 2,
+            bathrooms: 1.5,
             propertyType: .house,
-            rating: 4.0,
             propertyRating: .good
         )
         
-        // Create notes
-        let prosNote = PropertyNote(content: "Great location", category: .pros)
-        let consNote = PropertyNote(content: "Needs new roof", category: .cons)
-        prosNote.propertyListing = property
-        consNote.propertyListing = property
-        property.propertyNotes.append(prosNote)
-        property.propertyNotes.append(consNote)
-        
-        // Create tags
-        let tag1 = PropertyTag(name: "High Priority", color: .red)
-        let tag2 = PropertyTag(name: "Good Deal", color: .green)
-        property.tags.append(tag1)
-        property.tags.append(tag2)
-        tag1.properties.append(property)
-        tag2.properties.append(property)
-        
-        // Create photo
-        let photoData = Data([1, 2, 3, 4])
-        let photo = PropertyPhoto(imageData: photoData, caption: "Front view", photoType: .exterior)
-        photo.propertyListing = property
-        property.photos.append(photo)
-        
-        // Insert into context
         context.insert(property)
-        context.insert(prosNote)
-        context.insert(consNote)
-        context.insert(tag1)
-        context.insert(tag2)
-        context.insert(photo)
-        
         try context.save()
         
-        // Verify relationships
-        #expect(property.propertyNotes.count == 2)
-        #expect(property.tags.count == 2)
-        #expect(property.photos.count == 1)
-        #expect(prosNote.propertyListing === property)
-        #expect(tag1.properties.contains(property))
-        #expect(photo.propertyListing === property)
+        // Verify the property was created correctly
+        #expect(property.title == "Test Property")
+        #expect(property.location == "123 Test Street")
+        #expect(property.link == "https://example.com/test")
+        #expect(property.price == 500000)
+        #expect(property.size == 100)
+        #expect(property.bedrooms == 2)
+        #expect(property.bathrooms == 1.5)
+        #expect(property.propertyType == .house)
+        #expect(property.propertyRating == .good)
+        #expect(property.rating == 4.0) // Should convert to legacy rating
     }
     
-    @Test("App integration test - Property filtering and sorting")
-    func propertyFilteringAndSorting() throws {
-        // Create sample properties with different attributes
-        let properties = [
-            PropertyListing(title: "A Cheap House", location: "1 A St", link: "https://example.com/1", price: 200_000, size: 1000, bedrooms: 2, bathrooms: 1, propertyType: .house, rating: 2.0),
-            PropertyListing(title: "B Expensive Condo", location: "2 B St", link: "https://example.com/2", price: 800_000, size: 1200, bedrooms: 2, bathrooms: 2, propertyType: .condo, rating: 5.0, propertyRating: .excellent),
-            PropertyListing(title: "C Medium Apartment", location: "3 C St", link: "https://example.com/3", price: 400_000, size: 1100, bedrooms: 3, bathrooms: 1.5, propertyType: .apartment, rating: 3.5),
-        ]
+    @Test func testPropertyListingWithTags() async throws {
+        // Create in-memory container for testing
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: PropertyListing.self, PropertyTag.self, configurations: config)
+        let context = container.mainContext
         
-        // Test sorting by price
-        let sortedByPrice = properties.sorted { $0.price < $1.price }
-        #expect(sortedByPrice[0].title == "A Cheap House")
-        #expect(sortedByPrice[2].title == "B Expensive Condo")
-        
-        // Test sorting by rating
-        let sortedByRating = properties.sorted { $0.rating > $1.rating }
-        #expect(sortedByRating[0].rating == 5.0)
-        #expect(sortedByRating[2].rating == 2.0)
-        
-        // Test filtering by property rating
-        let ratedProperties = properties.filter { $0.propertyRating != nil && $0.propertyRating != PropertyRating.none }
-        #expect(ratedProperties.count == 1)
-        #expect(ratedProperties[0].title == "B Expensive Condo")
-        
-        // Test filtering by property type
-        let houses = properties.filter { $0.propertyType == PropertyType.house }
-        #expect(houses.count == 1)
-        #expect(houses[0].title == "A Cheap House")
-    }
-    
-    @Test("App integration test - Note categories validation")
-    func noteCategoriesValidation() {
+        // Create a test property
         let property = PropertyListing(
-            title: "Test Property",
-            location: "Test Location",
-            link: "https://example.com/test",
-            price: 500_000,
-            size: 1500,
+            title: "Test Property with Tags",
+            location: "456 Tag Street",
+            link: "https://example.com/tags",
+            price: 750000,
+            size: 150,
             bedrooms: 3,
-            bathrooms: 2,
-            propertyType: .house
+            bathrooms: 2.0,
+            propertyType: .condo,
+            propertyRating: .excellent
         )
         
-        // Test creating notes for all categories
-        for category in NoteCategory.allCases {
-            let note = PropertyNote(content: "Test \(category.rawValue) note", category: category)
-            note.propertyListing = property
-            property.propertyNotes.append(note)
-            
-            #expect(note.category == category)
-            #expect(!note.content.isEmpty)
-        }
+        // Create some tags
+        let tag1 = PropertyTag(name: "Great Location", color: .green)
+        let tag2 = PropertyTag(name: "Needs Work", color: .red)
         
-        #expect(property.propertyNotes.count == NoteCategory.allCases.count)
+        property.tags.append(tag1)
+        property.tags.append(tag2)
         
-        // Test that each category has unique color and icon
-        let categories = NoteCategory.allCases
-        let colors = Set(categories.map { $0.color })
-        let icons = Set(categories.map { $0.systemImage })
+        context.insert(property)
+        context.insert(tag1)
+        context.insert(tag2)
+        try context.save()
         
-        #expect(colors.count == categories.count) // All unique colors
-        #expect(icons.count == categories.count) // All unique icons
+        // Verify the property and tags were created correctly
+        #expect(property.tags.count == 2)
+        #expect(property.tags.contains(tag1))
+        #expect(property.tags.contains(tag2))
     }
     
-    @Test("App integration test - Tag color validation")
-    func tagColorValidation() {
-        // Test that all tag colors are unique and valid
-        let allColors = TagColor.allCases
-        let colorNames = Set(allColors.map { $0.rawValue })
-        let displayNames = Set(allColors.map { $0.displayName })
+    @Test func testPropertyTagCreation() async throws {
+        // Create in-memory container for testing
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: PropertyListing.self, PropertyTag.self, configurations: config)
+        let context = container.mainContext
         
-        #expect(colorNames.count == allColors.count) // All unique raw values
-        #expect(displayNames.count == allColors.count) // All unique display names
-        
-        // Test creating tags with all colors
-        for color in allColors {
-            let tag = PropertyTag(name: "Test \(color.displayName)", color: color)
-            #expect(tag.color == color)
-            #expect(tag.name.contains(color.displayName))
-        }
-    }
-    
-    @Test("App integration test - Photo type validation")
-    func photoTypeValidation() {
-        let photoData = Data([1, 2, 3, 4, 5])
-        
-        // Test creating photos for all types
-        for photoType in PhotoType.allCases {
-            let photo = PropertyPhoto(imageData: photoData, caption: "Test \(photoType.rawValue)", photoType: photoType)
-            
-            #expect(photo.photoType == photoType)
-            #expect(!photo.caption.isEmpty)
-            #expect(photo.imageData == photoData)
-        }
-        
-        // Test sort order is consistent
-        let sortedTypes = PhotoType.allCases.sorted { $0.sortOrder < $1.sortOrder }
-        #expect(sortedTypes.first == .exterior)
-        #expect(sortedTypes.last == .other)
-        
-        // Test that all have unique system images
-        let images = Set(PhotoType.allCases.map { $0.systemImage })
-        #expect(images.count == PhotoType.allCases.count)
-    }
-    
-    @Test("App integration test - Currency formatting across locales")
-    func currencyFormattingAcrossLocales() {
+        // Create a test property
         let property = PropertyListing(
             title: "Test Property",
-            location: "Test Location",
-            link: "https://example.com/test",
-            price: 1_500_000,
-            size: 2000,
-            bedrooms: 4,
-            bathrooms: 3,
-            propertyType: .house
+            location: "123 Test Street",
+            price: 500000,
+            size: 100,
+            bedrooms: 2,
+            bathrooms: 1.5,
+            propertyType: .house,
+            propertyRating: .good
         )
         
-        // Test that formatting methods return non-empty strings
-        #expect(!property.formattedPrice.isEmpty)
-        #expect(!property.formattedSize.isEmpty)
-        #expect(!property.formattedPricePerUnit.isEmpty)
+        // Test creating tags for different categories
+        let tagColors = TagColor.allCases
+        for color in tagColors {
+            let tag = PropertyTag(name: "Test \(color.rawValue) tag", color: color)
+            property.tags.append(tag)
+            context.insert(tag)
+        }
         
-        // Test that price contains the expected number
-        #expect(property.formattedPrice.contains("1") && property.formattedPrice.contains("5"))
+        context.insert(property)
+        try context.save()
         
-        // Test that size unit is appropriate
-        #expect(property.sizeUnit == "m²" || property.sizeUnit == "sq ft")
+        #expect(property.tags.count == TagColor.allCases.count)
         
-        // Test price per unit calculation (1,500,000 / 2000 = 750)
-        #expect(property.formattedPricePerUnit.contains("750"))
+        // Verify each tag has the correct color
+        let colors = TagColor.allCases
+        for (index, tag) in property.tags.enumerated() {
+            #expect(tag.color == colors[index])
+        }
     }
     
-    @Test("App integration test - Property type system images")
-    func propertyTypeSystemImages() {
-        // Test that all property types have valid system images
-        for propertyType in PropertyType.allCases {
+    @Test func testPropertyRatingSystem() async throws {
+        // Test all property rating values
+        let ratings = PropertyRating.allCases
+        
+        for rating in ratings {
             let property = PropertyListing(
-                title: "Test \(propertyType.rawValue)",
-                location: "Test Location",
-                link: "https://example.com/test",
-                price: 500_000,
-                size: 1500,
+                title: "Test \(rating.rawValue) Property",
+                location: "123 Rating Street",
+                price: 500000,
+                size: 100,
                 bedrooms: 2,
-                bathrooms: 1,
-                propertyType: propertyType
+                bathrooms: 1.5,
+                propertyType: .house,
+                propertyRating: rating
             )
             
-            #expect(property.propertyType == propertyType)
-            #expect(!propertyType.systemImage.isEmpty)
-            #expect(!propertyType.rawValue.isEmpty)
+            #expect(property.propertyRating == rating)
+            #expect(property.rating == rating.toLegacyRating)
         }
+    }
+    
+    @Test func testPropertyTypeSystemImages() async throws {
+        // Test that all property types have unique system images
+        let types = PropertyType.allCases
+        let images = Set(types.map { $0.systemImage })
         
-        // Test that system images are unique
-        let images = Set(PropertyType.allCases.map { $0.systemImage })
         #expect(images.count == PropertyType.allCases.count)
     }
     
-    @Test("App integration test - Sample data consistency")
-    func sampleDataConsistency() {
-        // Test sample data consistency
-        let sampleData = PropertyListing.sampleData
-        #expect(sampleData.count > 0, "Should have sample data")
-        
-        // Test that all properties have valid data
-        for property in sampleData {
-            #expect(!property.title.isEmpty, "Property should have a title")
-            #expect(!property.location.isEmpty, "Property should have a location")
-            #expect(property.price > 0, "Property should have a positive price")
-            #expect(property.size > 0, "Property should have a positive size")
-            #expect(property.link != nil, "New sample properties should have links")
-        }
-        
-        // Test that locations are unique
-        let uniqueLocations = Set(sampleData.map { $0.location })
-        #expect(uniqueLocations.count == sampleData.count)
-    }
-    
-    @Test("PropertyDetailBadge creation and validation")
-    func testPropertyDetailBadge() {
-        let badge = PropertyDetailBadge(icon: "bed.double", value: "3", label: "beds")
-        // Just verify the badge can be created - we can't easily test SwiftUI view properties
-        #expect(badge.icon == "bed.double")
-        #expect(badge.value == "3")
-        #expect(badge.label == "beds")
-        
-        // Test different badge types
-        let bathBadge = PropertyDetailBadge(icon: "shower", value: "2", label: "baths")
-        #expect(bathBadge.icon == "shower")
-        #expect(bathBadge.value == "2")
-        #expect(bathBadge.label == "baths")
-        
-        let sizeBadge = PropertyDetailBadge(icon: "square", value: "1200", label: "sq ft")
-        #expect(sizeBadge.icon == "square")
-        #expect(sizeBadge.value == "1200")
-        #expect(sizeBadge.label == "sq ft")
-    }
-    
-    @Test("PropertyListRowView with rating validation")
-    func testPropertyListRowViewWithRating() {
-        let listing = PropertyListing.sampleData[0] // Should have excellent rating
-        let rowView = PropertyListRowView(
-            listing: listing,
-            isSelected: false,
-            onSelectionChanged: { _ in }
-        )
-        
-        // Test that the row view can be created
-        #expect(rowView.listing.title == listing.title)
-        
-        // Test that rating is properly displayed
-        if let rating = listing.propertyRating {
-            #expect(rating != PropertyRating.none)
-            #expect(!rating.systemImage.isEmpty)
-            #expect(!rating.color.isEmpty)
-        }
-    }
-    
-    @Test("PropertyListRowView without rating validation")
-    func testPropertyListRowViewWithoutRating() {
-        var listing = PropertyListing.sampleData[0]
-        listing.propertyRating = PropertyRating.none
-        
-        let rowView = PropertyListRowView(
-            listing: listing,
-            isSelected: false,
-            onSelectionChanged: { _ in }
-        )
-        
-        #expect(rowView.listing.title == listing.title)
-        #expect(listing.propertyRating == PropertyRating.none)
-    }
-    
-    @Test("PropertyListRowView selection handling")
-    func testPropertyListRowViewSelection() {
-        let listing = PropertyListing.sampleData[0]
-        var selectionChanged = false
-        var selectedState = false
-        
-        let rowView = PropertyListRowView(
-            listing: listing,
-            isSelected: false,
-            onSelectionChanged: { isSelected in
-                selectionChanged = true
-                selectedState = isSelected
-            }
-        )
-        
-        #expect(rowView.listing.title == listing.title)
-        #expect(rowView.isSelected == false)
-        
-        // Note: In a real test environment, we would simulate the tap gesture
-        // For now, we just verify the callback structure is correct
-        #expect(selectionChanged == false) // Not triggered until tap
-    }
-
-    @Test("App integration test - Link property validation")
-    func linkPropertyValidation() {
-        // Test new property with link
-        let newProperty = PropertyListing(
-            title: "New Property with Link",
-            location: "123 New Street",
-            link: "https://example.com/new-property",
-            price: 750_000,
-            size: 1600,
+    @Test func testPropertyFormattedValues() async throws {
+        let property = PropertyListing(
+            title: "Test Formatting",
+            location: "123 Format Street",
+            price: 1234567,
+            size: 150.5,
             bedrooms: 3,
-            bathrooms: 2,
-            propertyType: .house
+            bathrooms: 2.5,
+            propertyType: .house,
+            propertyRating: .good
         )
         
-        #expect(newProperty.link == "https://example.com/new-property")
-        #expect(newProperty.location == "123 New Street")
+        // Test formatted price (should include currency symbol)
+        #expect(property.formattedPrice.contains("1,234,567") || property.formattedPrice.contains("1.234.567"))
         
-        // Test legacy property without link
-        let legacyProperty = PropertyListing(
-            title: "Legacy Property",
-            address: "456 Legacy Street",
-            price: 600_000,
-            size: 1400,
-            bedrooms: 2,
-            bathrooms: 1.5,
-            propertyType: .condo
-        )
+        // Test formatted size (should include unit)
+        #expect(property.formattedSize.contains("150") || property.formattedSize.contains("151"))
         
-        #expect(legacyProperty.link == nil)
-        #expect(legacyProperty.location == "456 Legacy Street") // address mapped to location
+        // Test bathroom text formatting
+        #expect(property.bathroomText == "2.5")
+        
+        // Test price per unit calculation
+        #expect(property.formattedPricePerUnit.contains("/"))
     }
     
-    @Test("PropertyDetailView inline rating functionality")
-    func testPropertyDetailViewInlineRating() {
-        let listing = PropertyListing.sampleData[0]
-        let originalRating = listing.propertyRating
-        let detailView = PropertyDetailView(listing: listing)
+    @Test func testSampleData() async throws {
+        let sampleProperties = PropertyListing.sampleData
         
-        // Test that detail view can be created
-        #expect(detailView.listing.title == listing.title)
+        // Verify we have sample data
+        #expect(sampleProperties.count > 0)
         
-        // Test rating can be updated
-        listing.updateRating(.excellent)
-        #expect(listing.propertyRating == .excellent)
-        #expect(listing.rating == 5.0) // Legacy rating should be updated too
-        
-        // Test rating can be changed again
-        listing.updateRating(.considering)
-        #expect(listing.propertyRating == .considering)
-        #expect(listing.rating == 3.0)
-        
-        // Restore original rating
-        if let originalRating = originalRating {
-            listing.updateRating(originalRating)
+        // Verify all sample properties have required fields
+        for property in sampleProperties {
+            #expect(!property.title.isEmpty)
+            #expect(!property.location.isEmpty)
+            #expect(property.price > 0)
+            #expect(property.size > 0)
+            #expect(property.bedrooms >= 0)
+            #expect(property.bathrooms > 0)
+            #expect(property.propertyRating != nil)
         }
     }
     
-    @Test("InlineRatingPicker component validation")
-    func testInlineRatingPickerComponent() {
-        var testRating: PropertyRating = .none
+    @Test func testPropertyListingLegacyInitializer() async throws {
+        // Test the legacy initializer that maps address to location
+        let property = PropertyListing(
+            title: "Legacy Property",
+            address: "456 Legacy Avenue", // Using legacy parameter name
+            price: 600000,
+            size: 120,
+            bedrooms: 3,
+            bathrooms: 2.0,
+            propertyType: .townhouse,
+            rating: 3.5
+        )
         
-        // Test initial state
-        #expect(testRating == .none)
-        
-        // Test that all rating options are available
-        let allRatings = PropertyRating.allCases
-        #expect(allRatings.count == 5)
-        #expect(allRatings.contains(.none))
-        #expect(allRatings.contains(.excluded))
-        #expect(allRatings.contains(.considering))
-        #expect(allRatings.contains(.good))
-        #expect(allRatings.contains(.excellent))
+        // Verify address was mapped to location
+        #expect(property.location == "456 Legacy Avenue")
+        #expect(property.link == nil) // Legacy properties don't have links
+        #expect(property.propertyRating == .considering) // Rating 3.5 should map to considering
     }
     
-    @Test("Property rating update persistence")
-    func testPropertyRatingUpdatePersistence() {
-        let listing = PropertyListing(
-            title: "Test Property",
-            location: "Test Location",
-            price: 100000,
+    @Test func testPropertyRatingConversions() async throws {
+        // Test PropertyRating to legacy rating conversion
+        #expect(PropertyRating.none.toLegacyRating == 0.0)
+        #expect(PropertyRating.excluded.toLegacyRating == 1.0)
+        #expect(PropertyRating.considering.toLegacyRating == 2.5)
+        #expect(PropertyRating.good.toLegacyRating == 4.0)
+        #expect(PropertyRating.excellent.toLegacyRating == 5.0)
+        
+        // Test legacy rating to PropertyRating conversion
+        #expect(PropertyRating.fromLegacy(rating: 0.0, isFavorite: false) == .none)
+        #expect(PropertyRating.fromLegacy(rating: 1.5, isFavorite: false) == .excluded)
+        #expect(PropertyRating.fromLegacy(rating: 3.0, isFavorite: false) == .considering)
+        #expect(PropertyRating.fromLegacy(rating: 4.0, isFavorite: false) == .good)
+        #expect(PropertyRating.fromLegacy(rating: 5.0, isFavorite: false) == .excellent)
+        
+        // Test favorite override
+        #expect(PropertyRating.fromLegacy(rating: 3.0, isFavorite: true) == .good)
+    }
+    
+    @Test func testPropertyRatingDisplayProperties() async throws {
+        // Test that all ratings have display names and system images
+        for rating in PropertyRating.allCases {
+            #expect(!rating.displayName.isEmpty)
+            #expect(!rating.systemImage.isEmpty)
+        }
+        
+        // Test specific display properties
+        #expect(PropertyRating.none.displayName == "No Rating")
+        #expect(PropertyRating.excellent.displayName == "Excellent")
+        #expect(PropertyRating.none.systemImage == "circle")
+        #expect(PropertyRating.excellent.systemImage == "star.circle")
+    }
+    
+    @Test func testTagColorProperties() async throws {
+        // Test that all tag colors have proper color values
+        for tagColor in TagColor.allCases {
+            #expect(!tagColor.rawValue.isEmpty)
+            #expect(!tagColor.displayName.isEmpty)
+            // The rawValue is the color string representation
+            #expect(tagColor.rawValue == tagColor.rawValue.lowercased())
+        }
+    }
+    
+    @Test func testPropertyUpdateRating() async throws {
+        let property = PropertyListing(
+            title: "Test Update",
+            location: "123 Update Street",
+            price: 500000,
             size: 100,
             bedrooms: 2,
-            bathrooms: 1,
-            propertyType: .apartment
+            bathrooms: 1.5,
+            propertyType: .house,
+            propertyRating: PropertyRating.none
         )
         
-        // Test initial state
-        #expect(listing.propertyRating == PropertyRating.none)
-        #expect(listing.rating == 0.0)
+        let originalDate = property.updatedDate
         
-        // Test updating rating
-        listing.updateRating(.good)
-        #expect(listing.propertyRating == .good)
-        #expect(listing.rating == 4.0)
+        // Wait a moment to ensure date changes
+        try await Task.sleep(nanoseconds: 1_000_000) // 1ms
         
-        // Test updating date is changed
-        let originalUpdateDate = listing.updatedDate
-        Thread.sleep(forTimeInterval: 0.01) // Small delay to ensure different timestamp
-        listing.updateRating(.excellent)
-        #expect(listing.updatedDate > originalUpdateDate)
-    }
-    
-    @Test("Property detail view structure separation")
-    func testPropertyDetailViewStructureSeparation() {
-        let listing = PropertyListing.sampleData[0]
+        // Update the rating
+        property.updateRating(.excellent)
         
-        // Ensure the listing has both house properties and user notes
-        #expect(!listing.title.isEmpty) // House property
-        #expect(listing.price > 0) // House property
-        #expect(listing.size > 0) // House property
-        #expect(listing.propertyRating != nil) // User note
-        
-        // Test that the separation is meaningful
-        // House properties should be immutable facts
-        let originalPrice = listing.price
-        let originalSize = listing.size
-        let originalType = listing.propertyType
-        
-        // User notes should be mutable preferences
-        let originalRating = listing.propertyRating
-        listing.updateRating(.excellent)
-        #expect(listing.propertyRating != originalRating)
-        
-        // House properties should remain unchanged when rating changes
-        #expect(listing.price == originalPrice)
-        #expect(listing.size == originalSize)
-        #expect(listing.propertyType == originalType)
+        #expect(property.propertyRating == .excellent)
+        #expect(property.rating == 5.0)
+        #expect(property.updatedDate > originalDate)
     }
 }

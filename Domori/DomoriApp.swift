@@ -8,8 +8,6 @@ struct DomoriApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             PropertyListing.self,
-            PropertyNote.self,
-            PropertyPhoto.self,
             PropertyTag.self
         ])
         
@@ -72,15 +70,26 @@ struct DomoriApp: App {
     private func performDataMigration() async {
         let context = sharedModelContainer.mainContext
         
-        // Check if migration is needed
+        // Check if property rating migration is needed
         if DataMigrationManager.needsMigration(context: context) {
-            print("DataMigration: Migration needed - starting migration process...")
+            print("DataMigration: Property rating migration needed - starting migration process...")
             await DataMigrationManager.migratePropertyListings(context: context)
             
             // Validate migration was successful
             _ = DataMigrationManager.validateMigration(context: context)
         } else {
-            print("DataMigration: No migration needed")
+            print("DataMigration: No property rating migration needed")
+        }
+        
+        // Check if Photos and Notes removal migration is needed
+        if DataMigrationManager.needsPhotosAndNotesRemoval(context: context) {
+            print("DataMigration: Photos and Notes removal migration needed - starting removal process...")
+            await DataMigrationManager.removePhotosAndNotesFeatures(context: context)
+            
+            // Validate removal was successful
+            _ = DataMigrationManager.validatePhotosAndNotesRemoval(context: context)
+        } else {
+            print("DataMigration: No Photos and Notes removal needed")
         }
     }
 }

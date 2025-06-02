@@ -8,43 +8,26 @@ struct ComparePropertiesView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 0) {
-                    // Headers
+                    // Header row with property titles
                     HStack(spacing: 1) {
-                        Text("Property")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                            .frame(width: 120, alignment: .leading)
+                        Text("")
+                            .frame(width: 120)
                             .padding()
-#if os(iOS)
-                            .background(Color(.systemGroupedBackground))
-#else
-                            .background(Color(NSColor.controlBackgroundColor))
-#endif
                         
-                        // Property columns
                         ForEach(listings, id: \.title) { listing in
-                            VStack(spacing: 4) {
+                            VStack(alignment: .leading, spacing: 4) {
                                 Text(listing.title)
-                                    .font(.headline)
+                                    .font(.subheadline)
                                     .fontWeight(.semibold)
-                                    .multilineTextAlignment(.center)
                                     .lineLimit(2)
                                 
-                                // Show rating instead of favorite
-                                if let propertyRating = listing.propertyRating, propertyRating != .none {
-                                    HStack(spacing: 4) {
-                                        Image(systemName: propertyRating.systemImage)
-                                            .foregroundColor(Color(propertyRating.color))
-                                            .font(.caption)
-                                        Text(propertyRating.displayName)
-                                            .font(.caption2)
-                                            .foregroundColor(Color(propertyRating.color))
-                                    }
-                                }
+                                Text(listing.location)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
                             }
-                            .frame(maxWidth: .infinity, minHeight: 60)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 12)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding()
 #if os(iOS)
                             .background(Color(.systemGroupedBackground))
 #else
@@ -52,6 +35,7 @@ struct ComparePropertiesView: View {
 #endif
                         }
                     }
+                    .background(Color.primary.opacity(0.1))
                     
                     Divider()
                     
@@ -60,7 +44,7 @@ struct ComparePropertiesView: View {
                         label: "Price",
                         values: listings.map { $0.formattedPrice },
                         highlightBest: true,
-                        bestComparison: { values in
+                        bestComparison: { _ in
                             let prices = listings.map { $0.price }
                             let minPrice = prices.min() ?? 0
                             return prices.map { $0 == minPrice }
@@ -172,39 +156,6 @@ struct ComparePropertiesView: View {
                             }
                         }
                         Divider()
-                    }
-                    
-                    // Notes comparison
-                    VStack(spacing: 1) {
-                        HStack(spacing: 1) {
-                            Text("Notes")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                                .frame(width: 120, alignment: .leading)
-                                .padding()
-#if os(iOS)
-                                .background(Color(.tertiarySystemGroupedBackground))
-#else
-                                .background(Color(NSColor.separatorColor).opacity(0.1))
-#endif
-                            
-                            ForEach(listings, id: \.title) { listing in
-                                ScrollView {
-                                    Text(listing.notes.isEmpty ? "No notes" : listing.notes)
-                                        .font(.caption)
-                                        .foregroundStyle(listing.notes.isEmpty ? .secondary : .primary)
-                                        .multilineTextAlignment(.leading)
-                                        .frame(maxWidth: .infinity, alignment: .topLeading)
-                                }
-                                .frame(maxWidth: .infinity, minHeight: 80)
-                                .padding(8)
-#if os(iOS)
-                                .background(Color(.tertiarySystemGroupedBackground))
-#else
-                                .background(Color(NSColor.separatorColor).opacity(0.1))
-#endif
-                            }
-                        }
                     }
                 }
             }

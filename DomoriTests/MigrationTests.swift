@@ -11,7 +11,7 @@ final class MigrationTests: XCTestCase {
     override func setUp() async throws {
         // Create in-memory container for testing
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        container = try ModelContainer(for: PropertyListing.self, PropertyNote.self, PropertyTag.self, PropertyPhoto.self, configurations: config)
+        container = try ModelContainer(for: PropertyListing.self, PropertyTag.self, configurations: config)
         context = container.mainContext
     }
     
@@ -170,8 +170,8 @@ final class MigrationTests: XCTestCase {
         XCTAssertNil(edgeProperty.link, "Legacy property should not have a link")
     }
     
-    func testRemovingIsFavoriteField() async throws {
-        // Create a property with the current model (which still has isFavorite)
+    func testPhotosAndNotesRemovalMigration() async throws {
+        // Test the Photos and Notes removal migration
         let property = PropertyListing(
             title: "Test Property",
             location: "123 Test St",
@@ -188,7 +188,17 @@ final class MigrationTests: XCTestCase {
         context.insert(property)
         try context.save()
         
-        // Verify the property was saved correctly
+        // Test that the migration check works
+        let needsRemoval = DataMigrationManager.needsPhotosAndNotesRemoval(context: context)
+        // This should return true on first run, false on subsequent runs
+        
+        // Perform the removal migration
+        await DataMigrationManager.removePhotosAndNotesFeatures(context: context)
+        
+        // Validate the removal was successful
+        XCTAssertTrue(DataMigrationManager.validatePhotosAndNotesRemoval(context: context), "Photos and Notes removal should be valid")
+        
+        // Verify the property was updated
         let descriptor = FetchDescriptor<PropertyListing>()
         let properties = try context.fetch(descriptor)
         XCTAssertEqual(properties.count, 1)
@@ -198,37 +208,35 @@ final class MigrationTests: XCTestCase {
         XCTAssertEqual(savedProperty.location, "123 Test St")
         XCTAssertEqual(savedProperty.link, "https://example.com/test")
         XCTAssertEqual(savedProperty.propertyRating, .good)
-        
-        // The key test: if we remove isFavorite from the model but the data still exists,
-        // SwiftData should handle it gracefully since we're using propertyRating now
-        print("✅ Property can be accessed without isFavorite field causing issues")
     }
     
-    func testNewPropertyStructure() throws {
-        // Test that new properties with links work correctly
-        let newProperty = PropertyListing(
-            title: "New Property with Link",
-            location: "456 Modern Ave",
-            link: "https://example.com/modern-property",
-            price: 850000,
-            size: 180,
-            bedrooms: 4,
-            bathrooms: 2.5,
+    func testPropertyWithoutPhotosAndNotes() throws {
+        // Test that properties can be created and saved without photos and notes features
+        let property = PropertyListing(
+            title: "Clean Property",
+            location: "456 Clean Ave",
+            link: "https://example.com/clean",
+            price: 750000,
+            size: 150,
+            bedrooms: 3,
+            bathrooms: 2.0,
             propertyType: .house,
             propertyRating: .excellent
         )
         
-        context.insert(newProperty)
+        context.insert(property)
         try context.save()
         
-        // Verify all new fields are set correctly
-        XCTAssertEqual(newProperty.title, "New Property with Link")
-        XCTAssertEqual(newProperty.location, "456 Modern Ave")
-        XCTAssertEqual(newProperty.link, "https://example.com/modern-property")
-        XCTAssertEqual(newProperty.price, 850000)
-        XCTAssertEqual(newProperty.propertyRating, .excellent)
+        // Verify the property was saved correctly
+        let descriptor = FetchDescriptor<PropertyListing>()
+        let properties = try context.fetch(descriptor)
+        XCTAssertEqual(properties.count, 1)
         
-        // Verify legacy rating is also set correctly
-        XCTAssertEqual(newProperty.rating, 5.0, "Excellent rating should convert to 5.0")
+        let savedProperty = properties[0]
+        XCTAssertEqual(savedProperty.title, "Clean Property")
+        XCTAssertEqual(savedProperty.location, "456 Clean Ave")
+        XCTAssertEqual(savedProperty.link, "https://example.com/clean")
+        XCTAssertEqual(savedProperty.propertyRating, .excellent)
+        XCTAssertEqual(savedProperty.rating, 5.0) // Should convert to legacy rating
     }
 } 

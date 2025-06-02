@@ -17,7 +17,6 @@ struct AddPropertyView: View {
     @State private var bathrooms: Double = 1.0
     @State private var propertyType: PropertyType = .house
     @State private var rating: PropertyRating = .none
-    @State private var notes = ""
     
     private var isEditing: Bool {
         listing != nil
@@ -53,7 +52,6 @@ struct AddPropertyView: View {
                 basicInformationSection
                 detailsSection
                 ratingSection
-                notesSection
             }
             .navigationTitle(isEditing ? "Edit Property" : "Add Property")
 #if os(iOS)
@@ -226,13 +224,6 @@ struct AddPropertyView: View {
 #endif
     }
     
-    private var notesSection: some View {
-        Section("Notes") {
-            TextField("Add any notes about this property...", text: $notes, axis: .vertical)
-                .lineLimit(3...6)
-        }
-    }
-    
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
 #if os(iOS)
@@ -274,7 +265,6 @@ struct AddPropertyView: View {
         bathrooms = listing.bathrooms
         propertyType = listing.propertyType
         rating = listing.propertyRating ?? .none
-        notes = listing.notes
     }
     
     private func saveProperty() {
@@ -289,7 +279,6 @@ struct AddPropertyView: View {
             listing.bathrooms = bathrooms
             listing.propertyType = propertyType
             listing.updateRating(rating)
-            listing.notes = notes
             listing.updatedDate = Date()
         } else {
             // Create new listing
@@ -302,7 +291,6 @@ struct AddPropertyView: View {
                 bedrooms: bedrooms,
                 bathrooms: bathrooms,
                 propertyType: propertyType,
-                notes: notes,
                 propertyRating: rating
             )
             modelContext.insert(newListing)

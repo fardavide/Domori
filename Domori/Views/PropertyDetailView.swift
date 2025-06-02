@@ -3,12 +3,7 @@ import SwiftUI
 struct PropertyDetailView: View {
     @Bindable var listing: PropertyListing
     @Environment(\.modelContext) private var modelContext
-    @State private var selectedTab = 0
     @State private var showingEditSheet = false
-    @State private var showingPhotosPicker = false
-    @State private var newNoteContent = ""
-    @State private var newNoteCategory: NoteCategory = .general
-    @State private var showingAddNote = false
     
     var body: some View {
         ScrollView {
@@ -43,35 +38,23 @@ struct PropertyDetailView: View {
                                     .font(.caption)
                                     .foregroundColor(.blue)
                                 }
-                                .buttonStyle(PlainButtonStyle())
                             }
                         }
                         
                         Spacer()
-                    }
-                }
-                .padding()
-                .background(systemBackgroundColor)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
-                
-                // House Properties Section
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("House Properties")
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                    
-                    // Key metrics
-                    HStack(spacing: 24) {
-                        VStack(alignment: .leading) {
-                            Text("Price")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                        
+                        VStack(alignment: .trailing) {
                             Text(listing.formattedPrice)
                                 .font(.title2)
-                                .fontWeight(.semibold)
+                                .fontWeight(.bold)
+                                .foregroundColor(.primary)
                         }
-                        
+                    }
+                    
+                    Divider()
+                    
+                    // Property details row
+                    HStack(spacing: 24) {
                         VStack(alignment: .leading) {
                             Text("Size")
                                 .font(.caption)
@@ -117,9 +100,9 @@ struct PropertyDetailView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
                 
-                // User Notes Section
+                // Rating Section
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("Your Notes")
+                    Text("Your Rating")
                         .font(.headline)
                         .fontWeight(.semibold)
                     
@@ -139,21 +122,6 @@ struct PropertyDetailView: View {
                             )
                         )
                     }
-                    
-                    Divider()
-                    
-                    // General Notes
-                    if !listing.notes.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("General Notes")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                            
-                            Text(listing.notes)
-                                .font(.body)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
                 }
                 .padding()
                 .background(systemBackgroundColor)
@@ -162,19 +130,24 @@ struct PropertyDetailView: View {
 
                 // Tags
                 if !listing.tags.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 12) {
                         Text("Tags")
                             .font(.headline)
+                            .fontWeight(.semibold)
                         
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
-                            ForEach(listing.tags, id: \.name) { tag in
-                                Text(tag.name)
-                                    .font(.caption)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(Color(tag.color.rawValue).opacity(0.2))
-                                    .foregroundStyle(Color(tag.color.rawValue))
-                                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 8) {
+                            ForEach(listing.tags.sorted(by: { $0.name < $1.name }), id: \.name) { tag in
+                                HStack {
+                                    Text(tag.name)
+                                        .font(.caption)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color(tag.color.rawValue))
+                                .clipShape(Capsule())
                             }
                         }
                     }
@@ -184,46 +157,22 @@ struct PropertyDetailView: View {
                     .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
                 }
                 
-                // Tabbed Content
-                VStack(spacing: 0) {
-                    // Tab selector
-                    HStack {
-                        ForEach(Array(["Overview", "Notes", "Photos"].enumerated()), id: \.offset) { index, title in
-                            Button {
-                                selectedTab = index
-                            } label: {
-                                Text(title)
-                                    .font(.subheadline)
-                                    .fontWeight(selectedTab == index ? .semibold : .regular)
-                                    .foregroundStyle(selectedTab == index ? .primary : .secondary)
-                                    .padding(.vertical, 8)
-                                    .padding(.horizontal, 16)
-                                    .background(
-                                        selectedTab == index ? Color.blue.opacity(0.1) : Color.clear
-                                    )
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                            }
-                        }
-                        Spacer()
-                    }
-                    .padding(.horizontal)
-                    .padding(.top)
+                // Property Information
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Property Information")
+                        .font(.headline)
+                        .fontWeight(.semibold)
                     
-                    Divider()
-                        .padding(.horizontal)
-                    
-                    // Tab content
-                    Group {
-                        if selectedTab == 0 {
-                            overviewTab
-                        } else if selectedTab == 1 {
-                            notesTab
-                        } else {
-                            photosTab
-                        }
+                    VStack(spacing: 8) {
+                        detailRow("Created", value: listing.createdDate.formatted(date: .abbreviated, time: .omitted))
+                        detailRow("Updated", value: listing.updatedDate.formatted(date: .abbreviated, time: .omitted))
+                        detailRow("Property Type", value: listing.propertyType.rawValue)
+                        detailRow("Bedrooms", value: "\(listing.bedrooms)")
+                        detailRow("Bathrooms", value: listing.bathroomText)
+                        detailRow("Size", value: listing.formattedSize)
                     }
-                    .padding()
                 }
+                .padding()
                 .background(systemBackgroundColor)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
@@ -243,197 +192,6 @@ struct PropertyDetailView: View {
         }
         .sheet(isPresented: $showingEditSheet) {
             AddPropertyView(listing: listing)
-        }
-        .sheet(isPresented: $showingAddNote) {
-            addNoteSheet
-        }
-    }
-    
-    private var overviewTab: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Property Information")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                
-                VStack(spacing: 4) {
-                    detailRow("Created", value: listing.createdDate.formatted(date: .abbreviated, time: .omitted))
-                    detailRow("Updated", value: listing.updatedDate.formatted(date: .abbreviated, time: .omitted))
-                    detailRow("Property Type", value: listing.propertyType.rawValue)
-                    detailRow("Bedrooms", value: "\(listing.bedrooms)")
-                    detailRow("Bathrooms", value: listing.bathroomText)
-                    detailRow("Size", value: listing.formattedSize)
-                }
-            }
-        }
-    }
-    
-    private var notesTab: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("Notes")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                
-                Spacer()
-                
-                Button("Add Note") {
-                    showingAddNote = true
-                }
-                .font(.caption)
-            }
-            
-            if listing.propertyNotes.isEmpty {
-                ContentUnavailableView(
-                    "No Notes Yet",
-                    systemImage: "note.text",
-                    description: Text("Add notes about this property to remember important details")
-                )
-            } else {
-                LazyVStack(spacing: 12) {
-                    ForEach(listing.propertyNotes.sorted(by: { $0.createdDate > $1.createdDate }), id: \.content) { note in
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack {
-                                Label(note.category.rawValue, systemImage: note.category.systemImage)
-                                    .font(.caption)
-                                    .foregroundStyle(Color(note.category.color))
-                                
-                                Spacer()
-                                
-                                Text(note.createdDate.formatted(date: .abbreviated, time: .omitted))
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                            }
-                            
-                            Text(note.content)
-                                .font(.body)
-                        }
-                        .padding()
-                        .background(secondarySystemBackgroundColor)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                    }
-                }
-            }
-        }
-    }
-    
-    private var photosTab: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("Photos")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                
-                Spacer()
-                
-                Button("Add Photos") {
-                    showingPhotosPicker = true
-                }
-                .font(.caption)
-            }
-            
-            if listing.photos.isEmpty {
-                ContentUnavailableView(
-                    "No Photos Yet",
-                    systemImage: "photo",
-                    description: Text("Add photos to remember important visual details about this property")
-                )
-            } else {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
-                    ForEach(listing.photos.sorted(by: { $0.photoType.sortOrder < $1.photoType.sortOrder }), id: \.createdDate) { photo in
-                        VStack(alignment: .leading, spacing: 6) {
-#if os(iOS)
-                            if let uiImage = UIImage(data: photo.imageData) {
-                                Image(uiImage: uiImage)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(height: 120)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                            }
-#else
-                            if let nsImage = NSImage(data: photo.imageData) {
-                                Image(nsImage: nsImage)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(height: 120)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                            }
-#endif
-                            
-                            Text(photo.photoType.rawValue)
-                                .font(.caption)
-                                .fontWeight(.medium)
-                            
-                            if !photo.caption.isEmpty {
-                                Text(photo.caption)
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(2)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    private var addNoteSheet: some View {
-        NavigationView {
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Category")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                    
-                    Picker("Category", selection: $newNoteCategory) {
-                        ForEach(NoteCategory.allCases, id: \.self) { category in
-                            Label(category.rawValue, systemImage: category.systemImage)
-                                .tag(category)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                }
-                
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Note")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                    
-                    TextEditor(text: $newNoteContent)
-                        .frame(minHeight: 100)
-                        .padding(8)
-                        .background(secondarySystemBackgroundColor)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                }
-                
-                Spacer()
-            }
-            .padding()
-            .navigationTitle("Add Note")
-#if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-#endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        showingAddNote = false
-                        newNoteContent = ""
-                    }
-                }
-                
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        let note = PropertyNote(content: newNoteContent, category: newNoteCategory)
-                        note.propertyListing = listing
-                        listing.propertyNotes.append(note)
-                        modelContext.insert(note)
-                        
-                        showingAddNote = false
-                        newNoteContent = ""
-                    }
-                    .disabled(newNoteContent.isEmpty)
-                }
-            }
         }
     }
     
@@ -455,14 +213,6 @@ struct PropertyDetailView: View {
         Color(NSColor.controlBackgroundColor)
 #endif
     }
-    
-    private var secondarySystemBackgroundColor: Color {
-#if os(iOS)
-        Color(.secondarySystemBackground)
-#else
-        Color(NSColor.separatorColor).opacity(0.2)
-#endif
-    }
 }
 
 // MARK: - Inline Rating Picker Component
@@ -473,7 +223,7 @@ struct InlineRatingPicker: View {
         LazyVGrid(columns: [
             GridItem(.flexible()),
             GridItem(.flexible())
-        ], spacing: 8) {
+        ], spacing: 12) {
             ForEach(PropertyRating.allCases, id: \.self) { rating in
                 ratingButton(for: rating)
             }
@@ -484,10 +234,10 @@ struct InlineRatingPicker: View {
         Button(action: {
             selectedRating = rating
         }) {
-            HStack(spacing: 6) {
+            HStack(spacing: 8) {
                 Image(systemName: rating.systemImage)
                     .foregroundColor(Color(rating.color))
-                    .font(.subheadline)
+                    .font(.callout)
                 
                 Text(rating.displayName)
                     .font(.caption)
@@ -501,8 +251,7 @@ struct InlineRatingPicker: View {
                         .font(.caption)
                 }
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 6)
+            .padding(8)
             .background(ratingBackground(for: rating))
         }
         .buttonStyle(PlainButtonStyle())
@@ -510,8 +259,8 @@ struct InlineRatingPicker: View {
     
     private func ratingBackground(for rating: PropertyRating) -> some View {
         let isSelected = selectedRating == rating
-        let fillColor = isSelected ? Color(rating.color).opacity(0.15) : systemGray6Color
-        let strokeColor = isSelected ? Color(rating.color).opacity(0.4) : Color.clear
+        let fillColor = isSelected ? Color(rating.color).opacity(0.1) : systemGray6Color
+        let strokeColor = isSelected ? Color(rating.color).opacity(0.3) : Color.clear
         
         return RoundedRectangle(cornerRadius: 8)
             .fill(fillColor)
