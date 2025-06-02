@@ -20,65 +20,6 @@
 
 ---
 
-## 📱 **UI Change Validation (MANDATORY)**
-
-### **Every UI change, no matter how small, MUST follow this process:**
-
-#### ✅ **Required Steps for ANY UI Change:**
-
-1. **🔧 Implement the UI change**
-   - Make the necessary code modifications
-   - Test compilation and basic functionality locally
-
-2. **📸 Generate validation screenshots**
-   ```bash
-   xcodebuild test -project Domori.xcodeproj -scheme Domori \
-     -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
-     -only-testing:DomoriUITests/DomoriUITests/testAppStoreScreenshots_iPhone
-   ```
-
-3. **🔍 Validate screenshot changes**
-   - Check file timestamps: `ls -la AppStoreScreenshots/*iPhone*.png`
-   - Verify affected screenshots show the expected changes
-   - Ensure no unintended changes occurred in other screenshots
-
-4. **📚 Update documentation**
-   - Update SCREENSHOT_GUIDE.md with latest status
-   - Document any new UI patterns or components
-   - Note validation results and any issues found
-
-5. **💾 Commit with evidence**
-   - Commit screenshots alongside code changes
-   - Include validation results in commit message
-   - Reference screenshot files explicitly
-
-#### ⚠️ **Why This Process is MANDATORY:**
-
-- **Prevents visual regressions**: Screenshots catch unintended changes
-- **Validates implementation**: Ensures changes work as expected
-- **Documents evolution**: Creates visual history of UI development
-- **Enables team review**: Allows visual validation during code review
-
-#### 🚫 **What constitutes a UI change:**
-
-- Layout modifications (spacing, alignment, sizing)
-- New UI components or views
-- Color, font, or styling changes
-- Flow or navigation modifications
-- Data display changes (new fields, different formatting)
-- Interactive element changes (buttons, forms, controls)
-
-#### 📋 **Example validation checklist for flow layout change:**
-
-✅ MainScreen screenshot shows tags in flow layout below price  
-✅ PropertyDetail screenshot maintains existing tag display  
-✅ AddProperty screenshot unaffected by change  
-✅ File sizes differ, indicating actual visual changes  
-✅ No compilation errors or runtime crashes  
-✅ Documentation updated with change details  
-
----
-
 ## 🔧 **UI Test Requirements**
 
 ### Navigation Testing Pattern:
@@ -167,10 +108,10 @@ func addTagsToProperty() {
 
 ---
 
-## 🏗️ **Architecture Requirements**
+## 🏗️ **Test Architecture Requirements**
 
 ### Component Testing:
-- Every new UI component MUST have unit tests
+- Every new UI component MUST have unit tests where applicable
 - Every navigation flow MUST be tested end-to-end
 - Every data display change MUST be validated with sample data
 
@@ -181,20 +122,19 @@ func addTagsToProperty() {
 
 ---
 
-## 📊 **Validation Metrics**
+## 📊 **Test Validation Metrics**
 
-### Required Validations:
-- ✅ Screenshot generation successful
-- ✅ All affected screens updated
-- ✅ No unintended visual changes
-- ✅ Navigation flows still work
-- ✅ Performance impact acceptable
-- ✅ Accessibility unchanged (or improved)
+### Required Test Validations:
+- ✅ **Navigation flows work correctly**
+- ✅ **UI elements respond as expected**
+- ✅ **Data displays correctly**
+- ✅ **Error states handle gracefully**
+- ✅ **Performance within acceptable thresholds**
 
-### Performance Thresholds:
-- Screenshot generation: < 5 minutes
-- UI test execution: < 10 minutes
-- App startup: < 3 seconds after UI changes
+### Test Performance Thresholds:
+- **UI test execution**: < 10 minutes for full suite
+- **Navigation timeouts**: 3-5 seconds maximum
+- **Screenshot generation**: < 5 minutes
 
 ---
 
@@ -284,6 +224,8 @@ XCTFail("Something went wrong")
 
 ## 📚 **Related Documentation**
 
+- **Development Practices**: DEVELOPMENT_PRACTICES.md
+- **UI Guidelines**: UI_GUIDELINES.md
 - **Code Style**: CODE_STYLE.md
 - **Screenshot Requirements**: SCREENSHOT_REQUIREMENTS.md
 - **Commit Rules**: COMMIT_RULES.md 

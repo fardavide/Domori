@@ -2,6 +2,12 @@
 
 This file contains references to all project documentation that should be followed during development.
 
+## Development Practices
+Development: DEVELOPMENT_PRACTICES.md
+
+## UI Guidelines
+UI: UI_GUIDELINES.md
+
 ## Code Style
 CodeStyle: CODE_STYLE.md
 

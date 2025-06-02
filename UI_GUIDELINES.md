@@ -1,0 +1,187 @@
+# 🎨 UI Guidelines for Domori
+
+## 🎯 Visual Design Principles
+
+### 1. **Consistency**
+- Use consistent spacing, typography, and color schemes
+- Follow established component patterns throughout the app
+- Maintain visual hierarchy and alignment
+
+### 2. **Clarity**
+- Prioritize readability and user comprehension
+- Use appropriate contrast ratios
+- Ensure interactive elements are clearly identifiable
+
+### 3. **Efficiency**
+- Optimize visual density without overwhelming users
+- Minimize cognitive load through progressive disclosure
+- Use whitespace effectively to guide attention
+
+---
+
+## 🧩 **Component Guidelines**
+
+### **TagFlowLayout Component**
+Current optimized specifications for tag display:
+- **Spacing**: 3px between tags (optimized for visual density)
+- **Horizontal padding**: 4px (compact but touchable)
+- **Vertical padding**: 2px (minimal vertical space usage)
+- **Corner radius**: 3px (subtle rounding)
+- **Background**: Tag color at 15% opacity
+- **Text**: Tag color at full opacity
+
+```swift
+// Reference implementation
+FlexibleWrapView(data: tags, spacing: 3) { tag in
+    Text(tag.name)
+        .font(.caption2)
+        .fontWeight(.medium)
+        .padding(.horizontal, 4)
+        .padding(.vertical, 2)
+        .background(tag.swiftUiColor.opacity(0.15))
+        .foregroundColor(tag.swiftUiColor)
+        .cornerRadius(3)
+        .lineLimit(1)
+}
+```
+
+### **Property List Row Component**
+- **Vertical spacing**: 8px between rows
+- **Selection indicator**: 24x24px circle with blue accent
+- **Property type icon**: 16x16px, secondary color
+- **Rating indicator**: 12x12px colored circle
+- **Content alignment**: Leading alignment with consistent indentation
+
+### **Property Detail Badges**
+- **Icon size**: caption2 font, secondary color
+- **Spacing**: 4px between icon and text
+- **Layout**: Horizontal flow with 16px spacing between badges
+
+---
+
+## 🎨 **Color System**
+
+### **Tag Colors by Rating**
+- **None**: Gray (`Color.gray`)
+- **Excluded**: Red (`Color.red`)
+- **Considering**: Orange (`Color.orange`)
+- **Good**: Green (`Color.green`)
+- **Excellent**: Blue (`Color.blue`)
+
+### **Interactive States**
+- **Selected**: Blue accent (`Color.blue`)
+- **Unselected**: Gray at 40% opacity (`Color.gray.opacity(0.4)`)
+- **Secondary text**: System secondary (`Color.secondary`)
+
+---
+
+## 📐 **Spacing Standards**
+
+### **Component Spacing**
+- **Between tags**: 3px (optimized)
+- **Between property rows**: 8px
+- **Between detail badges**: 16px
+- **Section spacing**: 12px
+
+### **Padding Standards**
+- **Tag horizontal**: 4px
+- **Tag vertical**: 2px
+- **Row vertical**: 8px
+- **Content margins**: 12-16px
+
+---
+
+## 📱 **Responsive Design**
+
+### **Screen Adaptability**
+- Components should adapt gracefully to different screen sizes
+- Tag flow layout automatically wraps based on available width
+- Maintain consistent spacing ratios across device sizes
+
+### **Typography Scaling**
+- Use system typography scales (caption2, subheadline, headline)
+- Ensure text remains readable at all accessibility settings
+- Maintain font weight hierarchy for visual emphasis
+
+---
+
+## ♿ **Accessibility Standards**
+
+### **Interactive Elements**
+- Minimum touch target: 44x44 points
+- Clear visual focus indicators
+- Appropriate accessibility labels
+
+### **Color and Contrast**
+- Maintain WCAG AA contrast ratios
+- Don't rely solely on color to convey information
+- Use semantic colors consistently
+
+### **Screen Reader Support**
+- Provide meaningful accessibility identifiers
+- Use semantic markup for proper navigation
+- Ensure all interactive elements are accessible
+
+---
+
+## 🔍 **Visual Density Optimization**
+
+### **Current Optimizations**
+- **Tag spacing reduced**: From 6px to 3px for better density
+- **Padding minimized**: Horizontal and vertical padding reduced
+- **Corner radius reduced**: From 4px to 3px for subtle appearance
+
+### **Future Considerations**
+- Monitor user feedback on visual density
+- A/B test different spacing configurations
+- Consider adaptive spacing based on content volume
+
+---
+
+## 📋 **UI Change Validation Checklist**
+
+### **Visual Consistency**
+- [ ] New components follow established patterns
+- [ ] Spacing adheres to documented standards
+- [ ] Colors match the defined color system
+- [ ] Typography follows hierarchy rules
+
+### **Functionality**
+- [ ] Interactive elements respond appropriately
+- [ ] Navigation flows work smoothly
+- [ ] Animations and transitions feel natural
+- [ ] Performance impact is minimal
+
+### **Accessibility**
+- [ ] Touch targets meet minimum size requirements
+- [ ] Color contrast meets accessibility standards
+- [ ] Screen reader navigation works correctly
+- [ ] Component labels are descriptive
+
+---
+
+## 🛠️ **Component Development Guidelines**
+
+### **Creating New Components**
+1. Follow established naming conventions (e.g., `UiModel` not `UIModel`)
+2. Implement proper error handling for edge cases
+3. Provide comprehensive accessibility support
+4. Document component usage and parameters
+5. Include visual examples in documentation
+
+### **Modifying Existing Components**
+1. Maintain backward compatibility where possible
+2. Update all instances consistently
+3. Validate changes with screenshot testing
+4. Document breaking changes clearly
+5. Update related documentation
+
+---
+
+## 📚 **Related Documentation**
+
+- **Development Practices**: DEVELOPMENT_PRACTICES.md
+- **Testing Strategy**: TESTING_STRATEGY.md
+- **Screenshot Guide**: AppStoreScreenshots/SCREENSHOT_GUIDE.md
+- **Code Style**: CODE_STYLE.md
+- **App Store Requirements**: SCREENSHOT_REQUIREMENTS.md 

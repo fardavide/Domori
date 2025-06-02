@@ -138,15 +138,15 @@ struct TagFlowLayout: View {
     let tags: [PropertyTag]
     
     var body: some View {
-        FlexibleWrapView(data: tags, spacing: 6) { tag in
+        FlexibleWrapView(data: tags, spacing: 3) { tag in
             Text(tag.name)
                 .font(.caption2)
                 .fontWeight(.medium)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 3)
+                .padding(.horizontal, 4)
+                .padding(.vertical, 2)
                 .background(tag.swiftUiColor.opacity(0.15))
                 .foregroundColor(tag.swiftUiColor)
-                .cornerRadius(4)
+                .cornerRadius(3)
                 .lineLimit(1)
         }
     }
