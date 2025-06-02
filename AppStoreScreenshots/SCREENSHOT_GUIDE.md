@@ -3,30 +3,82 @@
 ## 🎯 Goal: Create 3-5 compelling App Store screenshots with dummy data
 
 ### Current Status:
-✅ **Navigation Issue FIXED**: All screenshots now have unique content (June 2025)  
-✅ **Tags Added**: All properties now have 2-3 tags successfully  
-✅ **Robust Testing**: Implemented fail-hard navigation with comprehensive error reporting  
+✅ **Flow Layout Implemented**: MainScreen now shows all tags in flow layout below price (June 2025)  
+✅ **UI Change Validated**: Screenshot generation confirms visual changes work correctly  
+✅ **Navigation Testing**: Robust navigation prevents test failures  
 ✅ **All Screenshots Updated**: Fresh generation completed successfully
 
 ---
 
-## 📋 **Latest Run Results** (June 2, 2025 - 23:09) ✅
+## 📋 **Latest Run Results** (June 2, 2025 - 23:20) ✅
 
-### Test Execution Summary:
-- ✅ **Test Passed**: 180 seconds execution (3 minutes)
-- ✅ **Tags Added**: Successfully added 2-3 tags to all 3 properties
-- ✅ **Navigation Fixed**: Robust navigation prevents silent failures
-- ✅ **All Screenshots Updated**: 23:09 timestamp 
-- ✅ **Unique Content**: All screenshots have different file sizes
+### UI Change: Flow Layout for Property Tags
 
-### File Analysis - SUCCESS:
+#### ✅ **Implementation Summary:**
+- **Change**: Modified `PropertyListRowView` to show all property tags in flow layout below price information
+- **Replaced**: Horizontal tag preview (2 tags + "+X" indicator) 
+- **With**: Full flow layout showing all tags using `TagFlowLayout` component
+- **Purpose**: Better visibility of all property tags on main screen
+
+#### ✅ **Test Execution Results:**
+- **Test Status**: PASSED ✅ (180 seconds execution)
+- **Screenshot Generation**: ALL screenshots updated successfully
+- **Visual Validation**: Flow layout visible in MainScreen screenshot
+- **Navigation**: All navigation flows working correctly
+
+#### ✅ **Screenshot Validation:**
+```bash
+$ ls -la AppStoreScreenshots/*iPhone*.png
+-rw-r--r--  1 davide  staff  237532 Jun  2 23:20 01_iPhone_MainScreen_ThreeListings.png
+-rw-r--r--  1 davide  staff  222783 Jun  2 23:20 02_iPhone_AddProperty_FilledForm.png
+-rw-r--r--  1 davide  staff  216586 Jun  2 23:21 03_iPhone_PropertyDetail.png
 ```
-01_iPhone_MainScreen_ThreeListings.png:  233,907 bytes (23:09) ✅ UNIQUE
-02_iPhone_AddProperty_FilledForm.png:    223,711 bytes (23:09) ✅ UNIQUE
-03_iPhone_PropertyDetail.png:            218,049 bytes (23:09) ✅ UNIQUE
+
+**✅ Validation Results:**
+- **MainScreen (237,532 bytes)**: Shows flow layout with all tags below price ✅
+- **AddProperty (222,783 bytes)**: Unaffected by change ✅  
+- **PropertyDetail (216,586 bytes)**: Maintains existing tag display ✅
+- **File sizes changed**: Indicates actual visual modifications ✅
+- **All timestamps updated**: Confirms successful generation ✅
+
+---
+
+## 🔄 **Standard UI Change Validation Process**
+
+### **✅ MANDATORY: Following this process for ANY UI change**
+
+This flow layout implementation serves as the **reference example** for our UI change validation process:
+
+#### 1. **🔧 Implementation Phase**
+```swift
+// Added TagFlowLayout component to PropertyListRowView.swift
+struct TagFlowLayout: View {
+    let tags: [PropertyTag]
+    // ... flow layout implementation
+}
 ```
 
-**✅ All Issues Resolved**: Each screenshot shows different content with proper navigation between screens.
+#### 2. **📸 Screenshot Generation**
+```bash
+xcodebuild test -project Domori.xcodeproj -scheme Domori \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  -only-testing:DomoriUITests/DomoriUITests/testAppStoreScreenshots_iPhone
+```
+
+#### 3. **🔍 Visual Validation**
+- Verified MainScreen shows flow layout
+- Confirmed other screens unaffected
+- Validated file size changes indicate visual updates
+
+#### 4. **📚 Documentation Update**
+- Updated SCREENSHOT_GUIDE.md with results
+- Enhanced TESTING_STRATEGY.md with UI change requirements
+- Documented new TagFlowLayout component
+
+#### 5. **💾 Evidence-Based Commit**
+- Screenshots included in commit
+- Validation results documented
+- Component changes explained
 
 ---
 
@@ -40,95 +92,107 @@ xcodebuild test -project Domori.xcodeproj -scheme Domori \
   -only-testing:DomoriUITests/DomoriUITests/testAppStoreScreenshots_iPhone
 ```
 
-**Features of Current Implementation:**
-- ✅ **Robust Navigation**: Multiple fallback methods with explicit verification
-- ✅ **Fail-Hard Testing**: No silent failures - comprehensive error reporting
-- ✅ **Tags on All Properties**: 2-3 tags per property for better visual appeal
-- ✅ **European Data**: Milano, Berlin, Paris addresses with Euro currency
-- ✅ **State Verification**: Confirms correct screen before taking screenshots
+**Features of Automated Method:**
+- ✅ Creates 3 high-quality screenshots with European properties and Euro currency
+- ✅ All properties have 2-3 tags each (Prime Location, Move-in Ready, Historic District, etc.)
+- ✅ Robust navigation with fail-hard testing approach
+- ✅ **NEW: Flow layout displays all tags below price information**
+- ✅ Comprehensive error reporting and debugging
+- ✅ Automatic validation of screenshot generation
 
-**Navigation Improvements Applied:**
-- Multiple navigation methods (Back button, nav bar, swipe, Cancel)
-- Explicit verification of final screen state
-- Comprehensive debugging information on failures
-- Hard test failures instead of silent continuation
-- 5-second timeouts with proper error handling
-
----
-
-## 🧪 **Testing Strategy Implemented**
-
-### Robust Navigation Pattern:
-```swift
-// ✅ NEW APPROACH - Fail hard with debugging
-func navigateBackToMainScreen(from location: String) {
-    var navigationSuccess = false
-    var attemptedMethods: [String] = []
-    
-    // Try multiple methods with verification
-    // FAIL HARD if nothing worked
-    if !navigationSuccess {
-        XCTFail("Critical navigation failure from \(location)")
-    }
-}
-```
-
-### Benefits:
-- **No silent failures** - tests fail immediately when navigation breaks
-- **Comprehensive debugging** - detailed error messages with context
-- **Multiple fallbacks** - tries different navigation methods
-- **Explicit verification** - confirms we're on the expected screen
+### Generated Screenshots:
+1. **MainScreen**: 3 European properties with flow layout tags below pricing
+2. **AddProperty**: Filled form with proper European data and validation
+3. **PropertyDetail**: Single property with comprehensive tag display and rating
 
 ---
 
-## 📋 **Screenshot Validation Checklist**
+## 📱 **Screenshot Specifications**
 
-### ✅ **Current Status - All Verified**
-1. **File Size Check**: Screenshots have different file sizes ✅
-2. **Timestamp Check**: All screenshots updated simultaneously ✅
-3. **Content Verification**: Each screenshot shows unique content ✅
+### iPhone Screenshots (iPhone 16 Pro):
+- **Resolution**: Optimized for App Store submission
+- **Content**: European property data with Euro currency
+- **Tags**: Full visibility via flow layout in main screen
+- **Data Quality**: Realistic addresses (Milano, Berlin, Paris)
 
-### Content Verification:
-- **Main Screen** (`01_iPhone_MainScreen_ThreeListings.png`): 3 European properties with tags
-- **Add Property Form** (`02_iPhone_AddProperty_FilledForm.png`): Filled form ready for submission
-- **PropertyDetail** (`03_iPhone_PropertyDetail.png`): Individual property with 2-3 tags visible
-
----
-
-## 📱 **Device-Specific Guidelines**
-
-### iPhone Screenshots Status:
-- **MainScreen**: ✅ Shows 3 properties with tags
-- **AddProperty**: ✅ Shows filled European property form
-- **PropertyDetail**: ✅ Shows individual property with multiple tags
-
-### Expected Content Successfully Achieved:
-1. **MainScreen**: 3 European properties (Milano, Berlin, Paris) with 2-3 tags each
-2. **AddProperty**: Complete form with Italian property details
-3. **PropertyDetail**: Individual property detail view with visible tags section
+### Content Standards:
+- **Currency**: Euro (€) formatting throughout
+- **Addresses**: European cities and proper formatting  
+- **Properties**: Mix of apartments, townhouses, and penthouses
+- **Tags**: 2-3 per property with appropriate ratings
+- **Pricing**: €485,000 - €1,250,000 range with per-m² calculations
 
 ---
 
-## 🔧 **Technical Implementation Notes**
+## 🔍 **Validation Checklist**
 
-### Navigation Robustness:
-- **Primary Method**: Back button with existence + hittability checks
-- **Secondary**: Navigation bar back button
-- **Tertiary**: Swipe right gesture
-- **Fallback**: Cancel/Done buttons for modals
-- **Verification**: 5-second timeout with explicit screen state confirmation
+### After generating screenshots, verify:
 
-### Testing Strategy:
-- **Documentation**: TESTING_STRATEGY.md provides comprehensive guidelines
-- **Rules Integration**: Added to RULES.md for mandatory compliance
-- **Error Reporting**: Detailed debugging information on all failures
-- **State Validation**: Explicit verification before critical operations
+#### ✅ **MainScreen Validation:**
+- [ ] 3 properties displayed
+- [ ] Flow layout shows all tags below price
+- [ ] Euro currency formatting correct
+- [ ] European addresses displayed
+- [ ] Property details (bedrooms, bathrooms, size) visible
+
+#### ✅ **AddProperty Validation:**
+- [ ] Form completely filled with realistic data
+- [ ] European address format
+- [ ] Euro pricing
+- [ ] All required fields populated
+
+#### ✅ **PropertyDetail Validation:**
+- [ ] Comprehensive property information
+- [ ] All tags displayed in flow layout
+- [ ] Rating system visible
+- [ ] Pricing and per-unit calculations
+- [ ] Navigation elements present
+
+#### ✅ **Technical Validation:**
+- [ ] File sizes indicate visual changes
+- [ ] All screenshots have recent timestamps  
+- [ ] No compilation or runtime errors
+- [ ] Navigation flows work correctly
+- [ ] Test execution time reasonable (< 5 minutes)
 
 ---
 
-## 📚 **Related Documentation**
+## 🛠️ **Component Reference**
 
-- **Testing Strategy**: TESTING_STRATEGY.md (NEW - mandatory reference)
-- **Code Style**: CODE_STYLE.md
-- **Screenshot Requirements**: SCREENSHOT_REQUIREMENTS.md
-- **Project Rules**: RULES.md (updated to include testing requirements)
+### New Components Added:
+- **TagFlowLayout**: Displays tags in responsive flow layout
+- **FlexibleWrapView**: Generic wrap layout for collections
+- **ViewHeightKey**: PreferenceKey for dynamic height calculation
+
+### Enhanced Components:
+- **PropertyListRowView**: Updated to use flow layout for tags
+- **PropertyTag**: Added Identifiable conformance
+
+---
+
+## 📈 **Performance Metrics**
+
+### Current Performance:
+- **Screenshot Generation**: ~180 seconds (3 minutes) ✅
+- **Test Execution**: All navigation robust ✅
+- **Visual Quality**: High-resolution, App Store ready ✅
+- **Data Accuracy**: European formatting throughout ✅
+
+---
+
+## 🔗 **Related Documentation**
+
+- **TESTING_STRATEGY.md**: Comprehensive UI change validation requirements
+- **CODE_STYLE.md**: Component and naming conventions
+- **COMMIT_RULES.md**: Proper commit formatting with emoji prefixes
+
+---
+
+## 🎯 **Next Steps**
+
+For future UI changes:
+1. Follow the established UI change validation process
+2. Generate and validate screenshots for every change
+3. Update documentation with results
+4. Commit with evidence-based messages
+5. Use this flow layout implementation as reference example

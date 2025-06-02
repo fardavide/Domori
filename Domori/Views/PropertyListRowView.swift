@@ -75,47 +75,22 @@ struct PropertyListRowView: View {
                     Spacer()
                 }
                 
-                // Price and tags row
-                HStack(alignment: .bottom) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(listing.formattedPrice)
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.primary)
-                        
-                        Text(listing.formattedPricePerUnit)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
+                // Price information
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(listing.formattedPrice)
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
                     
-                    Spacer()
-                    
-                    // Tags preview with improved styling
-                    if !listing.tags.isEmpty {
-                        HStack(spacing: 4) {
-                            ForEach(Array(listing.tags.prefix(2)), id: \.name) { tag in
-                                Text(tag.name)
-                                    .font(.caption2)
-                                    .fontWeight(.medium)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(tag.swiftUiColor.opacity(0.15))
-                                    .foregroundColor(tag.swiftUiColor)
-                                    .cornerRadius(6)
-                            }
-                            
-                            if listing.tags.count > 2 {
-                                Text("+\(listing.tags.count - 2)")
-                                    .font(.caption2)
-                                    .fontWeight(.medium)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 4)
-                                    .background(Color.gray.opacity(0.15))
-                                    .foregroundColor(.secondary)
-                                    .cornerRadius(6)
-                            }
-                        }
-                    }
+                    Text(listing.formattedPricePerUnit)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                // Tags flow layout - show all tags below price
+                if !listing.tags.isEmpty {
+                    TagFlowLayout(tags: listing.tags.sorted(by: { $0.name < $1.name }))
+                        .padding(.top, 4)
                 }
             }
         }
@@ -155,6 +130,93 @@ struct PropertyDetailBadge: View {
                 .font(.caption2)
                 .foregroundColor(.secondary)
         }
+    }
+}
+
+// Compact flow layout for tags in property list rows
+struct TagFlowLayout: View {
+    let tags: [PropertyTag]
+    
+    var body: some View {
+        FlexibleWrapView(data: tags, spacing: 6) { tag in
+            Text(tag.name)
+                .font(.caption2)
+                .fontWeight(.medium)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
+                .background(tag.swiftUiColor.opacity(0.15))
+                .foregroundColor(tag.swiftUiColor)
+                .cornerRadius(4)
+                .lineLimit(1)
+        }
+    }
+}
+
+// Flexible wrap view that dynamically adjusts to available width
+struct FlexibleWrapView<Data: RandomAccessCollection, Content: View>: View where Data.Element: Identifiable {
+    let data: Data
+    let spacing: CGFloat
+    let content: (Data.Element) -> Content
+    
+    @State private var totalHeight = CGFloat.zero
+    
+    var body: some View {
+        VStack {
+            GeometryReader { geometry in
+                self.generateContent(in: geometry)
+            }
+        }
+        .frame(height: totalHeight)
+    }
+    
+    private func generateContent(in geometry: GeometryProxy) -> some View {
+        var width = CGFloat.zero
+        var height = CGFloat.zero
+        
+        return ZStack(alignment: .topLeading) {
+            ForEach(Array(data.enumerated()), id: \.element.id) { index, item in
+                content(item)
+                    .padding(.all, spacing / 2)
+                    .alignmentGuide(.leading, computeValue: { dimensions in
+                        if (abs(width - dimensions.width) > geometry.size.width) {
+                            width = 0
+                            height -= dimensions.height + spacing
+                        }
+                        let result = width
+                        if index == data.count - 1 {
+                            width = 0
+                        } else {
+                            width -= dimensions.width + spacing
+                        }
+                        return result
+                    })
+                    .alignmentGuide(.top, computeValue: { dimensions in
+                        let result = height
+                        if index == data.count - 1 {
+                            height = 0
+                        }
+                        return result
+                    })
+            }
+        }
+        .background(GeometryReader { geometry in
+            Color.clear
+                .preference(key: ViewHeightKey.self,
+                           value: geometry.frame(in: .local).size.height)
+        })
+        .onPreferenceChange(ViewHeightKey.self) { height in
+            DispatchQueue.main.async {
+                self.totalHeight = height
+            }
+        }
+    }
+}
+
+struct ViewHeightKey: PreferenceKey {
+    typealias Value = CGFloat
+    static var defaultValue = CGFloat.zero
+    static func reduce(value: inout Value, nextValue: () -> Value) {
+        value += nextValue()
     }
 }
 

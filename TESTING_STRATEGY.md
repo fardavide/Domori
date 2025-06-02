@@ -20,63 +20,181 @@
 
 ---
 
+## 📱 **UI Change Validation (MANDATORY)**
+
+### **Every UI change, no matter how small, MUST follow this process:**
+
+#### ✅ **Required Steps for ANY UI Change:**
+
+1. **🔧 Implement the UI change**
+   - Make the necessary code modifications
+   - Test compilation and basic functionality locally
+
+2. **📸 Generate validation screenshots**
+   ```bash
+   xcodebuild test -project Domori.xcodeproj -scheme Domori \
+     -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+     -only-testing:DomoriUITests/DomoriUITests/testAppStoreScreenshots_iPhone
+   ```
+
+3. **🔍 Validate screenshot changes**
+   - Check file timestamps: `ls -la AppStoreScreenshots/*iPhone*.png`
+   - Verify affected screenshots show the expected changes
+   - Ensure no unintended changes occurred in other screenshots
+
+4. **📚 Update documentation**
+   - Update SCREENSHOT_GUIDE.md with latest status
+   - Document any new UI patterns or components
+   - Note validation results and any issues found
+
+5. **💾 Commit with evidence**
+   - Commit screenshots alongside code changes
+   - Include validation results in commit message
+   - Reference screenshot files explicitly
+
+#### ⚠️ **Why This Process is MANDATORY:**
+
+- **Prevents visual regressions**: Screenshots catch unintended changes
+- **Validates implementation**: Ensures changes work as expected
+- **Documents evolution**: Creates visual history of UI development
+- **Enables team review**: Allows visual validation during code review
+
+#### 🚫 **What constitutes a UI change:**
+
+- Layout modifications (spacing, alignment, sizing)
+- New UI components or views
+- Color, font, or styling changes
+- Flow or navigation modifications
+- Data display changes (new fields, different formatting)
+- Interactive element changes (buttons, forms, controls)
+
+#### 📋 **Example validation checklist for flow layout change:**
+
+✅ MainScreen screenshot shows tags in flow layout below price  
+✅ PropertyDetail screenshot maintains existing tag display  
+✅ AddProperty screenshot unaffected by change  
+✅ File sizes differ, indicating actual visual changes  
+✅ No compilation errors or runtime crashes  
+✅ Documentation updated with change details  
+
+---
+
 ## 🔧 **UI Test Requirements**
 
 ### Navigation Testing Pattern:
 ```swift
-// ❌ WEAK - Silent failure
-if app.buttons["Back"].exists {
-    app.buttons["Back"].tap()
-}
-
-// ✅ STRONG - Explicit verification
-func navigateBackToMainScreen(from location: String) {
-    // Try multiple methods
-    var success = false
+private func navigateBackToMainScreen(in app: XCUIApplication, from location: String) {
+    print("🔙 Navigating back to main screen from \(location)")
     
-    // Method 1: Back button
+    let mainScreenNavBar = app.navigationBars["Properties"]
+    
+    // Check if we're already on main screen
+    if mainScreenNavBar.exists {
+        print("✅ Already on main screen")
+        return
+    }
+    
+    // Try navigation methods in order of preference
+    var navigationSuccess = false
+    var attemptedMethods: [String] = []
+    
+    // Method 1: Back button (most reliable for standard navigation)
+    let backButton = app.buttons["Back"]
     if backButton.exists && backButton.isHittable {
+        print("🔙 Using Back button navigation")
         backButton.tap()
-        success = mainScreen.waitForExistence(timeout: 5)
+        navigationSuccess = mainScreenNavBar.waitForExistence(timeout: 3)
+        attemptedMethods.append("Back button")
     }
     
-    // Method 2: Alternative approaches...
+    // Method 2: Navigation bar back button
+    if !navigationSuccess {
+        let navBackButton = app.navigationBars.buttons.firstMatch
+        if navBackButton.exists && navBackButton.isHittable {
+            print("🔙 Using navigation bar back button")
+            navBackButton.tap()
+            navigationSuccess = mainScreenNavBar.waitForExistence(timeout: 3)
+            attemptedMethods.append("Navigation back button")
+        }
+    }
     
-    // FAIL HARD if nothing worked
-    if !success {
-        XCTFail("Critical navigation failure from \(location)")
+    // Method 3: Swipe gesture (fallback for modal presentations)
+    if !navigationSuccess {
+        print("🔙 Using swipe right gesture")
+        app.swipeRight()
+        navigationSuccess = mainScreenNavBar.waitForExistence(timeout: 3)
+        attemptedMethods.append("Swipe right")
+    }
+    
+    // Method 4: Dismiss action (for sheets/modals)
+    if !navigationSuccess {
+        let dismissButton = app.buttons["Dismiss"]
+        if dismissButton.exists {
+            print("🔙 Using Dismiss button")
+            dismissButton.tap()
+            navigationSuccess = mainScreenNavBar.waitForExistence(timeout: 3)
+            attemptedMethods.append("Dismiss button")
+        }
+    }
+    
+    // FAIL HARD if navigation didn't work
+    if !navigationSuccess {
+        XCTFail("❌ CRITICAL: Failed to navigate back to main screen from \(location). " +
+                "Attempted methods: \(attemptedMethods.joined(separator: ", ")). " +
+                "Current view state: \(app.debugDescription)")
+    } else {
+        print("✅ Successfully navigated back to main screen using: \(attemptedMethods.last!)")
     }
 }
 ```
 
-### State Verification Pattern:
+### Validation Testing Pattern:
 ```swift
-// ❌ WEAK - No verification
-takeScreenshot("MainScreen")
-
-// ✅ STRONG - Verify state first
-guard app.navigationBars["Properties"].exists else {
-    XCTFail("Not on main screen - cannot take MainScreen screenshot")
+// ALWAYS validate expected state after operations
+func addTagsToProperty() {
+    // ... tag addition logic ...
+    
+    // VALIDATE the operation succeeded
+    let addedTags = app.buttons.matching(identifier: "TagChip")
+    let expectedTagCount = 3
+    XCTAssertEqual(addedTags.count, expectedTagCount, 
+                   "❌ Expected \(expectedTagCount) tags but found \(addedTags.count)")
+    
+    // VALIDATE navigation back to main screen
+    navigateBackToMainScreen(in: app, from: "Property detail after adding tags")
 }
-takeScreenshot("MainScreen")
 ```
 
-### Error Reporting Pattern:
-```swift
-// ❌ WEAK - Minimal info
-print("Navigation failed")
+---
 
-// ✅ STRONG - Comprehensive debugging
-let errorMessage = """
-❌ CRITICAL NAVIGATION FAILURE ❌
-From: \(location)
-Attempted: \(methods)
-Current state: \(debugInfo)
-Available elements: \(elements)
-"""
-print(errorMessage)
-XCTFail(errorMessage)
-```
+## 🏗️ **Architecture Requirements**
+
+### Component Testing:
+- Every new UI component MUST have unit tests
+- Every navigation flow MUST be tested end-to-end
+- Every data display change MUST be validated with sample data
+
+### Error Handling:
+- UI tests MUST fail explicitly with clear error messages
+- Never silently skip failed operations
+- Always provide debugging context in failure messages
+
+---
+
+## 📊 **Validation Metrics**
+
+### Required Validations:
+- ✅ Screenshot generation successful
+- ✅ All affected screens updated
+- ✅ No unintended visual changes
+- ✅ Navigation flows still work
+- ✅ Performance impact acceptable
+- ✅ Accessibility unchanged (or improved)
+
+### Performance Thresholds:
+- Screenshot generation: < 5 minutes
+- UI test execution: < 10 minutes
+- App startup: < 3 seconds after UI changes
 
 ---
 

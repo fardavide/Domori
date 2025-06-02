@@ -3,7 +3,7 @@ import SwiftData
 import SwiftUI
 
 @Model
-final class PropertyTag {
+final class PropertyTag: Identifiable {
     var id: UUID
     var name: String
     var rating: PropertyRating
