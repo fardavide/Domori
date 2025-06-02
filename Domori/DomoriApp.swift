@@ -12,16 +12,40 @@ struct DomoriApp: App {
             PropertyPhoto.self,
             PropertyTag.self
         ])
+        
+        // Use CloudKit only on real devices, not in simulator
+        #if targetEnvironment(simulator)
+        let modelConfiguration = ModelConfiguration(
+            schema: schema,
+            isStoredInMemoryOnly: false,
+            cloudKitDatabase: .none
+        )
+        print("Running in simulator - using local storage")
+        #else
         let modelConfiguration = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: false,
             cloudKitDatabase: .automatic
         )
+        print("Running on device - using CloudKit")
+        #endif
 
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            print("ModelContainer creation failed: \(error)")
+            // If CloudKit fails on device, fallback to local storage
+            let fallbackConfiguration = ModelConfiguration(
+                schema: schema,
+                isStoredInMemoryOnly: false,
+                cloudKitDatabase: .none
+            )
+            do {
+                print("Falling back to local storage...")
+                return try ModelContainer(for: schema, configurations: [fallbackConfiguration])
+            } catch {
+                fatalError("Could not create ModelContainer: \(error)")
+            }
         }
     }()
 

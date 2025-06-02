@@ -6,5 +6,19 @@
 	<array>
 		<string>remote-notification</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Domori needs camera access to take photos of properties for your listings.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Domori needs photo library access to select existing photos for your property listings.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Domori uses your location to help set property addresses and improve search accuracy.</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.business</string>
+	<key>CFBundleDisplayName</key>
+	<string>Domori</string>
+	<key>CFBundleName</key>
+	<string>Domori</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

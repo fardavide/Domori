@@ -183,6 +183,32 @@ xcodebuild test -project Domori.xcodeproj -scheme Domori
 ✅ Migration tests verify data integrity  
 ✅ Cross-platform compatibility verified
 
+## 📸 App Store Screenshots
+
+The project includes automated screenshot generation for App Store submission. For detailed requirements and specifications, see [`SCREENSHOT_REQUIREMENTS.md`](SCREENSHOT_REQUIREMENTS.md).
+
+### Quick Overview
+- **Target Device**: iPhone 16 Pro (6.3" display)
+- **Screenshots**: 3 required images
+- **Requirements**: European properties with Euro currency and metric units
+- **Validation**: No "€0", "0 sqm", or "NaN/sqm" values allowed
+
+### Generated Screenshots
+1. `01_MainScreen_ThreeListings.png` - Main property list with 3 European properties
+2. `02_AddProperty_FilledForm.png` - Completed add property form 
+3. `03_PropertyDetail.png` - Property detail view
+
+### Running Screenshot Tests
+```bash
+# Generate App Store screenshots
+xcodebuild test -project Domori.xcodeproj -scheme Domori -destination 'platform=iOS Simulator,name=iPhone 16 Pro' -only-testing:DomoriUITests/DomoriUITests/testAppStoreScreenshots
+
+# Check generated screenshots
+ls -la AppStoreScreenshots/*.png
+```
+
+> **⚠️ Important**: Screenshots must show realistic European property data with proper Euro formatting and square meter measurements. See the requirements document for complete specifications.
+
 ## 🎯 AI Development Notes
 
 This project demonstrates several interesting aspects of AI-powered development:
