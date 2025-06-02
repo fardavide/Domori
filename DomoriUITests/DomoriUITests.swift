@@ -235,7 +235,7 @@ final class DomoriUITests: XCTestCase {
         }
         
         // Screenshot 1: Main screen with 3 listings
-        sleep(2) // Allow UI to settle
+        waitForUIToSettle(in: app) // Instead of sleep(2)
         takeScreenshot(name: "01_MainScreen_ThreeListings")
         
         // Screenshot 2: Add/Edit form with filled data (start of screen, keyboard closed)
@@ -245,7 +245,7 @@ final class DomoriUITests: XCTestCase {
             
             // Wait for the Add Property screen to appear
             XCTAssertTrue(app.navigationBars["Add Property"].waitForExistence(timeout: 5))
-            sleep(1)
+            waitForFormToLoad(in: app) // Instead of sleep(1)
             
             // Fill the form completely with proper data
             fillCompletePropertyFormWithValidation(in: app)
@@ -253,7 +253,7 @@ final class DomoriUITests: XCTestCase {
             // Ensure we're at the top of the form and keyboard is dismissed
             app.swipeDown() // Dismiss keyboard if open
             app.scrollViews.firstMatch.swipeDown() // Scroll to top
-            sleep(1)
+            waitForUIToSettle(in: app) // Instead of sleep(1)
             
             // Take screenshot of filled form
             takeScreenshot(name: "02_AddProperty_FilledForm")
@@ -266,13 +266,18 @@ final class DomoriUITests: XCTestCase {
         }
         
         // Screenshot 3: Property detail view
-        sleep(1)
+        waitForUIToSettle(in: app) // Instead of sleep(1)
         let firstProperty = app.collectionViews.firstMatch.cells.firstMatch
         if firstProperty.exists {
             firstProperty.tap()
             
-            // Wait for detail view to load
-            sleep(2)
+            // Wait for detail view to load with expectation instead of fixed delay
+            let detailViewExpectation = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "exists == true"),
+                object: app.scrollViews.firstMatch
+            )
+            _ = XCTWaiter.wait(for: [detailViewExpectation], timeout: 3.0)
+            
             takeScreenshot(name: "03_PropertyDetail")
             
             // Navigate back
@@ -303,7 +308,8 @@ final class DomoriUITests: XCTestCase {
             return 
         }
         
-        sleep(3) // Let form settle completely and animations finish
+        // Wait for form to be fully loaded instead of fixed delay
+        waitForFormToLoad(in: app)
         print("✅ Add Property form loaded")
         
         // STEP 1: Fill basic text fields (these work reliably)
@@ -334,7 +340,7 @@ final class DomoriUITests: XCTestCase {
         // STEP 6: Final cleanup and save
         print("\n💾 Preparing to save...")
         dismissKeyboardProperly(in: app)
-        sleep(2) // Allow UI to settle
+        waitForUIToSettle(in: app)
         
         // Save the property
         let saveButton = app.buttons["Save"]
@@ -345,7 +351,7 @@ final class DomoriUITests: XCTestCase {
             // Wait to return to main screen
             let success = app.navigationBars["Properties"].waitForExistence(timeout: 10)
             if success {
-                sleep(3) // Allow list to update
+                waitForListToUpdate(in: app)
                 print("✅ Successfully saved and returned: \(title)")
                 print("🏠 === Property Creation Complete ===\n")
             } else {
@@ -361,15 +367,56 @@ final class DomoriUITests: XCTestCase {
         }
     }
     
+    private func waitForFormToLoad(in app: XCUIApplication) {
+        // Wait for essential form elements to be ready
+        let titleField = app.textFields["Property Title"]
+        let locationField = app.textFields["Location"]
+        let linkField = app.textFields["Property Link"]
+        
+        // Use XCTWaiter for more efficient waiting
+        let expectation = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == true"),
+            object: titleField
+        )
+        _ = XCTWaiter.wait(for: [expectation], timeout: 3.0)
+        
+        // Small additional delay for animation completion
+        usleep(1000000) // 1 second instead of 1
+    }
+    
+    private func waitForUIToSettle(in app: XCUIApplication) {
+        // Reduced from sleep(2) to more targeted waiting
+        let predicate = NSPredicate(format: "exists == false")
+        let keyboardExpectation = XCTNSPredicateExpectation(predicate: predicate, object: app.keyboards.firstMatch)
+        _ = XCTWaiter.wait(for: [keyboardExpectation], timeout: 2.0)
+        
+        // Brief pause for UI animations
+        usleep(500000) // 0.5 seconds instead of 2
+    }
+    
+    private func waitForListToUpdate(in app: XCUIApplication) {
+        // Wait for collection view to update instead of fixed 3 second delay
+        let collectionView = app.collectionViews.firstMatch
+        if collectionView.exists {
+            // Wait a bit for the new item to appear
+            usleep(1000000) // 1 second instead of 1
+        }
+    }
+    
     private func fillBasicTextField(in app: XCUIApplication, identifier: String, value: String) {
         let field = app.textFields[identifier]
         if field.exists {
             field.tap()
-            sleep(1)
+            
+            // Wait for field to become active instead of fixed delay
+            let activeExpectation = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "hasKeyboardFocus == true"),
+                object: field
+            )
+            _ = XCTWaiter.wait(for: [activeExpectation], timeout: 2.0)
             
             // Clear existing content properly
             field.clearAndTypeText(value)
-            sleep(1)
             print("✅ Filled \(identifier): \(value)")
         } else {
             print("❌ Could not find field: \(identifier)")
@@ -377,21 +424,24 @@ final class DomoriUITests: XCTestCase {
     }
     
     private func dismissKeyboardProperly(in app: XCUIApplication) {
-        // Method 1: Tap outside form areas (works for sheets)
-        let formArea = app.otherElements["Add Property"]
-        if formArea.exists {
-            // Tap on the navigation bar to dismiss keyboard
+        // Check if keyboard is actually present before trying to dismiss
+        if app.keyboards.count > 0 {
+            // Method 1: Tap outside form areas (works for sheets)
             let navBar = app.navigationBars["Add Property"]
             if navBar.exists {
                 navBar.tap()
-                sleep(1)
+                
+                // Wait for keyboard to dismiss instead of fixed delay
+                let keyboardGoneExpectation = XCTNSPredicateExpectation(
+                    predicate: NSPredicate(format: "count == 0"),
+                    object: app.keyboards
+                )
+                _ = XCTWaiter.wait(for: [keyboardGoneExpectation], timeout: 2.0)
+            } else {
+                // Fallback: swipe down
+                app.swipeDown()
+                usleep(1000000) // 1 second instead of 1
             }
-        }
-        
-        // Method 2: If keyboard is still visible, use swipe down
-        if app.keyboards.count > 0 {
-            app.swipeDown()
-            sleep(1)
         }
         
         print("✅ Keyboard dismissed")
@@ -405,13 +455,15 @@ final class DomoriUITests: XCTestCase {
             if formScrollView.exists {
                 // Scroll down within the form's scroll view
                 formScrollView.swipeUp()
-                sleep(2)
+                
+                // Wait for scroll animation to complete
+                usleep(800000) // 0.8 seconds instead of 2
                 print("✅ Scrolled to numeric fields area")
             }
         } else {
             // Fallback: gentle swipe up if no scroll view found
             app.swipeUp()
-            sleep(2)
+            usleep(800000) // 0.8 seconds instead of 2
             print("✅ Used fallback scrolling")
         }
     }
@@ -448,15 +500,17 @@ final class DomoriUITests: XCTestCase {
             
             // Ensure field is visible and properly focused
             field.tap()
-            sleep(1)
+            
+            // Wait for field focus instead of fixed delay
+            usleep(500000) // 0.5 seconds instead of 1
             
             // Double-tap to select all content
             field.doubleTap()
-            sleep(1)
+            usleep(500000) // 0.5 seconds instead of 1
             
             // Type the value
             field.typeText(value)
-            sleep(1)
+            usleep(500000) // 0.5 seconds instead of 1
             
             // Verify the field was filled (if possible)
             if let fieldValue = field.value as? String, !fieldValue.isEmpty && fieldValue != "0" {
@@ -483,7 +537,7 @@ final class DomoriUITests: XCTestCase {
                 for _ in 0..<10 {
                     if decrementButton.exists && decrementButton.isHittable {
                         decrementButton.tap()
-                        sleep(1)
+                        usleep(300000) // 0.3 seconds instead of 1
                     }
                 }
                 
@@ -493,7 +547,7 @@ final class DomoriUITests: XCTestCase {
                 for _ in 0..<targetValue {
                     if incrementButton.exists && incrementButton.isHittable {
                         incrementButton.tap()
-                        sleep(1)
+                        usleep(300000) // 0.3 seconds instead of 1
                     }
                 }
                 print("✅ Set bedrooms to \(value)")
@@ -535,7 +589,7 @@ final class DomoriUITests: XCTestCase {
         let titleField = app.textFields["Property Title"]
         if titleField.exists {
             titleField.tap()
-            sleep(1)
+            usleep(500000) // 0.5 seconds instead of 1
             titleField.clearAndTypeText(propertyData.title)
             print("✅ Form: Filled title")
         }
@@ -544,7 +598,7 @@ final class DomoriUITests: XCTestCase {
         let locationField = app.textFields["Location"]
         if locationField.exists {
             locationField.tap()
-            sleep(1)
+            usleep(500000) // 0.5 seconds instead of 1
             locationField.clearAndTypeText(propertyData.location)
             print("✅ Form: Filled location")
         }
@@ -553,14 +607,14 @@ final class DomoriUITests: XCTestCase {
         let linkField = app.textFields["Property Link"]
         if linkField.exists {
             linkField.tap()
-            sleep(1)
+            usleep(500000) // 0.5 seconds instead of 1
             linkField.clearAndTypeText(propertyData.link)
             print("✅ Form: Filled link")
         }
         
         // Scroll down to see numeric fields
         app.swipeUp()
-        sleep(1)
+        usleep(800000) // 0.8 seconds instead of 1
         
         // Fill numeric fields with validation
         fillNumericFieldImproved(in: app, value: propertyData.price, fieldType: "price")
@@ -569,7 +623,7 @@ final class DomoriUITests: XCTestCase {
         
         // Dismiss keyboard
         app.swipeDown()
-        sleep(1)
+        usleep(500000) // 0.5 seconds instead of 1
         
         print("✅ Form: Completed filling all fields")
     }
