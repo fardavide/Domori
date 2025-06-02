@@ -166,6 +166,12 @@ The project includes comprehensive testing using the modern swift-testing framew
 - **Integration Tests**: Cross-component functionality
 - **UI Tests**: User interface and navigation flows
 
+### Testing Guidelines
+- **Always use European addresses with Euro currency** in test data
+- **Prefer iPhone 16 Pro simulator** for consistency
+- **Target performance**: iPhone ~175s, iPad ~199s for UI tests
+- **Never allow placeholder values**: "€0", "0 sqm", or "NaN/sqm"
+
 ### Running Tests
 ```bash
 # Run all tests in Xcode
