@@ -193,21 +193,44 @@ xcodebuild test -project Domori.xcodeproj -scheme Domori
 
 The project includes automated screenshot generation for App Store submission. For detailed requirements and specifications, see [`SCREENSHOT_REQUIREMENTS.md`](SCREENSHOT_REQUIREMENTS.md).
 
+### iPhone Screenshots (iPhone 16 Pro)
+
+<table>
+<tr>
+<td align="center">
+<img src="AppStoreScreenshots/01_iPhone_MainScreen_ThreeListings.png" width="250" alt="Main Screen">
+<br><strong>Main Property List</strong>
+<br>3 European properties with Euro pricing and flow layout tags
+</td>
+<td align="center">
+<img src="AppStoreScreenshots/02_iPhone_AddProperty_FilledForm.png" width="250" alt="Add Property">
+<br><strong>Add Property Form</strong>
+<br>Filled form with European address and validation
+</td>
+<td align="center">
+<img src="AppStoreScreenshots/03_iPhone_PropertyDetail.png" width="250" alt="Property Detail">
+<br><strong>Property Detail View</strong>
+<br>Comprehensive property information with tags and rating
+</td>
+</tr>
+</table>
+
 ### Quick Overview
 - **Target Device**: iPhone 16 Pro (6.3" display)
-- **Screenshots**: 3 required images
+- **Screenshots**: 3 required images with optimized tag spacing for improved visual density
 - **Requirements**: European properties with Euro currency and metric units
 - **Validation**: No "€0", "0 sqm", or "NaN/sqm" values allowed
+- **Latest Update**: June 2025 - Reduced tag spacing for better visual density
 
 ### Generated Screenshots
-1. `01_MainScreen_ThreeListings.png` - Main property list with 3 European properties
-2. `02_AddProperty_FilledForm.png` - Completed add property form 
-3. `03_PropertyDetail.png` - Property detail view
+1. `01_iPhone_MainScreen_ThreeListings.png` - Main property list with 3 European properties
+2. `02_iPhone_AddProperty_FilledForm.png` - Completed add property form 
+3. `03_iPhone_PropertyDetail.png` - Property detail view
 
 ### Running Screenshot Tests
 ```bash
 # Generate App Store screenshots
-xcodebuild test -project Domori.xcodeproj -scheme Domori -destination 'platform=iOS Simulator,name=iPhone 16 Pro' -only-testing:DomoriUITests/DomoriUITests/testAppStoreScreenshots
+xcodebuild test -project Domori.xcodeproj -scheme Domori -destination 'platform=iOS Simulator,name=iPhone 16 Pro' -only-testing:DomoriUITests/DomoriUITests/testAppStoreScreenshots_iPhone
 
 # Check generated screenshots
 ls -la AppStoreScreenshots/*.png
