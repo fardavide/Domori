@@ -380,58 +380,115 @@ final class DomoriUITests: XCTestCase {
     }
     
     private func fillNumericField(in app: XCUIApplication, value: String, fieldType: String, order: Int) {
-        // Try multiple strategies to find the correct numeric field
+        print("🔍 Attempting to fill \(fieldType) field with value: \(value)")
         
-        // Strategy 1: Look for fields with "0" value
-        let zeroFields = app.textFields.matching(NSPredicate(format: "value == '0'"))
-        if zeroFields.count > order {
-            let field = zeroFields.element(boundBy: order)
-            if field.exists {
-                field.tap()
-                sleep(1)
-                field.clearAndTypeText(value)
-                print("✅ Filled \(fieldType) field (strategy 1): \(value)")
-                return
-            }
-        }
+        // Strategy 1: Look for text fields with placeholder "0" (these are the numeric fields)
+        let numericFields = app.textFields.matching(NSPredicate(format: "placeholderValue == '0'"))
+        print("📊 Found \(numericFields.count) fields with placeholder '0'")
         
-        // Strategy 2: Look for fields with placeholder "0"
-        let placeholderFields = app.textFields.matching(NSPredicate(format: "placeholderValue == '0'"))
-        if placeholderFields.count > order {
-            let field = placeholderFields.element(boundBy: order)
-            if field.exists {
-                field.tap()
-                sleep(1)
-                field.clearAndTypeText(value)
-                print("✅ Filled \(fieldType) field (strategy 2): \(value)")
-                return
-            }
-        }
-        
-        // Strategy 3: Look for specific field identifiers
-        let specificField = app.textFields[fieldType.capitalized]
-        if specificField.exists {
-            specificField.tap()
-            sleep(1)
-            specificField.clearAndTypeText(value)
-            print("✅ Filled \(fieldType) field (strategy 3): \(value)")
-            return
-        }
-        
-        // Strategy 4: Find any numeric text field and use order
-        let numericFields = app.textFields.matching(NSPredicate(format: "value MATCHES '^[0-9]*$' OR placeholderValue MATCHES '^[0-9]*$'"))
         if numericFields.count > order {
             let field = numericFields.element(boundBy: order)
             if field.exists {
+                // For numeric fields, we need to clear and type the value
                 field.tap()
                 sleep(1)
-                field.clearAndTypeText(value)
-                print("✅ Filled \(fieldType) field (strategy 4): \(value)")
+                
+                // Clear field by selecting all and deleting
+                field.doubleTap() // Select all text
+                sleep(1)
+                field.typeText(value)
+                sleep(1)
+                
+                print("✅ Filled \(fieldType) field (numeric strategy): \(value)")
                 return
             }
         }
         
-        print("❌ Could not find \(fieldType) field")
+        // Strategy 2: Look for fields containing specific text for the field type
+        let fieldLabels = ["Price", "Size", "Bedrooms"]
+        if order < fieldLabels.count {
+            let labelText = fieldLabels[order]
+            
+            // Find fields near the label text
+            let cells = app.cells.containing(NSPredicate(format: "label CONTAINS '\(labelText)'"))
+            if cells.count > 0 {
+                let cell = cells.firstMatch
+                let textFields = cell.textFields
+                if textFields.count > 0 {
+                    let field = textFields.firstMatch
+                    field.tap()
+                    sleep(1)
+                    field.doubleTap() // Select all
+                    sleep(1)
+                    field.typeText(value)
+                    sleep(1)
+                    print("✅ Filled \(fieldType) field (label strategy): \(value)")
+                    return
+                }
+            }
+        }
+        
+        // Strategy 3: Look for steppers (for bedrooms) if it's a bedrooms field
+        if fieldType.contains("bedroom") {
+            let steppers = app.steppers
+            if steppers.count > 0 {
+                let stepper = steppers.firstMatch
+                if stepper.exists {
+                    // Reset stepper to 0 first by tapping decrement multiple times
+                    let decrementButton = stepper.buttons.element(boundBy: 0)
+                    for _ in 0..<10 {
+                        if decrementButton.exists {
+                            decrementButton.tap()
+                            sleep(1)
+                        }
+                    }
+                    
+                    // Now increment to desired value
+                    let incrementButton = stepper.buttons.element(boundBy: 1)
+                    let targetValue = Int(value) ?? 0
+                    for _ in 0..<targetValue {
+                        if incrementButton.exists {
+                            incrementButton.tap()
+                            sleep(1)
+                        }
+                    }
+                    print("✅ Filled \(fieldType) field (stepper strategy): \(value)")
+                    return
+                }
+            }
+        }
+        
+        // Strategy 4: Find all text fields and use by index
+        let allTextFields = app.textFields
+        let startIndex = 3 // Skip title, location, link fields
+        let targetIndex = startIndex + order
+        
+        if allTextFields.count > targetIndex {
+            let field = allTextFields.element(boundBy: targetIndex)
+            if field.exists {
+                field.tap()
+                sleep(1)
+                field.doubleTap() // Select all text
+                sleep(1)
+                field.typeText(value)
+                sleep(1)
+                print("✅ Filled \(fieldType) field (index strategy): \(value)")
+                return
+            }
+        }
+        
+        print("❌ Could not find \(fieldType) field using any strategy")
+        
+        // Debug: Print all available text fields
+        print("🔍 Available text fields:")
+        for i in 0..<min(allTextFields.count, 10) {
+            let field = allTextFields.element(boundBy: i)
+            if field.exists {
+                let placeholder = field.placeholderValue ?? "no placeholder"
+                let value = field.value as? String ?? "no value"
+                print("  Field \(i): placeholder='\(placeholder)', value='\(value)'")
+            }
+        }
     }
     
     private func setRatingInForm(in app: XCUIApplication, rating: String) {
