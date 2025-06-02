@@ -5,6 +5,9 @@ This file contains references to all project documentation that should be follow
 ## Code Style
 CodeStyle: CODE_STYLE.md
 
+## Testing Strategy
+Testing: TESTING_STRATEGY.md
+
 ## App Store Submission
 AppStore: APP_STORE_SUBMISSION_GUIDE.md
 

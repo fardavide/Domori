@@ -291,9 +291,19 @@ final class DomoriUITests: XCTestCase {
                                          rating: index == 0 ? "Excellent" : (index == 1 ? "Good" : "Considering"))
         }
         
-        // Screenshot 1: Main screen with 3 listings
+        // Add 2-3 tags to ALL properties for better screenshot presentation
+        print("\n🏷️ Adding tags to all properties for screenshots...")
+        addTagsToAllProperties(in: app, platform: platform)
+        
+        // Ensure we're back on main screen for MainScreen screenshot
+        print("\n📸 === Ensuring we're on Main Screen ===")
+        ensureOnMainScreen(in: app)
+        
+        // Screenshot 1: Main screen with 3 listings (all with tags)
         waitForUIToSettle(in: app)
-        takeScreenshotForPlatform(name: "01_\(platform.prefix)_MainScreen_ThreeListings", platform: platform)
+        print("📸 Taking MainScreen screenshot...")
+        takeScreenshot(platform: platform, screenName: "MainScreen_ThreeListings", in: app)
+        print("✅ MainScreen screenshot taken successfully")
         
         // Screenshot 2: Add/Edit form with filled data
         let addButton = app.navigationBars["Properties"].buttons["plus"]
@@ -320,7 +330,7 @@ final class DomoriUITests: XCTestCase {
             waitForUIToSettle(in: app)
             
             // Take screenshot of filled form
-            takeScreenshotForPlatform(name: "02_\(platform.prefix)_AddProperty_FilledForm", platform: platform)
+            takeScreenshot(platform: platform, screenName: "AddProperty_FilledForm", in: app)
             
             // Cancel to return to main screen
             let cancelButton = app.buttons["Cancel"]
@@ -329,32 +339,45 @@ final class DomoriUITests: XCTestCase {
             }
         }
         
-        // Screenshot 3: Property detail view
+        // Screenshot 3: Property detail view (now with tags)
         waitForUIToSettle(in: app)
+        print("\n📸 === Taking PropertyDetail Screenshot ===")
+        print("🔍 Looking for first property to navigate to detail view...")
+        
         let firstProperty = app.collectionViews.firstMatch.cells.firstMatch
         if firstProperty.exists {
+            print("✅ Found first property, tapping to open detail view...")
             firstProperty.tap()
             
-            // Wait for detail view to load
+            // Wait for detail view to load properly
             let detailViewExpectation = XCTNSPredicateExpectation(
                 predicate: NSPredicate(format: "exists == true"),
                 object: app.scrollViews.firstMatch
             )
-            _ = XCTWaiter.wait(for: [detailViewExpectation], timeout: 3.0)
+            let waitResult = XCTWaiter.wait(for: [detailViewExpectation], timeout: 5.0)
             
-            // Platform-specific detail view positioning
-            if platform.isTabletOrDesktop {
-                optimizeDetailViewForTabletOrDesktop(in: app, platform: platform)
-            }
-            
-            takeScreenshotForPlatform(name: "03_\(platform.prefix)_PropertyDetail", platform: platform)
-            
-            // Navigate back
-            if app.buttons["Back"].exists {
-                app.buttons["Back"].tap()
+            if waitResult == .completed {
+                print("✅ PropertyDetail view loaded successfully")
+                // Additional wait to ensure tags are visible
+                waitForUIToSettle(in: app)
+                sleep(1) // Extra delay to ensure all UI elements are rendered
+                
+                // Verify we're actually in detail view
+                let tagButtons = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Location'"))
+                let tagButtonsCount = tagButtons.count
+                print("🏷️ Found \(tagButtonsCount) tag buttons in detail view")
+                
+                takeScreenshot(platform: platform, screenName: "PropertyDetail", in: app)
+                print("✅ PropertyDetail screenshot taken successfully")
             } else {
-                app.swipeRight()
+                print("❌ PropertyDetail view failed to load within timeout")
+                // Take screenshot anyway for debugging
+                takeScreenshot(platform: platform, screenName: "PropertyDetail", in: app)
             }
+        } else {
+            print("❌ Could not find first property to open")
+            // Take screenshot of current state for debugging
+            takeScreenshot(platform: platform, screenName: "PropertyDetail", in: app)
         }
         
         print("✅ \(platform.prefix) screenshots completed successfully!")
@@ -661,16 +684,17 @@ final class DomoriUITests: XCTestCase {
     
     // MARK: - Helper Methods
     
-    private func takeScreenshot(name: String) {
+    private func takeScreenshot(platform: ScreenshotPlatform, screenName: String, in app: XCUIApplication) {
         let screenshot = XCUIScreen.main.screenshot()
         let attachment = XCTAttachment(screenshot: screenshot)
-        attachment.name = name
+        let fullName = "\(String(format: "%02d", getScreenshotNumber(screenName)))_\(platform.prefix)_\(screenName)"
+        attachment.name = fullName
         attachment.lifetime = .keepAlways
         add(attachment)
         
         // Save to temporary directory first, then try to copy to project directory
         let tempDir = URL(fileURLWithPath: NSTemporaryDirectory())
-        let tempFile = tempDir.appendingPathComponent("\(name).png")
+        let tempFile = tempDir.appendingPathComponent("\(fullName).png")
         
         do {
             // Save to temp directory first
@@ -686,7 +710,7 @@ final class DomoriUITests: XCTestCase {
             // Create directory if it doesn't exist
             try? fileManager.createDirectory(at: screenshotsDir, withIntermediateDirectories: true, attributes: nil)
             
-            let finalFile = screenshotsDir.appendingPathComponent("\(name).png")
+            let finalFile = screenshotsDir.appendingPathComponent("\(fullName).png")
             
             // Remove existing file if it exists
             try? fileManager.removeItem(at: finalFile)
@@ -699,49 +723,16 @@ final class DomoriUITests: XCTestCase {
             try? fileManager.removeItem(at: tempFile)
             
         } catch {
-            print("❌ Failed to save screenshot '\(name)': \(error)")
+            print("❌ Failed to save \(platform.prefix) screenshot '\(fullName)': \(error)")
         }
     }
     
-    private func takeScreenshotForPlatform(name: String, platform: ScreenshotPlatform) {
-        let screenshot = XCUIScreen.main.screenshot()
-        let attachment = XCTAttachment(screenshot: screenshot)
-        attachment.name = name
-        attachment.lifetime = .keepAlways
-        add(attachment)
-        
-        // Save to temporary directory first, then try to copy to project directory
-        let tempDir = URL(fileURLWithPath: NSTemporaryDirectory())
-        let tempFile = tempDir.appendingPathComponent("\(name).png")
-        
-        do {
-            // Save to temp directory first
-            let imageData = screenshot.pngRepresentation
-            try imageData.write(to: tempFile)
-            print("✅ \(platform.prefix) screenshot saved to temp: \(tempFile.path)")
-            
-            // Try to copy to project AppStoreScreenshots directory
-            let fileManager = FileManager.default
-            let projectDir = URL(fileURLWithPath: "/Users/davide/Dev/Projects/Domori")
-            let screenshotsDir = projectDir.appendingPathComponent("AppStoreScreenshots")
-            
-            // Create directory if it doesn't exist
-            try? fileManager.createDirectory(at: screenshotsDir, withIntermediateDirectories: true, attributes: nil)
-            
-            let finalFile = screenshotsDir.appendingPathComponent("\(name).png")
-            
-            // Remove existing file if it exists
-            try? fileManager.removeItem(at: finalFile)
-            
-            // Copy from temp to final location
-            try fileManager.copyItem(at: tempFile, to: finalFile)
-            print("✅ \(platform.prefix) screenshot copied to: \(finalFile.path)")
-            
-            // Clean up temp file
-            try? fileManager.removeItem(at: tempFile)
-            
-        } catch {
-            print("❌ Failed to save \(platform.prefix) screenshot '\(name)': \(error)")
+    private func getScreenshotNumber(_ screenName: String) -> Int {
+        switch screenName {
+        case "MainScreen_ThreeListings": return 1
+        case "AddProperty_FilledForm": return 2
+        case "PropertyDetail": return 3
+        default: return 99
         }
     }
     
@@ -913,7 +904,7 @@ final class DomoriUITests: XCTestCase {
         
         // Screenshot 1: Main screen with 3 listings
         waitForUIToSettle(in: app)
-        takeScreenshot(name: "01_MainScreen_ThreeListings")
+        takeScreenshot(platform: .iPhone, screenName: "MainScreen_ThreeListings", in: app)
         
         // Screenshot 2: Add/Edit form with filled data (start of screen, keyboard closed)
         let addButton = app.navigationBars["Properties"].buttons["plus"]
@@ -933,7 +924,7 @@ final class DomoriUITests: XCTestCase {
             waitForUIToSettle(in: app)
             
             // Take screenshot of filled form
-            takeScreenshot(name: "02_AddProperty_FilledForm")
+            takeScreenshot(platform: .iPhone, screenName: "AddProperty_FilledForm", in: app)
             
             // Cancel to return to main screen
             let cancelButton = app.buttons["Cancel"]
@@ -955,7 +946,7 @@ final class DomoriUITests: XCTestCase {
             )
             _ = XCTWaiter.wait(for: [detailViewExpectation], timeout: 3.0)
             
-            takeScreenshot(name: "03_PropertyDetail")
+            takeScreenshot(platform: .iPhone, screenName: "PropertyDetail", in: app)
             
             // Navigate back
             if app.buttons["Back"].exists {
@@ -1450,5 +1441,231 @@ final class DomoriUITests: XCTestCase {
                 }
             }
         }
+    }
+    
+    private func addTagsToAllProperties(in app: XCUIApplication, platform: ScreenshotPlatform) {
+        print("🏷️ Adding tags to all properties...")
+        
+        let propertyTagData = [
+            // Property 1: Milano apartment
+            [(name: "Prime Location", rating: "Excellent"), 
+             (name: "Move-in Ready", rating: "Good"), 
+             (name: "High Demand", rating: "Excellent")],
+            // Property 2: Berlin townhouse  
+            [(name: "Historic District", rating: "Good"), 
+             (name: "Garden Access", rating: "Excellent")],
+            // Property 3: Paris penthouse
+            [(name: "Luxury Finishes", rating: "Excellent"), 
+             (name: "River Views", rating: "Excellent"), 
+             (name: "Investment Grade", rating: "Good")]
+        ]
+        
+        for (propertyIndex, tagsForProperty) in propertyTagData.enumerated() {
+            print("🏠 Adding tags to property \(propertyIndex + 1)...")
+            
+            // Navigate to the specific property
+            let propertyCell = app.collectionViews.firstMatch.cells.element(boundBy: propertyIndex)
+            guard propertyCell.exists else {
+                print("❌ Property \(propertyIndex + 1) not found")
+                continue
+            }
+            
+            propertyCell.tap()
+            
+            // Wait for detail view to load
+            let detailViewExpectation = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "exists == true"),
+                object: app.scrollViews.firstMatch
+            )
+            _ = XCTWaiter.wait(for: [detailViewExpectation], timeout: 3.0)
+            
+            // Add each tag for this property
+            for (tagIndex, tagInfo) in tagsForProperty.enumerated() {
+                print("🏷️ Adding tag \(tagIndex + 1) to property \(propertyIndex + 1): \(tagInfo.name)")
+                addSingleTag(in: app, name: tagInfo.name, rating: tagInfo.rating)
+                sleep(1) // Brief pause between tag additions
+            }
+            
+            // Navigate back to main screen
+            print("🔙 Returning to main screen from property \(propertyIndex + 1)")
+            navigateBackToMainScreen(in: app, from: "Property \(propertyIndex + 1) detail view")
+            
+            // Verify we're actually back on main screen
+            let mainScreenNavBar = app.navigationBars["Properties"]
+            if !mainScreenNavBar.exists {
+                XCTFail("❌ Failed to return to main screen after adding tags to property \(propertyIndex + 1)")
+            }
+            
+            waitForUIToSettle(in: app)
+        }
+        
+        print("✅ Finished adding tags to all properties")
+    }
+    
+    private func navigateBackToMainScreen(in app: XCUIApplication, from location: String) {
+        print("🔙 Navigating back to main screen from \(location)")
+        
+        let mainScreenNavBar = app.navigationBars["Properties"]
+        
+        // Check if we're already on main screen
+        if mainScreenNavBar.exists {
+            print("✅ Already on main screen")
+            return
+        }
+        
+        // Try navigation methods in order of preference
+        var navigationSuccess = false
+        var attemptedMethods: [String] = []
+        
+        // Method 1: Back button (most reliable for standard navigation)
+        let backButton = app.buttons["Back"]
+        if backButton.exists && backButton.isHittable {
+            print("🔄 Attempting Back button navigation...")
+            backButton.tap()
+            attemptedMethods.append("Back button")
+            
+            if mainScreenNavBar.waitForExistence(timeout: 5) {
+                print("✅ Successfully navigated back via Back button")
+                navigationSuccess = true
+            }
+        }
+        
+        // Method 2: Navigation bar back button (alternative identifier)
+        if !navigationSuccess {
+            let navBackButton = app.navigationBars.buttons.firstMatch
+            if navBackButton.exists && navBackButton.isHittable {
+                print("🔄 Attempting navigation bar back button...")
+                navBackButton.tap()
+                attemptedMethods.append("Navigation bar back button")
+                
+                if mainScreenNavBar.waitForExistence(timeout: 5) {
+                    print("✅ Successfully navigated back via navigation bar back button")
+                    navigationSuccess = true
+                }
+            }
+        }
+        
+        // Method 3: Swipe right gesture (fallback for edge cases)
+        if !navigationSuccess {
+            print("🔄 Attempting swipe right gesture...")
+            app.swipeRight()
+            attemptedMethods.append("Swipe right gesture")
+            
+            if mainScreenNavBar.waitForExistence(timeout: 5) {
+                print("✅ Successfully navigated back via swipe gesture")
+                navigationSuccess = true
+            }
+        }
+        
+        // Method 4: Cancel button (for modal presentations)
+        if !navigationSuccess {
+            let cancelButton = app.buttons["Cancel"]
+            if cancelButton.exists && cancelButton.isHittable {
+                print("🔄 Attempting Cancel button...")
+                cancelButton.tap()
+                attemptedMethods.append("Cancel button")
+                
+                if mainScreenNavBar.waitForExistence(timeout: 5) {
+                    print("✅ Successfully navigated back via Cancel button")
+                    navigationSuccess = true
+                }
+            }
+        }
+        
+        // FAIL HARD if navigation didn't work
+        if !navigationSuccess {
+            let errorMessage = """
+            ❌ CRITICAL NAVIGATION FAILURE ❌
+            Failed to navigate back to main screen from: \(location)
+            Attempted methods: \(attemptedMethods.joined(separator: ", "))
+            Current screen state:
+            - Navigation bars present: \(app.navigationBars.allElementsBoundByIndex.map { $0.identifier })
+            - Available buttons: \(app.buttons.allElementsBoundByIndex.prefix(5).map { $0.identifier })
+            
+            This indicates a fundamental navigation issue in the app or test setup.
+            The test must be fixed before proceeding with screenshot generation.
+            """
+            
+            print(errorMessage)
+            XCTFail(errorMessage)
+        }
+    }
+    
+    private func ensureOnMainScreen(in app: XCUIApplication) {
+        print("🔍 Checking current screen...")
+        
+        // Check if we're already on main screen
+        let mainScreenNavBar = app.navigationBars["Properties"]
+        if mainScreenNavBar.exists {
+            print("✅ Already on main screen")
+            return
+        }
+        
+        // Use the robust navigation function
+        navigateBackToMainScreen(in: app, from: "unknown screen")
+    }
+    
+    private func addSingleTag(in app: XCUIApplication, name: String, rating: String) {
+        // Look for "Add Tag" button
+        let addTagButton = app.buttons["Add Tag"]
+        guard addTagButton.exists else {
+            print("❌ Add Tag button not found")
+            return
+        }
+        
+        addTagButton.tap()
+        
+        // Wait for Add Tag sheet/navigation to appear
+        let addTagNavigation = app.navigationBars["Add Tags"]
+        if !addTagNavigation.waitForExistence(timeout: 3) {
+            print("❌ Add Tags navigation not found")
+            return
+        }
+        
+        // Enter tag name in the text field
+        let tagNameField = app.textFields["Enter tag name"]
+        if tagNameField.exists {
+            tagNameField.tap()
+            tagNameField.typeText(name)
+            print("✅ Entered tag name: \(name)")
+        } else {
+            print("❌ Tag name field not found")
+            return
+        }
+        
+        // Select rating by tapping on the appropriate rating section
+        // The AddTagView shows rating options as vertical stack with icons and text
+        // We need to look for buttons containing the rating name
+        let ratingButtons = app.buttons.containing(NSPredicate(format: "label CONTAINS '\(rating)'"))
+        if ratingButtons.count > 0 {
+            let ratingButton = ratingButtons.firstMatch
+            if ratingButton.exists {
+                ratingButton.tap()
+                print("✅ Selected rating: \(rating)")
+            }
+        } else {
+            print("⚠️ Rating button for \(rating) not found, using default")
+        }
+        
+        // Create the tag
+        let createButton = app.buttons["Create Tag"]
+        if createButton.exists && createButton.isEnabled {
+            createButton.tap()
+            print("✅ Created tag: \(name)")
+            
+            // Wait for sheet to dismiss and return to detail view
+            let detailView = app.scrollViews.firstMatch
+            _ = detailView.waitForExistence(timeout: 3)
+        } else {
+            print("❌ Create Tag button not available")
+            // Cancel if create failed
+            let cancelButton = app.buttons["Cancel"]
+            if cancelButton.exists {
+                cancelButton.tap()
+            }
+        }
+        
+        // Brief wait for UI to settle
+        waitForUIToSettle(in: app)
     }
 }
