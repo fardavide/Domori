@@ -1,5 +1,13 @@
 # Commit Message Rules
 
+## ⚠️ CRITICAL RULE: NEVER COMMIT WHEN TESTS FAIL
+**UNDER NO CIRCUMSTANCES should you commit code when tests are failing, regardless of the reason.**
+
+- Always ensure all tests pass before committing
+- If tests fail, investigate and fix the failure first
+- If the test failure is unrelated to your changes, fix it before proceeding
+- This rule has ZERO exceptions
+
 ## Format
 All commit messages must follow this format:
 ```

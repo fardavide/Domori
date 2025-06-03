@@ -228,4 +228,52 @@ XCTFail("Something went wrong")
 - **UI Guidelines**: UI_GUIDELINES.md
 - **Code Style**: CODE_STYLE.md
 - **Screenshot Requirements**: SCREENSHOT_REQUIREMENTS.md
-- **Commit Rules**: COMMIT_RULES.md 
+- **Commit Rules**: COMMIT_RULES.md
+
+## 📸 Screenshot Testing (Critical for UI Validation)
+
+### **Platform-Specific Screenshot Tests (Use These Only)**
+
+**⚠️ IMPORTANT: Always use platform-specific test functions, never the generic ones**
+
+#### iPhone Screenshots:
+```bash
+xcodebuild test -scheme Domori -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.5' \
+  -only-testing:DomoriUITests/DomoriUITests/testAppStoreScreenshots_iPhone
+```
+
+#### iPad Screenshots:
+```bash
+xcodebuild test -scheme Domori -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M4),OS=18.5' \
+  -only-testing:DomoriUITests/DomoriUITests/testAppStoreScreenshots_iPad
+```
+
+#### Mac Screenshots:
+```bash
+xcodebuild test -scheme Domori -destination 'platform=macOS,arch=arm64' \
+  -only-testing:DomoriUITests/DomoriUITests/testAppStoreScreenshots_Mac
+```
+
+### **Why Platform-Specific Tests Are Required:**
+
+1. **Correct Device Context**: Each test runs on the appropriate device/simulator
+2. **Proper Screen Dimensions**: Screenshots are captured at correct resolutions
+3. **Platform-Specific UI**: Different platforms may show different UI elements
+4. **No Duplicate Screenshots**: Avoids generating the same screenshots multiple times
+5. **Proper File Naming**: Screenshots are named correctly for each platform
+
+### **Screenshot Test Results:**
+
+Screenshots are saved in the `AppStoreScreenshots/` directory with platform prefixes:
+- `01_iPhone_MainScreen_ThreeListings.png`
+- `02_iPhone_AddProperty_FilledForm.png` 
+- `03_iPhone_PropertyDetail.png`
+- `04_iPhone_TagAddition.png`
+- (Similar for iPad and Mac with their respective prefixes)
+
+### **Test Execution Rules:**
+
+❌ **NEVER use generic test functions** - they cause duplicate runs and wrong naming
+✅ **Always use platform-specific functions** for screenshot generation
+❌ **NEVER commit when ANY test fails** - investigate and fix failures first
+✅ **Always verify screenshots were actually updated** by checking file timestamps 

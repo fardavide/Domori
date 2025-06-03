@@ -2,6 +2,13 @@
 
 ## 🎯 Core Development Principles
 
+### 0. **⚠️ NEVER COMMIT WHEN TESTS FAIL (CRITICAL RULE)**
+- ❌ **UNDER NO CIRCUMSTANCES commit code when tests are failing**
+- ❌ **No exceptions to this rule, regardless of the reason for test failure**
+- ✅ **Always investigate and fix test failures before committing**
+- ✅ **If test failure is unrelated to your changes, fix it first**
+- ✅ **All tests must pass before any commit is allowed**
+
 ### 1. **FAIL HARD, NOT SILENT**
 - ❌ **Never allow operations to fail silently**
 - ✅ **Always use explicit validation with clear error messages**

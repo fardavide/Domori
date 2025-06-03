@@ -33,15 +33,32 @@
 
 ## 📸 **SCREENSHOT SPECIFICATIONS**
 
-### **Required Screenshots per Platform:**
-1. **Main Screen** - Show property listings with European data
+### **REQUIRED Screenshots per Platform (5 Total):**
+1. **Main Screen** - Show property listings with European data **WITH TAGS VISIBLE**
 2. **Add Property Form** - Filled form with realistic European property data  
-3. **Property Detail** - Detailed view of a selected property
+3. **Property Detail** - Detailed view of a selected property **WITH TAGS VISIBLE**
+4. **Tag Addition View** - Add Tags screen showing tag creation interface
+5. **Property Comparison** - Comparison view showing multiple properties side-by-side
 
 ### **Naming Convention:**
-- iPhone: `01_iPhone_MainScreen_ThreeListings.png`, `02_iPhone_AddProperty_FilledForm.png`, `03_iPhone_PropertyDetail.png`
-- iPad: `01_iPad_MainScreen_ThreeListings.png`, `02_iPad_AddProperty_FilledForm.png`, `03_iPad_PropertyDetail.png`
-- Mac: `01_Mac_MainScreen_ThreeListings.png`, `02_Mac_AddProperty_FilledForm.png`, `03_Mac_PropertyDetail.png`
+- iPhone: `01_iPhone_MainScreen_ThreeListings.png`, `02_iPhone_AddProperty_FilledForm.png`, `03_iPhone_PropertyDetail.png`, `04_iPhone_TagAddition.png`, `05_iPhone_PropertyComparison.png`
+- iPad: `01_iPad_MainScreen_ThreeListings.png`, `02_iPad_AddProperty_FilledForm.png`, `03_iPad_PropertyDetail.png`, `04_iPad_TagAddition.png`, `05_iPad_PropertyComparison.png`
+- Mac: `01_Mac_MainScreen_ThreeListings.png`, `02_Mac_AddProperty_FilledForm.png`, `03_Mac_PropertyDetail.png`, `04_Mac_TagAddition.png`, `05_Mac_PropertyComparison.png`
+
+---
+
+## 🏷️ **CRITICAL TAG REQUIREMENTS**
+
+### **MANDATORY Tag Display:**
+- **Properties in screenshots 01 & 03 MUST show tags** 
+- **Tags should be diverse**: "Premium Location", "Good Deal", "Ready to Move"
+- **Tags should have different colors/styles** to showcase the tagging system
+- **Tag functionality is a KEY FEATURE** that must be demonstrated
+
+### **Tag Addition Process:**
+- **Screenshot 04** must show the tag addition interface
+- **Must demonstrate** how users add tags to properties
+- **Should show** realistic tag names being entered
 
 ---
 
@@ -68,6 +85,7 @@
 - "NaN/sqm" or "NaN €/m²"
 - Any placeholder or zero values
 - Non-European addresses or currency
+- **Properties without any tags** (tags are a key feature to showcase)
 
 ---
 
@@ -76,8 +94,8 @@
 ### **Multi-Platform Test Structure:**
 ```swift
 // Main entry points
-testAppStoreScreenshots_iPhone()  // ✅ Active
-testAppStoreScreenshots_iPad()    // ✅ Active  
+testAppStoreScreenshots_iPhone()  // ✅ Active - Must generate all 5 screenshots
+testAppStoreScreenshots_iPad()    // ✅ Active - Must generate all 5 screenshots
 testAppStoreScreenshots_Mac()     // 🚧 Prepared for future
 
 // Core platform-agnostic logic
@@ -104,15 +122,17 @@ generateScreenshotsForPlatform(platform: .iPhone/.iPad/.Mac, deviceName: String)
 - ✅ **Apple guidelines compliance** with proper form filling and navigation
 - ✅ **European data validation** prevents placeholder values
 - ✅ **Optimized performance** with reduced delays and smart waiting
+- ❌ **MISSING**: PropertyComparison screenshot generation (screen 05)
+- ❌ **MISSING**: Tag addition to properties before main screen capture
 
 ### **Screenshot Generation Commands:**
 ```bash
-# iPhone screenshots
+# iPhone screenshots (all 5)
 xcodebuild test -project Domori.xcodeproj -scheme Domori \
   -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
   -only-testing:DomoriUITests/DomoriUITests/testAppStoreScreenshots_iPhone
 
-# iPad screenshots  
+# iPad screenshots (all 5)
 xcodebuild test -project Domori.xcodeproj -scheme Domori \
   -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M4)' \
   -only-testing:DomoriUITests/DomoriUITests/testAppStoreScreenshots_iPad
@@ -127,11 +147,13 @@ Before submitting screenshots, verify:
 - [ ] All sizes show realistic square meters (never 0 sqm)
 - [ ] All addresses are European locations 
 - [ ] Price per sqm is calculated correctly (never NaN/sqm)
+- [ ] **Properties have tags visible in screenshots 01 and 03**
+- [ ] **All 5 screenshots are generated** (including PropertyComparison)
 - [ ] Screenshots are high resolution and production-ready
 - [ ] Both iPhone and iPad variants are generated
 - [ ] File naming follows the established convention
-- [ ] Screenshots showcase the app's property management features effectively
+- [ ] Screenshots showcase the app's property management AND tagging features effectively
 
 ---
 
-**Last Updated**: June 2025 - Multi-platform screenshot automation completed for iPhone and iPad platforms. 
+**Last Updated**: June 2025 - Multi-platform screenshot automation completed for iPhone and iPad platforms. **CRITICAL**: Missing PropertyComparison screenshot and tag functionality must be restored. 
