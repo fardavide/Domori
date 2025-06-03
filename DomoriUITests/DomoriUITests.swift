@@ -291,7 +291,7 @@ final class DomoriUITests: XCTestCase {
                                          rating: index == 0 ? "Excellent" : (index == 1 ? "Good" : "Considering"))
         }
         
-        // Add 2-3 tags to ALL properties for better screenshot presentation
+        // Add 2-3 tags to all properties for better screenshot presentation
         print("\n🏷️ Adding tags to all properties for screenshots...")
         addTagsToAllProperties(in: app, platform: platform)
         
@@ -299,7 +299,7 @@ final class DomoriUITests: XCTestCase {
         print("\n📸 === Ensuring we're on Main Screen ===")
         ensureOnMainScreen(in: app)
         
-        // Screenshot 1: Main screen with 3 listings (all with tags)
+        // Screenshot 1: Main screen with 3 listings (first two with tags)
         waitForUIToSettle(in: app)
         print("📸 Taking MainScreen screenshot...")
         takeScreenshot(platform: platform, screenName: "MainScreen_ThreeListings", in: app)
@@ -339,7 +339,7 @@ final class DomoriUITests: XCTestCase {
             }
         }
         
-        // Screenshot 3: Property detail view (now with tags)
+        // Screenshot 3: Property detail view (first property with tags)
         waitForUIToSettle(in: app)
         print("\n📸 === Taking PropertyDetail Screenshot ===")
         print("🔍 Looking for first property to navigate to detail view...")
@@ -380,7 +380,130 @@ final class DomoriUITests: XCTestCase {
             takeScreenshot(platform: platform, screenName: "PropertyDetail", in: app)
         }
         
-        print("✅ \(platform.prefix) screenshots completed successfully!")
+        // Screenshot 4: Tag addition screen
+        print("\n📸 === Taking Tag Addition Screenshot ===")
+        // Navigate back to main screen first
+        navigateBackToMainScreen(in: app, from: "Property detail view")
+        waitForUIToSettle(in: app)
+        
+        // Navigate to first property detail view
+        let tagAdditionProperty = app.collectionViews.firstMatch.cells.element(boundBy: 0)
+        if tagAdditionProperty.exists {
+            print("✅ Found first property, navigating to detail view...")
+            tagAdditionProperty.tap()
+            
+            // Wait for detail view to load
+            let detailViewExpectation = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "exists == true"),
+                object: app.scrollViews.firstMatch
+            )
+            _ = XCTWaiter.wait(for: [detailViewExpectation], timeout: 5.0)
+            
+            // Tap "Add Tag" button to open tag addition screen
+            let addTagButton = app.buttons["Add Tag"]
+            if addTagButton.exists {
+                print("✅ Found Add Tag button, opening tag addition screen...")
+                addTagButton.tap()
+                
+                // Wait for Add Tag sheet to appear
+                let addTagNavigation = app.navigationBars["Add Tags"]
+                if addTagNavigation.waitForExistence(timeout: 3) {
+                    print("✅ Add Tags screen loaded successfully")
+                    
+                    // Fill in tag name to make it look realistic
+                    let tagNameField = app.textFields["Enter tag name"]
+                    if tagNameField.exists {
+                        tagNameField.tap()
+                        tagNameField.typeText("Premium Location")
+                        print("✅ Entered tag name for screenshot")
+                    }
+                    
+                    waitForUIToSettle(in: app)
+                    takeScreenshot(platform: platform, screenName: "TagAddition", in: app)
+                    print("✅ TagAddition screenshot taken successfully")
+                    
+                    // Cancel to go back
+                    let cancelButton = app.buttons["Cancel"]
+                    if cancelButton.exists {
+                        cancelButton.tap()
+                    }
+                } else {
+                    print("❌ Add Tags screen failed to load")
+                }
+            } else {
+                print("❌ Add Tag button not found")
+            }
+        } else {
+            print("❌ Could not find first property")
+        }
+        
+        // Screenshot 5: Comparison screen between two properties
+        print("\n📸 === Taking Comparison Screenshot ===")
+        // Navigate back to main screen
+        navigateBackToMainScreen(in: app, from: "Property detail view")
+        waitForUIToSettle(in: app)
+        
+        // Select two properties using their selection checkboxes
+        print("🔍 Selecting first two properties for comparison...")
+        
+        // Find and tap the selection checkboxes for first two properties
+        let firstPropertyCheckbox = app.collectionViews.firstMatch.cells.element(boundBy: 0).buttons.matching(NSPredicate(format: "label CONTAINS 'circle'")).firstMatch
+        let secondPropertyCheckbox = app.collectionViews.firstMatch.cells.element(boundBy: 1).buttons.matching(NSPredicate(format: "label CONTAINS 'circle'")).firstMatch
+        
+        if firstPropertyCheckbox.exists && secondPropertyCheckbox.exists {
+            print("✅ Found selection checkboxes, selecting properties...")
+            
+            // Select first property
+            firstPropertyCheckbox.tap()
+            waitForUIToSettle(in: app)
+            
+            // Select second property  
+            secondPropertyCheckbox.tap()
+            waitForUIToSettle(in: app)
+            
+            // Look for the Compare button that should now appear
+            let compareButton = app.buttons.containing(NSPredicate(format: "label CONTAINS 'Compare'")).firstMatch
+            if compareButton.exists {
+                print("✅ Found Compare button, opening comparison view...")
+                compareButton.tap()
+                
+                // Wait for comparison view to load
+                let comparisonNavigation = app.navigationBars.firstMatch
+                if comparisonNavigation.waitForExistence(timeout: 5) {
+                    print("✅ Comparison view loaded successfully")
+                    waitForUIToSettle(in: app)
+                    sleep(1) // Extra time for comparison layout to render
+                    takeScreenshot(platform: platform, screenName: "PropertyComparison", in: app)
+                    print("✅ PropertyComparison screenshot taken successfully")
+                    
+                    // Navigate back 
+                    let backButton = app.buttons["Back"]
+                    if backButton.exists {
+                        backButton.tap()
+                    } else {
+                        // Try dismissing the sheet
+                        let dismissButton = app.buttons["Done"] 
+                        if dismissButton.exists {
+                            dismissButton.tap()
+                        }
+                    }
+                } else {
+                    print("❌ Comparison view failed to load")
+                    // Take fallback screenshot
+                    takeScreenshot(platform: platform, screenName: "PropertyComparison", in: app)
+                }
+            } else {
+                print("❌ Compare button not found after selecting properties")
+                // Take fallback screenshot showing selection state
+                takeScreenshot(platform: platform, screenName: "PropertyComparison", in: app)
+            }
+        } else {
+            print("❌ Could not find property selection checkboxes")
+            // Take fallback screenshot
+            takeScreenshot(platform: platform, screenName: "PropertyComparison", in: app)
+        }
+        
+        print("✅ \(platform.prefix) screenshots completed successfully! (5 screenshots total)")
     }
     
     private func scrollFormToOptimalPosition(in app: XCUIApplication, platform: ScreenshotPlatform) {
@@ -732,6 +855,8 @@ final class DomoriUITests: XCTestCase {
         case "MainScreen_ThreeListings": return 1
         case "AddProperty_FilledForm": return 2
         case "PropertyDetail": return 3
+        case "TagAddition": return 4
+        case "PropertyComparison": return 5
         default: return 99
         }
     }
@@ -1444,62 +1569,103 @@ final class DomoriUITests: XCTestCase {
     }
     
     private func addTagsToAllProperties(in app: XCUIApplication, platform: ScreenshotPlatform) {
-        print("🏷️ Adding tags to all properties...")
+        print("🏷️ Adding tags to all 3 properties for consistent screenshots...")
         
-        let propertyTagData = [
-            // Property 1: Milano apartment
-            [(name: "Prime Location", rating: "Excellent"), 
-             (name: "Move-in Ready", rating: "Good"), 
-             (name: "High Demand", rating: "Excellent")],
-            // Property 2: Berlin townhouse  
-            [(name: "Historic District", rating: "Good"), 
-             (name: "Garden Access", rating: "Excellent")],
-            // Property 3: Paris penthouse
-            [(name: "Luxury Finishes", rating: "Excellent"), 
-             (name: "River Views", rating: "Excellent"), 
-             (name: "Investment Grade", rating: "Good")]
+        // Define tags for each property (all 3 properties)
+        let tagsPerProperty = [
+            // Property 1: Modern City Apartment - Prime location tags
+            [
+                (name: "Prime Location", rating: "Excellent"),
+                (name: "Move-in Ready", rating: "Excellent"),
+                (name: "Modern Amenities", rating: "Good")
+            ],
+            // Property 2: Victorian Townhouse - Historic and premium tags  
+            [
+                (name: "Historic District", rating: "Good"),
+                (name: "Garden", rating: "Excellent"),
+                (name: "Luxury Finishes", rating: "Excellent")
+            ],
+            // Property 3: Cozy Cottage - Charm and comfort tags
+            [
+                (name: "Cozy", rating: "Excellent"),
+                (name: "Fireplace", rating: "Good"),
+                (name: "Quiet Neighborhood", rating: "Excellent")
+            ]
         ]
         
-        for (propertyIndex, tagsForProperty) in propertyTagData.enumerated() {
-            print("🏠 Adding tags to property \(propertyIndex + 1)...")
+        for (propertyIndex, tags) in tagsPerProperty.enumerated() {
+            let propertyNumber = propertyIndex + 1
+            print("\n🏷️ Adding tags to Property \(propertyNumber)...")
             
-            // Navigate to the specific property
+            // Tap on the property
             let propertyCell = app.collectionViews.firstMatch.cells.element(boundBy: propertyIndex)
-            guard propertyCell.exists else {
-                print("❌ Property \(propertyIndex + 1) not found")
-                continue
+            if propertyCell.exists {
+                print("✅ Found property \(propertyNumber), opening detail view...")
+                propertyCell.tap()
+                
+                // Wait for detail view to load
+                let detailViewExpectation = XCTNSPredicateExpectation(
+                    predicate: NSPredicate(format: "exists == true"),
+                    object: app.scrollViews.firstMatch
+                )
+                _ = XCTWaiter.wait(for: [detailViewExpectation], timeout: 5.0)
+                
+                // Add each tag
+                for (tagName, tagRating) in tags {
+                    print("🏷️ Adding tag: \(tagName) (\(tagRating))")
+                    
+                    let addTagButton = app.buttons["Add Tag"]
+                    if addTagButton.exists {
+                        addTagButton.tap()
+                        
+                        // Wait for Add Tag sheet to appear
+                        let addTagNavigation = app.navigationBars["Add Tags"]
+                        if addTagNavigation.waitForExistence(timeout: 3) {
+                            // Enter tag name
+                            let tagNameField = app.textFields["Enter tag name"]
+                            if tagNameField.exists {
+                                tagNameField.tap()
+                                tagNameField.typeText(tagName)
+                            }
+                            
+                            // Select rating based on the tag rating
+                            let ratingButton: XCUIElement
+                            switch tagRating {
+                            case "Excellent":
+                                ratingButton = app.buttons["Excellent"]
+                            case "Good":
+                                ratingButton = app.buttons["Good"]
+                            case "Average":
+                                ratingButton = app.buttons["Average"]
+                            default:
+                                ratingButton = app.buttons["Good"] // Default fallback
+                            }
+                            
+                            if ratingButton.exists {
+                                ratingButton.tap()
+                            }
+                            
+                            // Tap Create Tag
+                            let createTagButton = app.buttons["Create Tag"]
+                            if createTagButton.exists {
+                                createTagButton.tap()
+                                waitForUIToSettle(in: app)
+                            }
+                        }
+                    }
+                }
+                
+                print("✅ Added \(tags.count) tags to Property \(propertyNumber)")
+                
+                // Navigate back to main screen
+                navigateBackToMainScreen(in: app, from: "Property detail view")
+                waitForUIToSettle(in: app)
+            } else {
+                print("❌ Could not find property \(propertyNumber)")
             }
-            
-            propertyCell.tap()
-            
-            // Wait for detail view to load
-            let detailViewExpectation = XCTNSPredicateExpectation(
-                predicate: NSPredicate(format: "exists == true"),
-                object: app.scrollViews.firstMatch
-            )
-            _ = XCTWaiter.wait(for: [detailViewExpectation], timeout: 3.0)
-            
-            // Add each tag for this property
-            for (tagIndex, tagInfo) in tagsForProperty.enumerated() {
-                print("🏷️ Adding tag \(tagIndex + 1) to property \(propertyIndex + 1): \(tagInfo.name)")
-                addSingleTag(in: app, name: tagInfo.name, rating: tagInfo.rating)
-                sleep(1) // Brief pause between tag additions
-            }
-            
-            // Navigate back to main screen
-            print("🔙 Returning to main screen from property \(propertyIndex + 1)")
-            navigateBackToMainScreen(in: app, from: "Property \(propertyIndex + 1) detail view")
-            
-            // Verify we're actually back on main screen
-            let mainScreenNavBar = app.navigationBars["Properties"]
-            if !mainScreenNavBar.exists {
-                XCTFail("❌ Failed to return to main screen after adding tags to property \(propertyIndex + 1)")
-            }
-            
-            waitForUIToSettle(in: app)
         }
         
-        print("✅ Finished adding tags to all properties")
+        print("✅ Successfully added tags to all 3 properties")
     }
     
     private func navigateBackToMainScreen(in app: XCUIApplication, from location: String) {

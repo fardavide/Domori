@@ -198,34 +198,50 @@ The project includes automated screenshot generation for App Store submission. F
 <table>
 <tr>
 <td align="center">
-<img src="AppStoreScreenshots/01_iPhone_MainScreen_ThreeListings.png" width="250" alt="Main Screen">
+<img src="AppStoreScreenshots/01_iPhone_MainScreen_ThreeListings.png" width="200" alt="Main Screen">
 <br><strong>Main Property List</strong>
-<br>3 European properties with Euro pricing and flow layout tags
+<br>3 European properties with Euro pricing and optimized tag spacing
 </td>
 <td align="center">
-<img src="AppStoreScreenshots/02_iPhone_AddProperty_FilledForm.png" width="250" alt="Add Property">
+<img src="AppStoreScreenshots/02_iPhone_AddProperty_FilledForm.png" width="200" alt="Add Property">
 <br><strong>Add Property Form</strong>
 <br>Filled form with European address and validation
 </td>
 <td align="center">
-<img src="AppStoreScreenshots/03_iPhone_PropertyDetail.png" width="250" alt="Property Detail">
+<img src="AppStoreScreenshots/03_iPhone_PropertyDetail.png" width="200" alt="Property Detail">
 <br><strong>Property Detail View</strong>
 <br>Comprehensive property information with tags and rating
+</td>
+</tr>
+<tr>
+<td align="center">
+<img src="AppStoreScreenshots/04_iPhone_TagAddition.png" width="200" alt="Tag Addition">
+<br><strong>Tag Addition Screen</strong>
+<br>Custom tag creation with rating selection and color options
+</td>
+<td align="center">
+<img src="AppStoreScreenshots/05_iPhone_PropertyComparison.png" width="200" alt="Property Comparison">
+<br><strong>Property Comparison</strong>
+<br>Side-by-side analysis with best value highlighting
+</td>
+<td align="center">
 </td>
 </tr>
 </table>
 
 ### Quick Overview
 - **Target Device**: iPhone 16 Pro (6.3" display)
-- **Screenshots**: 3 required images with optimized tag spacing for improved visual density
+- **Screenshots**: 5 comprehensive images showcasing core functionality
 - **Requirements**: European properties with Euro currency and metric units
 - **Validation**: No "€0", "0 sqm", or "NaN/sqm" values allowed
-- **Latest Update**: June 2025 - Reduced tag spacing for better visual density
+- **Latest Update**: June 2025 - Expanded to include tag management and comparison features
 
 ### Generated Screenshots
 1. `01_iPhone_MainScreen_ThreeListings.png` - Main property list with 3 European properties
 2. `02_iPhone_AddProperty_FilledForm.png` - Completed add property form 
-3. `03_iPhone_PropertyDetail.png` - Property detail view
+3. `03_iPhone_PropertyDetail.png` - Property detail view with tags and rating
+4. `04_iPhone_TagAddition.png` - Custom tag creation interface
+5. `05_iPhone_PropertyComparison.png` - Property comparison with side-by-side analysis
 
 ### Running Screenshot Tests
 ```bash

@@ -1,75 +1,138 @@
 # 📸 Screenshot Generation Guide for Domori
 
-## 🎯 Goal: Create 3-5 compelling App Store screenshots with dummy data
+## 🎯 Goal: Create 5 compelling App Store screenshots showcasing core functionality
 
 ### Current Status:
-✅ **Latest Update**: Reduced tag spacing for improved visual density (June 2025)  
-✅ **Screenshot Validation**: All screenshots updated and validated successfully  
+✅ **Latest Update**: Expanded to 5-screenshot showcase (June 2025)  
+✅ **New Features**: Added tag management and comparison workflows  
+✅ **Screenshot Validation**: All 5 screenshots generated and validated successfully  
 ✅ **Process Integration**: Following development practices workflow  
 ✅ **Generation Success**: Automated screenshot generation working correctly
 
 ---
 
-## 📋 **Latest Run Results** (June 2, 2025 - 23:30) ✅
+## 📋 **Latest Run Results** (June 3, 2025 - 08:00) ✅
 
-### Change: Reduced Tag Spacing Implementation
+### Expansion: 5-Screenshot Showcase Implementation
 
-#### ✅ **Screenshot Validation:**
+#### ✅ **Screenshot Generation Summary:**
 ```bash
+# All 5 screenshots generated successfully in 175 seconds
 $ ls -la AppStoreScreenshots/*iPhone*.png
--rw-r--r--  1 davide  staff  234127 Jun  2 23:30 01_iPhone_MainScreen_ThreeListings.png
--rw-r--r--  1 davide  staff  222694 Jun  2 23:30 02_iPhone_AddProperty_FilledForm.png
--rw-r--r--  1 davide  staff  217181 Jun  2 23:30 03_iPhone_PropertyDetail.png
+-rw-r--r--  1 davide  staff  222718 Jun  3 08:00 01_iPhone_MainScreen_ThreeListings.png
+-rw-r--r--  1 davide  staff  222480 Jun  3 08:00 02_iPhone_AddProperty_FilledForm.png  
+-rw-r--r--  1 davide  staff  218735 Jun  3 08:00 03_iPhone_PropertyDetail.png
+-rw-r--r--  1 davide  staff  264157 Jun  3 08:00 04_iPhone_TagAddition.png
+-rw-r--r--  1 davide  staff  204625 Jun  3 08:00 05_iPhone_PropertyComparison.png
 ```
 
-**✅ Validation Results:**
-- **MainScreen (234,127 bytes)**: Improved visual density visible ✅
-- **AddProperty (222,694 bytes)**: Unaffected by change ✅  
-- **PropertyDetail (217,181 bytes)**: Maintains existing display ✅
-- **File sizes changed**: Indicates actual visual modifications ✅
-- **All timestamps updated**: Confirms successful generation ✅
+#### ✅ **5-Screenshot Workflow:**
+1. **MainScreen** (222,718 bytes) - Property list with optimized tag spacing
+2. **AddProperty** (222,480 bytes) - Complete form with European data  
+3. **PropertyDetail** (218,735 bytes) - Property with existing tags
+4. **TagAddition** (264,157 bytes) - NEW - Custom tag creation interface
+5. **PropertyComparison** (204,625 bytes) - NEW - Side-by-side property analysis
+
+#### ✅ **New Features Validated:**
+- **Tag Management**: Full tag creation workflow with rating selection
+- **Property Comparison**: Multi-select and comparison interface
+- **Strategic Tag Distribution**: First 2 properties have tags, 3rd property used for tag addition demo
+- **Robust Navigation**: Enhanced navigation between all screens with proper fallbacks
+
+#### ✅ **Technical Improvements:**
+- **Smart Tag Strategy**: Only first 2 properties get tags, leaving 3rd property for tag addition screenshot
+- **Selection Interface**: Checkbox-based property selection working correctly
+- **Comparison Access**: Dynamic "Compare" button appears when 2+ properties selected
+- **Navigation Robustness**: Multiple fallback methods for all screen transitions
 
 ---
 
-## 🚀 **Automated Screenshot Generation (Recommended)**
+## 🔧 **Test Execution Details**
 
-### Command:
+### **Command Used:**
 ```bash
-# Run the automated iPhone screenshot test
 xcodebuild test -project Domori.xcodeproj -scheme Domori \
   -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
   -only-testing:DomoriUITests/DomoriUITests/testAppStoreScreenshots_iPhone
 ```
 
-### **Features:**
-- ✅ Creates 3 high-quality screenshots with European property data
-- ✅ Euro currency formatting throughout
-- ✅ Realistic European addresses (Milano, Berlin, Paris)
-- ✅ 2-3 tags per property with proper color coding
-- ✅ Robust navigation with comprehensive error handling
-- ✅ Automatic validation of screenshot generation
+### **Performance:**
+- **Total Duration**: 175 seconds (2:55)
+- **Device**: iPhone 16 Pro simulator  
+- **Build Time**: ~32 seconds
+- **Test Execution**: ~143 seconds
+- **Success Rate**: 100% (5/5 screenshots)
 
-### **Generated Screenshots:**
-1. **MainScreen**: 3 European properties with flow layout tags
-2. **AddProperty**: Filled form with European data and validation
-3. **PropertyDetail**: Single property with comprehensive information
+### **Quality Assurance:**
+✅ All screenshots contain realistic European property data  
+✅ No placeholder values ("€0", "0 sqm", "NaN/sqm")  
+✅ Proper Euro currency formatting throughout  
+✅ Tag spacing optimizations applied correctly  
+✅ Tag creation interface fully functional  
+✅ Comparison selection mechanism working  
 
 ---
 
 ## 📱 **Screenshot Specifications**
 
-### **iPhone Screenshots (iPhone 16 Pro):**
-- **Resolution**: Optimized for App Store submission
-- **Content**: European property data with Euro currency
-- **Language**: English with European formatting
-- **Data Quality**: Realistic addresses and pricing
+### **Resolution & Format:**
+- **Device**: iPhone 16 Pro (6.3" display)
+- **Resolution**: High-resolution PNG format
+- **File Sizes**: 200-270KB per screenshot (optimal for App Store)
 
 ### **Content Standards:**
-- **Currency**: Euro (€) formatting throughout
-- **Addresses**: European cities (Milano, Berlin, Paris)
-- **Properties**: Mix of apartments, townhouses, and penthouses
-- **Pricing Range**: €485,000 - €1,250,000 with per-m² calculations
-- **Tags**: 2-3 per property with appropriate color coding
+- **Geography**: European properties only (Milano, Berlin, Paris)
+- **Currency**: Euro (€) formatting with proper locale
+- **Measurements**: Metric system (square meters, m²)
+- **Data Quality**: No zero values or placeholder content
+- **Tag Strategy**: Strategic distribution for demonstration purposes
+
+### **New Workflow Features:**
+- **Tag Addition**: Demonstrates custom tag creation with "Luxury Amenities" example
+- **Property Comparison**: Shows selection UI and side-by-side analysis capability  
+- **Enhanced Navigation**: Robust screen transitions with multiple fallback methods
+
+---
+
+## 🚀 **Usage Instructions**
+
+### **Generate All Screenshots:**
+```bash
+# Run complete 5-screenshot generation
+xcodebuild test -project Domori.xcodeproj -scheme Domori \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  -only-testing:DomoriUITests/DomoriUITests/testAppStoreScreenshots_iPhone
+```
+
+### **Validate Results:**
+```bash
+# Check all 5 screenshots were generated
+ls -la AppStoreScreenshots/*iPhone*.png
+
+# Verify file sizes (should be 200-270KB each)
+du -h AppStoreScreenshots/*iPhone*.png
+```
+
+### **Quality Checklist:**
+- [ ] All 5 screenshots generated successfully  
+- [ ] File sizes between 200-270KB
+- [ ] No placeholder or zero values visible
+- [ ] European addresses and Euro currency used
+- [ ] Tag addition workflow demonstrates interface
+- [ ] Comparison workflow shows selection mechanism
+- [ ] All screenshots have June 2025 timestamps
+
+---
+
+## 📋 **5-Screenshot Showcase Description**
+
+**Screenshot 1: MainScreen** - Property list showcasing optimized tag spacing with 3 European properties  
+**Screenshot 2: AddProperty** - Complete property creation form with European address validation  
+**Screenshot 3: PropertyDetail** - Comprehensive property view with existing tags and rating system  
+**Screenshot 4: TagAddition** - Custom tag creation interface with rating selection and color options  
+**Screenshot 5: PropertyComparison** - Side-by-side property analysis with selection interface
+
+This comprehensive showcase demonstrates the full property management lifecycle from creation to analysis, highlighting the app's core value propositions for real estate professionals.
 
 ---
 

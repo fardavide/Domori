@@ -57,6 +57,23 @@ FlexibleWrapView(data: tags, spacing: 3) { tag in
 - **Spacing**: 4px between icon and text
 - **Layout**: Horizontal flow with 16px spacing between badges
 
+### **TagAddition Screen**
+Component for creating custom property tags with rating:
+- **Interface**: Modal presentation with clear title "Add Tags"
+- **Input Field**: Text field with "Enter tag name" placeholder 
+- **Rating Selection**: Visual rating buttons with descriptive labels
+- **Color Options**: 14 predefined color choices with visual feedback
+- **Actions**: Clear "Create Tag" and "Cancel" buttons
+- **Validation**: Real-time input validation and error handling
+
+### **Comparison Screen**  
+Side-by-side property analysis interface:
+- **Selection Model**: Multi-select checkbox interface on property list
+- **Compare Button**: Appears dynamically when 2+ properties selected
+- **Layout**: Optimized side-by-side comparison with clear visual hierarchy
+- **Highlighting**: Best value indicators and visual differentiation
+- **Navigation**: Clear entry/exit paths with proper state management
+
 ---
 
 ## 🎨 **Color System**
