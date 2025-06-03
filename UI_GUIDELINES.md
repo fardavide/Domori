@@ -229,4 +229,26 @@ Side-by-side property analysis interface:
 - **Testing Strategy**: TESTING_STRATEGY.md
 - **Screenshot Guide**: AppStoreScreenshots/SCREENSHOT_GUIDE.md
 - **Code Style**: CODE_STYLE.md
-- **App Store Requirements**: SCREENSHOT_REQUIREMENTS.md 
+- **App Store Requirements**: SCREENSHOT_REQUIREMENTS.md
+
+## 📚 Documentation Standards
+
+### Content Guidelines
+- **Summarize when possible** - Remove verbose explanations and redundant information
+- **Preserve technical details** - Keep exact commands, code snippets, and technical specifications
+- **Maintain structural information** - Keep clear sections, hierarchies, and organization
+- **Include actionable information** - Every section should help developers accomplish tasks
+- **Avoid repetition** - Don't repeat the same information in multiple places
+
+### Technical Documentation Requirements
+- **Exact commands** - Include complete, copy-pasteable command examples
+- **Field specifications** - Document exact field names, types, and validation rules
+- **Error handling** - Include troubleshooting sections with specific solutions
+- **Configuration details** - Document device settings, platform requirements, naming conventions
+- **Code examples** - Provide working code snippets with proper syntax highlighting
+
+### Structure Standards
+- **Clear hierarchy** - Use consistent heading levels and numbering
+- **Logical flow** - Organize information in order of use/importance
+- **Quick reference** - Include tables, checklists, and quick reference sections
+- **Cross-references** - Link related sections and external dependencies 

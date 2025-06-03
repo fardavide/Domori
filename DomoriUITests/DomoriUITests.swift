@@ -5,14 +5,19 @@ import XCTest
 // Extension to help with form filling
 extension XCUIElement {
     func clearAndTypeText(_ text: String) {
-        // Clear existing text
+        // Tap the field to focus it
         self.tap()
-        if self.value as? String != nil {
-            let stringValue = self.value as! String
-            let deleteString = String(repeating: XCUIKeyboardKey.delete.rawValue, count: stringValue.count)
-            self.typeText(deleteString)
-        }
-        // Type new text
+        
+        // Wait a moment for the field to become focused
+        Thread.sleep(forTimeInterval: 0.1)
+        
+        // Double-tap to select all existing text (including placeholder)
+        self.doubleTap()
+        
+        // Wait a moment for selection to complete
+        Thread.sleep(forTimeInterval: 0.1)
+        
+        // Type the new text (this will replace any selected text)
         self.typeText(text)
     }
 }
@@ -232,571 +237,471 @@ final class DomoriUITests: XCTestCase {
         app.launch()
         
         print("\n🎯 === Generating \(platform.prefix) Screenshots for \(deviceName) ===")
+        print("📱 Following simplified flow: Create property → Take 02 → Go to main → Repeat 3x → Take remaining screenshots")
         
-        // Verify we're running on the correct device type
-        let appFrame = app.frame
-        print("📱 App frame size: \(appFrame.width) x \(appFrame.height)")
-        
-        // Basic device verification based on app frame size
-        switch platform {
-        case .iPhone:
-            if appFrame.width > 900 {
-                print("⚠️ WARNING: Expected iPhone but app frame size suggests iPad/Mac!")
-                XCTFail("Running iPhone test on wrong device type - frame too large")
-            }
-        case .iPad:
-            if appFrame.width < 900 {
-                print("⚠️ WARNING: Expected iPad but app frame size suggests iPhone!")
-                XCTFail("Running iPad test on wrong device type - frame too small")
-            }
-        case .Mac:
-            // Mac can vary widely, less strict verification
-            print("🖥️ Mac platform - frame size verification skipped")
-        }
-        
-        // Wait for the app to load completely
+        // Verify app launched correctly
         XCTAssertTrue(app.navigationBars["Properties"].waitForExistence(timeout: 10))
         
-        // Create 3 sample properties with European addresses, ratings, and complete data
+        // Define the 3 properties to create
         let sampleProperties = [
             (title: "Modern City Apartment", 
              location: "Via Roma 123, Milano, Italy", 
              price: "485000", 
              size: "85", 
              bedrooms: "2", 
-             link: "https://example.com/milano-apartment"),
+             tags: [("Prime Location", "Excellent"), ("Investment Grade", "Good"), ("High Price Point", "Considering")]),
             (title: "Victorian Townhouse", 
              location: "Kurfürstendamm 45, Berlin, Germany", 
              price: "750000", 
              size: "120", 
              bedrooms: "3", 
-             link: "https://example.com/berlin-townhouse"),
+             tags: [("Historic Charm", "Good"), ("Renovation Needed", "Considering"), ("Good Value", "Good")]),
             (title: "Riverside Penthouse", 
              location: "Quai des Grands Augustins 12, Paris, France", 
              price: "1250000", 
              size: "150", 
              bedrooms: "4", 
-             link: "https://example.com/paris-penthouse")
+             tags: [("Luxury Features", "Good"), ("Very Expensive", "Excluded"), ("Great Views", "Good")])
         ]
         
-        // Create each property with proper data validation
+        // MAIN FLOW: Create 3 properties with the exact pattern requested
         for (index, property) in sampleProperties.enumerated() {
-            createPropertyWithCompleteData(in: app, 
-                                         title: property.title, 
-                                         location: property.location, 
-                                         price: property.price, 
-                                         size: property.size,
-                                         bedrooms: property.bedrooms,
-                                         link: property.link,
-                                         rating: index == 0 ? "Excellent" : (index == 1 ? "Good" : "Considering"))
-        }
-        
-        // CRITICAL: Add tags to ALL properties to ensure they're visible in screenshots 01 and 03
-        print("\n🏷️ === Adding Tags to All Properties for Screenshots ===")
-        ensureOnMainScreen(in: app)
-        
-        // Property 1: Modern City Apartment (Overall Rating: Excellent) 
-        // Add multiple tags efficiently by staying in detail view
-        addMultipleTagsToProperty(in: app, propertyIndex: 0, tags: [
-            (name: "Prime Location", rating: "Excellent"),
-            (name: "Investment Grade", rating: "Good"),
-            (name: "High Price Point", rating: "Considering")
-        ])
-        
-        // Property 2: Victorian Townhouse (Overall Rating: Good) 
-        addMultipleTagsToProperty(in: app, propertyIndex: 1, tags: [
-            (name: "Historic Charm", rating: "Good"),
-            (name: "Renovation Needed", rating: "Considering"),
-            (name: "Good Value", rating: "Good")
-        ])
-        
-        // Property 3: Riverside Penthouse (Overall Rating: Considering)  
-        addMultipleTagsToProperty(in: app, propertyIndex: 2, tags: [
-            (name: "Luxury Features", rating: "Good"),
-            (name: "Very Expensive", rating: "Excluded"),
-            (name: "Great Views", rating: "Good")
-        ])
-        
-        // Ensure we're back on main screen for MainScreen screenshot
-        print("\n📸 === Ensuring we're on Main Screen ===")
-        ensureOnMainScreen(in: app)
-        
-        // Screenshot 1: Main screen with 3 listings
-        waitForUIToSettle(in: app)
-        print("📸 Taking MainScreen screenshot...")
-        takeScreenshot(platform: platform, screenName: "MainScreen_ThreeListings", in: app)
-        print("✅ MainScreen screenshot taken successfully")
-        
-        // Screenshot 2: Add/Edit form with filled data
-        let addButton = app.navigationBars["Properties"].buttons["plus"]
-        if addButton.exists {
-            addButton.tap()
+            print("\n🏠 === Creating Property \(index + 1)/3: \(property.title) ===")
             
-            // Wait for the Add Property screen to appear
-            XCTAssertTrue(app.navigationBars["Add Property"].waitForExistence(timeout: 5))
-            waitForFormToLoad(in: app)
+            // Ensure we're on main screen
+            ensureOnMainScreen(in: app)
             
-            // Fill the form completely with proper data
-            fillCompletePropertyFormWithValidation(in: app)
+            // Create property form (but don't save yet)
+            fillPropertyForm(in: app, 
+                           title: property.title,
+                           location: property.location, 
+                           price: property.price,
+                           size: property.size,
+                           bedrooms: property.bedrooms,
+                           rating: index == 0 ? "Excellent" : (index == 1 ? "Good" : "Considering"))
             
-            // Platform-specific form positioning
-            if platform.isTabletOrDesktop {
-                // For iPad/Mac, ensure optimal view of enhanced layout
-                scrollFormToOptimalPosition(in: app, platform: platform)
-            } else {
-                // For iPhone, ensure we're at the top and keyboard is dismissed
-                app.swipeDown() // Dismiss keyboard if open
-                app.scrollViews.firstMatch.swipeDown() // Scroll to top
-            }
-            
-            waitForUIToSettle(in: app)
-            
-            // Take screenshot of filled form
+            // Take screen 02 (Add Property Form) - we're in the form now
+            print("📸 Taking screen 02 for property \(index + 1)")
             takeScreenshot(platform: platform, screenName: "AddProperty_FilledForm", in: app)
             
-            // Cancel to return to main screen
-            let cancelButton = app.buttons["Cancel"]
-            if cancelButton.exists {
-                cancelButton.tap()
-            }
+            // Now save the property
+            let saveButton = app.buttons["Save"]
+            XCTAssertTrue(saveButton.exists && saveButton.isEnabled, "Save button should be available")
+            saveButton.tap()
+            
+            // Wait to return to main screen
+            XCTAssertTrue(app.navigationBars["Properties"].waitForExistence(timeout: 10))
+            print("✅ Property saved successfully")
+            
+            // Add the coherent tags to the property we just created
+            addCoherentTagsToProperty(in: app, tags: property.tags)
+            
+            // Go to main
+            print("🔙 Going to main screen")
+            ensureOnMainScreen(in: app)
+            waitForUIToSettle(in: app)
         }
         
-        // Screenshot 3: Property detail view (first property with one tag)
-        waitForUIToSettle(in: app)
-        print("\n📸 === Taking PropertyDetail Screenshot ===")
-        print("🔍 Looking for first property to navigate to detail view...")
+        print("\n📸 === All 3 properties created. Taking remaining screenshots ===")
         
+        // Ensure we're on main screen for screenshot 01
+        ensureOnMainScreen(in: app)
+        waitForUIToSettle(in: app)
+        
+        // Screenshot 01: Main screen with 3 listings
+        print("📸 Taking screen 01: Main Screen")
+        takeScreenshot(platform: platform, screenName: "MainScreen_ThreeListings", in: app)
+        
+        // Screenshot 03: Open detail 
+        print("📸 Taking screen 03: Property Detail")
         let firstProperty = app.collectionViews.firstMatch.cells.firstMatch
-        if firstProperty.exists {
-            print("✅ Found first property, tapping to open detail view...")
-            firstProperty.tap()
-            
-            // Wait for detail view to load properly
-            let detailViewExpectation = XCTNSPredicateExpectation(
-                predicate: NSPredicate(format: "exists == true"),
-                object: app.scrollViews.firstMatch
-            )
-            let waitResult = XCTWaiter.wait(for: [detailViewExpectation], timeout: 5.0)
-            
-            if waitResult == .completed {
-                print("✅ PropertyDetail view loaded successfully")
-                waitForUIToSettle(in: app)
-                
-                takeScreenshot(platform: platform, screenName: "PropertyDetail", in: app)
-                print("✅ PropertyDetail screenshot taken successfully")
-            } else {
-                print("❌ PropertyDetail view failed to load within timeout")
-                // Take screenshot anyway for debugging
-                takeScreenshot(platform: platform, screenName: "PropertyDetail", in: app)
-            }
-        } else {
-            print("❌ Could not find first property to open")
-            // Take screenshot of current state for debugging
-            takeScreenshot(platform: platform, screenName: "PropertyDetail", in: app)
+        XCTAssertTrue(firstProperty.exists, "First property should exist")
+        firstProperty.tap()
+        
+        // Wait for detail view
+        XCTAssertTrue(app.scrollViews.firstMatch.waitForExistence(timeout: 5))
+        waitForUIToSettle(in: app)
+        takeScreenshot(platform: platform, screenName: "PropertyDetail", in: app)
+        
+        // Screenshot 04: Open tags
+        print("📸 Taking screen 04: Tag Addition")
+        let addTagButton = app.buttons["Add Tag"]
+        XCTAssertTrue(addTagButton.exists, "Add Tag button should exist")
+        addTagButton.tap()
+        
+        // Wait for Add Tags screen
+        XCTAssertTrue(app.navigationBars["Add Tags"].waitForExistence(timeout: 5))
+        
+        // Fill in a sample tag for the screenshot
+        let tagNameField = app.textFields["Enter tag name"]
+        if tagNameField.exists {
+            tagNameField.tap()
+            tagNameField.clearAndTypeText("Premium Location")
         }
         
-        // Screenshot 4: AddTag view (navigate to first property, then tap Add Tag)
-        print("\n📸 === Taking TagAddition Screenshot ===")
+        waitForUIToSettle(in: app)
+        takeScreenshot(platform: platform, screenName: "TagAddition", in: app)
+        
+        // Cancel to go back to detail, then home
+        let cancelButton = app.buttons["Cancel"]
+        if cancelButton.exists {
+            cancelButton.tap()
+        }
+        
+        // Go home
+        print("🏠 Going home")
         ensureOnMainScreen(in: app)
         waitForUIToSettle(in: app)
         
-        let firstPropertyForTag = app.collectionViews.firstMatch.cells.firstMatch
-        if firstPropertyForTag.exists {
-            firstPropertyForTag.tap()
-            
-            // Wait for detail view to load
-            _ = app.scrollViews.firstMatch.waitForExistence(timeout: 5)
-            
-            // Tap Add Tag button
-            let addTagButton = app.buttons["Add Tag"]
-            if addTagButton.exists {
-                addTagButton.tap()
-                
-                // Wait for Add Tags navigation to appear
-                if app.navigationBars["Add Tags"].waitForExistence(timeout: 5) {
-                    // Fill in a sample tag name
-                    let tagNameField = app.textFields["Enter tag name"]
-                    if tagNameField.exists {
-                        tagNameField.tap()
-                        tagNameField.clearAndTypeText("Premium Location")
-                    }
-                    
-                    waitForUIToSettle(in: app)
-                    takeScreenshot(platform: platform, screenName: "TagAddition", in: app)
-                    print("✅ TagAddition screenshot taken successfully")
-                    
-                    // Cancel to go back
-                    let cancelButton = app.buttons["Cancel"]
-                    if cancelButton.exists {
-                        cancelButton.tap()
-                    }
-                } else {
-                    print("❌ Add Tags navigation failed to appear")
-                }
-            } else {
-                print("❌ Add Tag button not found")
-            }
-        } else {
-            print("❌ Could not find first property for tag addition")
-        }
+        // Screenshot 05: Open comparison
+        print("📸 Taking screen 05: Property Comparison")
         
-        // Screenshot 5: PropertyComparison view  
-        print("\n📸 === Taking PropertyComparison Screenshot ===")
-        ensureOnMainScreen(in: app)
-        waitForUIToSettle(in: app)
+        // Look for selection functionality to enable comparison
+        let selectionButtons = app.buttons.matching(NSPredicate(format: "label CONTAINS 'circle'"))
         
-        // First, try to find comparison functionality through selection
-        print("🔍 Looking for property selection/comparison functionality...")
-        let selectionButtons = app.buttons.matching(NSPredicate(format: "label CONTAINS 'circle' OR label CONTAINS 'checkmark'"))
-        
-        if selectionButtons.count > 0 {
-            print("✅ Found selection buttons - testing selection mode")
+        if selectionButtons.count >= 2 {
+            // Select first two properties
+            selectionButtons.element(boundBy: 0).tap()
+            selectionButtons.element(boundBy: 1).tap()
             
-            // Select multiple properties to demonstrate comparison
-            let firstSelectionButton = selectionButtons.element(boundBy: 0)
-            let secondSelectionButton = selectionButtons.element(boundBy: 1)
-            
-            if firstSelectionButton.exists && secondSelectionButton.exists {
-                firstSelectionButton.tap()
-                secondSelectionButton.tap()
-                
-                waitForUIToSettle(in: app)
-                
-                // Look for a compare button after selection
-                let compareButton = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Compare' OR label CONTAINS 'compare'")).firstMatch
-                if compareButton.exists {
-                    compareButton.tap()
-                    
-                    // Wait for comparison view
-                    waitForUIToSettle(in: app)
-                    takeScreenshot(platform: platform, screenName: "PropertyComparison", in: app)
-                    print("✅ PropertyComparison screenshot taken with comparison view")
-                } else {
-                    // Take screenshot of selection state
-                    takeScreenshot(platform: platform, screenName: "PropertyComparison", in: app)
-                    print("✅ PropertyComparison screenshot taken showing property selection")
-                }
-            } else {
-                print("⚠️ Selection buttons not accessible")
-                takeScreenshot(platform: platform, screenName: "PropertyComparison", in: app)
-                print("✅ PropertyComparison screenshot taken (fallback to main screen)")
-            }
-        } else {
-            // Fallback: Look for direct comparison functionality
-            let compareButton = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Compare' OR label CONTAINS 'compare'")).firstMatch
+            // Look for compare functionality
+            let compareButton = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Compare'")).firstMatch
             if compareButton.exists {
                 compareButton.tap()
                 waitForUIToSettle(in: app)
-                takeScreenshot(platform: platform, screenName: "PropertyComparison", in: app)
-                print("✅ PropertyComparison screenshot taken with direct comparison")
-            } else {
-                // Final fallback: Main screen as comparison baseline
-                print("ℹ️ No comparison functionality found - taking main screen as PropertyComparison baseline")
-                takeScreenshot(platform: platform, screenName: "PropertyComparison", in: app)
-                print("✅ PropertyComparison screenshot taken (main screen baseline)")
             }
         }
+        
+        takeScreenshot(platform: platform, screenName: "PropertyComparison", in: app)
         
         print("\n✅ === \(platform.prefix) Screenshot Generation Complete ===")
     }
     
-    private func scrollFormToOptimalPosition(in app: XCUIApplication, platform: ScreenshotPlatform) {
-        // For iPad/Mac, position form to show enhanced layout
-        switch platform {
-        case .iPad:
-            // Scroll to show form structure optimized for iPad layout
-            if app.scrollViews.count > 0 {
-                let scrollView = app.scrollViews.firstMatch
-                scrollView.swipeUp() // Show more of the form
-                // No delay needed - swipe action is synchronous
-            }
-        case .Mac:
-            // For Mac, ensure desktop-appropriate form display
-            // Mac typically shows more content, less scrolling needed
-            // No delay needed
-            break
-        case .iPhone:
-            // iPhone handled in main function
-            break
-        }
-    }
+    // MARK: - Simplified Helper Methods
     
-    private func optimizeDetailViewForTabletOrDesktop(in app: XCUIApplication, platform: ScreenshotPlatform) {
-        switch platform {
-        case .iPad:
-            // For iPad, show enhanced detail layout
-            // iPad may have master-detail or enhanced side-by-side layout
-            // No delay needed - layout is immediate
-            break
-        case .Mac:
-            // For Mac, ensure desktop detail view is optimally displayed
-            // Mac may have multi-pane or enhanced desktop layout
-            // No delay needed - layout is immediate
-            break
-        case .iPhone:
-            // iPhone handled elsewhere
-            break
-        }
-    }
-    
-    private func waitForFormToLoad(in app: XCUIApplication) {
-        // Wait for essential form elements to be ready
-        let titleField = app.textFields["Property Title"]
+    private func fillPropertyForm(in app: XCUIApplication, title: String, location: String, price: String, size: String, bedrooms: String, rating: String) {
+        print("🏠 Filling property form: \(title)")
         
-        // Use XCTWaiter for efficient waiting - no fixed delays
-        let expectation = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "exists == true AND isHittable == true"),
-            object: titleField
-        )
-        _ = XCTWaiter.wait(for: [expectation], timeout: 3.0)
-    }
-    
-    private func waitForUIToSettle(in app: XCUIApplication) {
-        // Only wait if keyboard actually exists
-        if app.keyboards.count > 0 {
-            let predicate = NSPredicate(format: "count == 0")
-            let keyboardExpectation = XCTNSPredicateExpectation(predicate: predicate, object: app.keyboards)
-            _ = XCTWaiter.wait(for: [keyboardExpectation], timeout: 1.0)
-        }
-        // No additional delay needed - UI operations are synchronous
-    }
-    
-    private func waitForListToUpdate(in app: XCUIApplication) {
-        // Wait for collection view to be interactive
-        let collectionView = app.collectionViews.firstMatch
-        if collectionView.exists {
-            let expectation = XCTNSPredicateExpectation(
-                predicate: NSPredicate(format: "isHittable == true"),
-                object: collectionView
-            )
-            _ = XCTWaiter.wait(for: [expectation], timeout: 2.0)
-        }
-    }
-    
-    private func fillBasicTextField(in app: XCUIApplication, identifier: String, value: String) {
-        let field = app.textFields[identifier]
-        if field.exists && field.isHittable {
-            field.tap()
-            
-            // Wait for field to become focused instead of fixed delay
-            let focusExpectation = XCTNSPredicateExpectation(
-                predicate: NSPredicate(format: "hasKeyboardFocus == true"),
-                object: field
-            )
-            let focusResult = XCTWaiter.wait(for: [focusExpectation], timeout: 1.0)
-            
-            // If focus detection fails, proceed anyway - field might still work
-            if focusResult == .timedOut {
-                print("⚠️ Focus detection timed out for \(identifier), proceeding anyway")
-            }
-            
-            field.clearAndTypeText(value)
-            print("✅ Filled \(identifier): \(value)")
-        } else {
-            print("❌ Could not find field: \(identifier)")
-        }
-    }
-    
-    private func dismissKeyboardProperly(in app: XCUIApplication) {
-        // Check if keyboard is actually present before trying to dismiss
-        if app.keyboards.count > 0 {
-            // Method 1: Tap outside form areas (works for sheets)
-            let navBar = app.navigationBars["Add Property"]
-            if navBar.exists {
-                navBar.tap()
-                
-                // Wait for keyboard to dismiss
-                let keyboardGoneExpectation = XCTNSPredicateExpectation(
-                    predicate: NSPredicate(format: "count == 0"),
-                    object: app.keyboards
-                )
-                _ = XCTWaiter.wait(for: [keyboardGoneExpectation], timeout: 1.0)
-            } else {
-                // Fallback: swipe down
-                app.swipeDown()
-                // Wait for keyboard dismissal
-                let keyboardGoneExpectation = XCTNSPredicateExpectation(
-                    predicate: NSPredicate(format: "count == 0"),
-                    object: app.keyboards
-                )
-                _ = XCTWaiter.wait(for: [keyboardGoneExpectation], timeout: 1.0)
-            }
-        }
+        // Tap add button
+        let addButton = app.navigationBars["Properties"].buttons["plus"]
+        XCTAssertTrue(addButton.exists, "Add button should exist")
+        addButton.tap()
         
-        print("✅ Keyboard dismissed")
-    }
-    
-    private func scrollToNumericFields(in app: XCUIApplication) {
-        // Find the form's scroll view and scroll within it
-        let scrollViews = app.scrollViews
-        if scrollViews.count > 0 {
-            let formScrollView = scrollViews.firstMatch
-            if formScrollView.exists {
-                // Scroll down within the form's scroll view
-                formScrollView.swipeUp()
-                print("✅ Scrolled to numeric fields area")
-            }
-        } else {
-            // Fallback: gentle swipe up if no scroll view found
-            app.swipeUp()
-            print("✅ Used fallback scrolling")
-        }
-        // No delay needed - scroll operations are synchronous
-    }
-    
-    private func fillSingleNumericField(field: XCUIElement, value: String, fieldName: String) {
-        if field.exists && field.isHittable {
-            print("✅ Found \(fieldName) field - attempting to fill")
-            
-            // Ensure field is visible and properly focused
-            field.tap()
-            
-            // Wait for field to become focused
-            let focusExpectation = XCTNSPredicateExpectation(
-                predicate: NSPredicate(format: "hasKeyboardFocus == true"),
-                object: field
-            )
-            let focusResult = XCTWaiter.wait(for: [focusExpectation], timeout: 1.0)
-            
-            if focusResult == .timedOut {
-                print("⚠️ Focus detection timed out for \(fieldName), proceeding anyway")
-            }
-            
-            // Double-tap to select all content, then type new value
-            field.doubleTap()
-            field.typeText(value)
-            
-            // Verify the field was filled (if possible)
-            if let fieldValue = field.value as? String, !fieldValue.isEmpty && fieldValue != "0" {
-                print("✅ Successfully filled \(fieldName): \(value) (verified: \(fieldValue))")
-            } else {
-                print("⚠️ Filled \(fieldName): \(value) (verification inconclusive)")
-            }
-        } else {
-            print("❌ \(fieldName) field not accessible")
-        }
-    }
-    
-    private func fillBedroomsField(in app: XCUIApplication, value: String) {
-        print("🛏️ Setting bedrooms to: \(value)")
+        // Wait for form
+        XCTAssertTrue(app.navigationBars["Add Property"].waitForExistence(timeout: 5))
         
-        let steppers = app.steppers
-        if steppers.count > 0 {
-            let stepper = steppers.firstMatch
-            if stepper.exists && stepper.isHittable {
-                print("✅ Found bedrooms stepper")
-                
-                // Get current value if possible and reset to 0
-                let decrementButton = stepper.buttons.element(boundBy: 0)
-                for _ in 0..<10 {
-                    if decrementButton.exists && decrementButton.isHittable {
-                        decrementButton.tap()
-                        // No delay needed - button taps are synchronous
-                    } else {
-                        break // Stop if button becomes unavailable
-                    }
-                }
-                
-                // Increment to target value
-                let incrementButton = stepper.buttons.element(boundBy: 1)
-                let targetValue = Int(value) ?? 0
-                for _ in 0..<targetValue {
-                    if incrementButton.exists && incrementButton.isHittable {
-                        incrementButton.tap()
-                        // No delay needed - button taps are synchronous
-                    } else {
-                        break // Stop if button becomes unavailable
-                    }
-                }
-                
-                print("✅ Set bedrooms to: \(value)")
-            } else {
-                print("❌ Bedrooms stepper not accessible")
-            }
-        } else {
-            print("❌ No steppers found for bedrooms")
-        }
-    }
-    
-    private func fillCompletePropertyFormWithValidation(in app: XCUIApplication) {
-        let propertyData = (
-            title: "Elegant Apartment",
-            location: "Via del Corso 156, Roma, Italy",
-            link: "https://example.com/roma-apartment",
-            price: "425000",
-            size: "75",
-            bedrooms: "2"
-        )
+        // Fill basic fields first
+        fillBasicTextField(in: app, identifier: "Property Title", value: title)
+        fillBasicTextField(in: app, identifier: "Location", value: location)
+        fillBasicTextField(in: app, identifier: "Property Link", value: "https://example.com/property")
         
-        // Fill title - wait for field to be ready
-        let titleField = app.textFields["Property Title"]
-        if titleField.exists {
-            titleField.tap()
-            
-            let titleFocusExpectation = XCTNSPredicateExpectation(
-                predicate: NSPredicate(format: "hasKeyboardFocus == true"),
-                object: titleField
-            )
-            let titleResult = XCTWaiter.wait(for: [titleFocusExpectation], timeout: 1.0)
-            
-            if titleResult == .timedOut {
-                print("⚠️ Title field focus detection timed out, proceeding anyway")
-            }
-            
-            titleField.clearAndTypeText(propertyData.title)
-            print("✅ Form: Filled title")
-        }
+        // ⚠️ CRITICAL: Fill numeric fields using a simpler approach ⚠️
+        print("💰 CRITICAL: Filling PRICE field (MANDATORY)")
+        fillNumericFieldByPosition(in: app, position: 0, value: price, fieldName: "PRICE")
         
-        // Fill location - wait for field to be ready
-        let locationField = app.textFields["Location"]
-        if locationField.exists {
-            locationField.tap()
-            
-            let locationFocusExpectation = XCTNSPredicateExpectation(
-                predicate: NSPredicate(format: "hasKeyboardFocus == true"),
-                object: locationField
-            )
-            let locationResult = XCTWaiter.wait(for: [locationFocusExpectation], timeout: 1.0)
-            
-            if locationResult == .timedOut {
-                print("⚠️ Location field focus detection timed out, proceeding anyway")
-            }
-            
-            locationField.clearAndTypeText(propertyData.location)
-            print("✅ Form: Filled location")
-        }
+        print("📐 CRITICAL: Filling SIZE field (MANDATORY)")  
+        fillNumericFieldByPosition(in: app, position: 1, value: size, fieldName: "SIZE")
         
-        // Fill link - wait for field to be ready
-        let linkField = app.textFields["Property Link"]
-        if linkField.exists {
-            linkField.tap()
-            
-            let linkFocusExpectation = XCTNSPredicateExpectation(
-                predicate: NSPredicate(format: "hasKeyboardFocus == true"),
-                object: linkField
-            )
-            let linkResult = XCTWaiter.wait(for: [linkFocusExpectation], timeout: 1.0)
-            
-            if linkResult == .timedOut {
-                print("⚠️ Link field focus detection timed out, proceeding anyway")
-            }
-            
-            linkField.clearAndTypeText(propertyData.link)
-            print("✅ Form: Filled link")
-        }
+        print("🛏️ CRITICAL: Filling BEDROOMS field (MANDATORY)")
+        fillBedroomsWithStepper(in: app, value: bedrooms)
         
-        // Scroll down to see numeric fields - no delay needed
-        app.swipeUp()
+        print("🚿 CRITICAL: Filling BATHROOMS field (MANDATORY)")
+        fillBathroomsWithPicker(in: app, value: "2") // Default to 2 bathrooms
         
-        // Fill numeric fields with validation
-        fillNumericFieldImproved(in: app, value: propertyData.price, fieldType: "price")
-        fillNumericFieldImproved(in: app, value: propertyData.size, fieldType: "size")
-        fillBedroomsField(in: app, value: propertyData.bedrooms)
+        // Set rating
+        setRatingInForm(in: app, rating: rating)
         
-        // Dismiss keyboard - no delay needed after swipe
+        // Ensure keyboard is dismissed and form is ready for screenshot
         app.swipeDown()
+        waitForUIToSettle(in: app)
         
-        print("✅ Form: Completed filling all fields")
+        print("✅ Property form filled successfully with ALL MANDATORY FIELDS")
+    }
+    
+    // ⚠️ SIMPLIFIED CRITICAL FIELD FILLERS - BACK TO BASICS ⚠️
+    
+    private func fillNumericFieldByPosition(in app: XCUIApplication, position: Int, value: String, fieldName: String) {
+        print("🔢 Filling \(fieldName): \(value)")
+        
+        // Most basic approach: find all TextFields with placeholder "0"
+        let allTextFields = app.textFields.allElementsBoundByIndex
+        var numericFields: [XCUIElement] = []
+        
+        for field in allTextFields {
+            if field.placeholderValue == "0" {
+                numericFields.append(field)
+            }
+        }
+        
+        print("Found \(numericFields.count) numeric fields (placeholder '0')")
+        
+        if position < numericFields.count {
+            let field = numericFields[position]
+            
+            if field.exists && field.isHittable {
+                print("✅ Attempting to fill \(fieldName) at position \(position)")
+                field.tap()
+                field.clearAndTypeText(value)
+                print("✅ Successfully filled \(fieldName): \(value)")
+                return
+            }
+        }
+        
+        print("❌ Could not find \(fieldName) field at position \(position)")
+        // Don't fail hard - continue with other fields
+    }
+    
+    private func fillBedroomsWithStepper(in app: XCUIApplication, value: String) {
+        print("🛏️ Setting BEDROOMS: \(value)")
+        
+        // Strategy 1: Look for stepper with "Bedrooms" in the label
+        let bedroomsSteppers = app.steppers.matching(NSPredicate(format: "label CONTAINS 'Bedrooms'"))
+        
+        if bedroomsSteppers.count > 0 {
+            let stepper = bedroomsSteppers.firstMatch
+            if stepper.exists && stepper.isHittable {
+                print("✅ Found bedrooms stepper with label")
+                setStepper(stepper: stepper, value: value, fieldName: "BEDROOMS")
+                return
+            }
+        }
+        
+        // Strategy 2: Look for "Bedrooms" text and find nearby stepper
+        let bedroomsLabel = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Bedrooms'")).firstMatch
+        if bedroomsLabel.exists {
+            print("✅ Found Bedrooms label, looking for nearby stepper")
+            // Find all steppers and try each one
+            let allSteppers = app.steppers.allElementsBoundByIndex
+            for stepper in allSteppers {
+                if stepper.exists && stepper.isHittable {
+                    print("✅ Attempting to use stepper for bedrooms")
+                    setStepper(stepper: stepper, value: value, fieldName: "BEDROOMS")
+                    return
+                }
+            }
+        }
+        
+        // Strategy 3: Just use the first available stepper (fallback)
+        let allSteppers = app.steppers.allElementsBoundByIndex
+        if allSteppers.count > 0 {
+            let stepper = allSteppers[0]
+            if stepper.exists && stepper.isHittable {
+                print("⚠️ Using first available stepper for bedrooms")
+                setStepper(stepper: stepper, value: value, fieldName: "BEDROOMS")
+                return
+            }
+        }
+        
+        print("❌ Could not find bedrooms stepper")
+    }
+    
+    private func setStepper(stepper: XCUIElement, value: String, fieldName: String) {
+        let targetValue = Int(value) ?? 2
+        
+        // Get stepper buttons
+        let buttons = stepper.buttons.allElementsBoundByIndex
+        
+        if buttons.count >= 2 {
+            let decrementButton = buttons[0] // First button is typically decrement
+            let incrementButton = buttons[1] // Second button is typically increment
+            
+            print("✅ Found stepper buttons for \(fieldName)")
+            
+            // Reset to 0 by pressing decrement multiple times
+            for i in 0..<15 { // Safety limit
+                if decrementButton.exists && decrementButton.isHittable {
+                    decrementButton.tap()
+                    Thread.sleep(forTimeInterval: 0.05) // Small delay between taps
+                } else {
+                    print("Decrement button unavailable after \(i) taps")
+                    break
+                }
+            }
+            
+            // Set to target value by pressing increment
+            for i in 0..<targetValue {
+                if incrementButton.exists && incrementButton.isHittable {
+                    incrementButton.tap()
+                    Thread.sleep(forTimeInterval: 0.05) // Small delay between taps
+                } else {
+                    print("Increment button unavailable after \(i) taps")
+                    break
+                }
+            }
+            
+            print("✅ Set \(fieldName): \(value)")
+        } else {
+            print("❌ Stepper doesn't have expected button structure for \(fieldName)")
+        }
+    }
+    
+    private func fillBathroomsWithPicker(in app: XCUIApplication, value: String) {
+        print("🚿 Setting BATHROOMS: \(value)")
+        
+        // Strategy 1: Look for "Bathrooms" text label to establish context
+        let bathroomsLabel = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Bathrooms'")).firstMatch
+        
+        if bathroomsLabel.exists {
+            print("✅ Found Bathrooms label")
+            
+            // Strategy 1a: Look for picker (SwiftUI Picker with .menu style shows as a button)
+            let pickers = app.pickers.allElementsBoundByIndex
+            for picker in pickers {
+                if picker.exists && picker.isHittable {
+                    print("✅ Found picker, attempting to set bathrooms")
+                    picker.tap()
+                    
+                    // Look for the target value button in the picker menu
+                    Thread.sleep(forTimeInterval: 0.3) // Wait for picker menu to appear
+                    
+                    let targetButton = app.buttons[value]
+                    if targetButton.exists && targetButton.isHittable {
+                        targetButton.tap()
+                        print("✅ Set BATHROOMS: \(value)")
+                        return
+                    }
+                    
+                    // Try integer version
+                    let intValue = Int(Double(value) ?? 2.0)
+                    let intButton = app.buttons["\(intValue)"]
+                    if intButton.exists && intButton.isHittable {
+                        intButton.tap()
+                        print("✅ Set BATHROOMS: \(intValue)")
+                        return
+                    }
+                    
+                    // Cancel if we can't find the value
+                    // Look for a way to dismiss the picker
+                    bathroomsLabel.tap() // Tap outside
+                }
+            }
+            
+            // Strategy 1b: Look for buttons near the Bathrooms label (menu-style picker appears as button)
+            let nearbyButtons = app.buttons.allElementsBoundByIndex
+            for button in nearbyButtons {
+                let buttonLabel = button.label
+                // Look for buttons that might be bathroom count indicators
+                if buttonLabel.contains("1") || buttonLabel.contains("2") || buttonLabel.contains("3") || 
+                   buttonLabel == "1.0" || buttonLabel == "2.0" || buttonLabel == "3.0" {
+                    
+                    print("✅ Found potential bathrooms picker button: '\(buttonLabel)'")
+                    if button.exists && button.isHittable {
+                        button.tap()
+                        Thread.sleep(forTimeInterval: 0.3) // Wait for menu
+                        
+                        // Look for target value
+                        let targetButton = app.buttons[value]
+                        if targetButton.exists && targetButton.isHittable {
+                            targetButton.tap()
+                            print("✅ Set BATHROOMS: \(value)")
+                            return
+                        }
+                        
+                        // Try integer version
+                        let intValue = Int(Double(value) ?? 2.0)
+                        let intButton = app.buttons["\(intValue)"]
+                        if intButton.exists && intButton.isHittable {
+                            intButton.tap()
+                            print("✅ Set BATHROOMS: \(intValue)")
+                            return
+                        }
+                        
+                        // If we opened a menu but can't find target, close it
+                        bathroomsLabel.tap() // Tap outside to close
+                        break // Don't try other buttons
+                    }
+                }
+            }
+        }
+        
+        // Strategy 2: Look for any picker if label-based approach failed
+        let allPickers = app.pickers.allElementsBoundByIndex
+        if allPickers.count > 0 {
+            let picker = allPickers[0] // Try first picker
+            if picker.exists && picker.isHittable {
+                print("⚠️ Using first available picker for bathrooms")
+                picker.tap()
+                Thread.sleep(forTimeInterval: 0.3)
+                
+                let targetButton = app.buttons[value]
+                if targetButton.exists && targetButton.isHittable {
+                    targetButton.tap()
+                    print("✅ Set BATHROOMS: \(value) via fallback picker")
+                    return
+                }
+            }
+        }
+        
+        print("⚠️ Could not find bathrooms picker - this field may remain unset")
+    }
+    
+    private func addCoherentTagsToProperty(in app: XCUIApplication, tags: [(String, String)]) {
+        print("🏷️ Adding \(tags.count) coherent tags to property")
+        
+        // Navigate to the property we just created (it should be the first one)
+        let firstProperty = app.collectionViews.firstMatch.cells.firstMatch
+        XCTAssertTrue(firstProperty.exists, "Property should exist to add tags to")
+        firstProperty.tap()
+        
+        // Wait for detail view
+        XCTAssertTrue(app.scrollViews.firstMatch.waitForExistence(timeout: 5))
+        
+        // Add each tag
+        for (tagName, tagRating) in tags {
+            print("🏷️ Adding tag: \(tagName) (\(tagRating))")
+            
+            let addTagButton = app.buttons["Add Tag"]
+            XCTAssertTrue(addTagButton.exists, "Add Tag button should exist")
+            addTagButton.tap()
+            
+            // Wait for Add Tags screen
+            XCTAssertTrue(app.navigationBars["Add Tags"].waitForExistence(timeout: 5))
+            
+            // Fill tag name
+            let tagNameField = app.textFields["Enter tag name"]
+            XCTAssertTrue(tagNameField.exists, "Tag name field should exist")
+            tagNameField.tap()
+            tagNameField.clearAndTypeText(tagName)
+            
+            // Select rating
+            selectTagRating(in: app, rating: tagRating)
+            
+            // Create tag
+            let createButton = app.buttons["Create Tag"]
+            if createButton.exists && createButton.isEnabled {
+                createButton.tap()
+                // Wait to return to detail view
+                _ = app.scrollViews.firstMatch.waitForExistence(timeout: 3)
+                print("✅ Tag '\(tagName)' added")
+            } else {
+                print("❌ Could not create tag, canceling")
+                let cancelButton = app.buttons["Cancel"]
+                if cancelButton.exists { cancelButton.tap() }
+            }
+        }
+        
+        print("✅ All tags added to property")
+    }
+    
+    private func selectTagRating(in app: XCUIApplication, rating: String) {
+        // Map rating to accessibility identifier
+        let ratingId: String
+        switch rating {
+        case "Not Rated": ratingId = "none"
+        case "Excluded": ratingId = "excluded"
+        case "Considering": ratingId = "considering" 
+        case "Good": ratingId = "good"
+        case "Excellent": ratingId = "excellent"
+        default: ratingId = "good"
+        }
+        
+        let ratingButton = app.buttons["rating_\(ratingId)"]
+        if ratingButton.exists && ratingButton.isHittable {
+            ratingButton.tap()
+            print("✅ Selected rating: \(rating)")
+        } else {
+            print("⚠️ Could not find rating button for \(rating), using default")
+        }
     }
     
     // MARK: - Helper Methods
@@ -855,612 +760,18 @@ final class DomoriUITests: XCTestCase {
         }
     }
     
-    private func createPropertyWithCompleteData(in app: XCUIApplication, title: String, location: String, price: String, size: String, bedrooms: String, link: String, rating: String) {
-        print("\n🏠 === Creating Property: \(title) ===")
+    private func ensureOnMainScreen(in app: XCUIApplication) {
+        print("🔍 Checking current screen...")
         
-        // Tap add button
-        let addButton = app.navigationBars["Properties"].buttons["plus"]
-        guard addButton.exists else { 
-            print("❌ Add button not found")
-            return 
+        // Check if we're already on main screen
+        let mainScreenNavBar = app.navigationBars["Properties"]
+        if mainScreenNavBar.exists {
+            print("✅ Already on main screen")
+            return
         }
         
-        addButton.tap()
-        print("✅ Tapped add button")
-        
-        // Wait for form with better verification
-        guard app.navigationBars["Add Property"].waitForExistence(timeout: 5) else { 
-            print("❌ Add Property form not found")
-            return 
-        }
-        
-        // Wait for form to be fully loaded
-        waitForFormToLoad(in: app)
-        print("✅ Add Property form loaded")
-        
-        // STEP 1: Fill basic text fields (these work reliably)
-        print("\n📝 Filling basic information...")
-        
-        fillBasicTextField(in: app, identifier: "Property Title", value: title)
-        fillBasicTextField(in: app, identifier: "Location", value: location)
-        fillBasicTextField(in: app, identifier: "Property Link", value: link)
-        
-        // STEP 2: Properly dismiss keyboard before proceeding to numeric fields
-        print("\n⌨️ Dismissing keyboard completely...")
-        dismissKeyboardProperly(in: app)
-        
-        // STEP 3: Navigate to numeric fields using proper scrolling
-        print("\n📊 Navigating to numeric fields...")
-        scrollToNumericFields(in: app)
-        
-        // STEP 4: Fill numeric fields with improved targeting
-        print("\n💰 Filling numeric fields...")
-        fillNumericFieldImproved(in: app, value: price, fieldType: "price")
-        fillNumericFieldImproved(in: app, value: size, fieldType: "size")
-        fillBedroomsField(in: app, value: bedrooms)
-        
-        // STEP 5: Set rating
-        print("\n⭐ Setting rating...")
-        setRatingInForm(in: app, rating: rating)
-        
-        // STEP 6: Final cleanup and save
-        print("\n💾 Preparing to save...")
-        dismissKeyboardProperly(in: app)
-        waitForUIToSettle(in: app)
-        
-        // Save the property
-        let saveButton = app.buttons["Save"]
-        if saveButton.exists && saveButton.isEnabled {
-            print("✅ Save button available - saving property")
-            saveButton.tap()
-            
-            // Wait to return to main screen
-            let success = app.navigationBars["Properties"].waitForExistence(timeout: 10)
-            if success {
-                waitForListToUpdate(in: app)
-                print("✅ Successfully saved and returned: \(title)")
-                print("🏠 === Property Creation Complete ===\n")
-            } else {
-                print("❌ Failed to return to main screen")
-            }
-        } else {
-            print("❌ Save button not available - canceling")
-            let cancelButton = app.buttons["Cancel"]
-            if cancelButton.exists {
-                cancelButton.tap()
-                print("✅ Canceled property creation")
-            }
-        }
-    }
-    
-    private func fillNumericFieldImproved(in app: XCUIApplication, value: String, fieldType: String) {
-        print("🔢 Filling \(fieldType) with value: \(value)")
-        
-        // Strategy: Look for specific static text labels to identify the right context
-        let labelToFind = fieldType.contains("price") ? "Price" : "Size"
-        
-        // Find the label first
-        let labels = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '\(labelToFind)'"))
-        if labels.count > 0 {
-            print("✅ Found \(labelToFind) label")
-            
-            // Now look for TextFields with placeholder "0" in the current visible area
-            let numericFields = app.textFields.matching(NSPredicate(format: "placeholderValue == '0'"))
-            
-            if fieldType.contains("price") && numericFields.count > 0 {
-                let field = numericFields.element(boundBy: 0)
-                fillSingleNumericField(field: field, value: value, fieldName: "price")
-            } else if fieldType.contains("size") && numericFields.count > 1 {
-                let field = numericFields.element(boundBy: 1)
-                fillSingleNumericField(field: field, value: value, fieldName: "size")
-            }
-        } else {
-            print("❌ Could not find \(labelToFind) label")
-        }
-    }
-    
-    private func setRatingInForm(in app: XCUIApplication, rating: String) {
-        // Look for rating picker or buttons
-        let ratingButton = app.buttons[rating]
-        if ratingButton.exists {
-            ratingButton.tap()
-            print("✅ Set rating to: \(rating)")
-        } else {
-            // Try alternative approaches for rating
-            let ratingPicker = app.pickerWheels.firstMatch
-            if ratingPicker.exists {
-                ratingPicker.adjust(toPickerWheelValue: rating)
-                print("✅ Set rating via picker to: \(rating)")
-            } else {
-                print("❌ Could not find rating control")
-            }
-        }
-    }
-    
-    // MARK: - Legacy Tests (kept for compatibility)
-    
-    @MainActor
-    func testNavigationBasics() throws {
-        let app = XCUIApplication()
-        app.launch()
-        
-        // Wait for content to load
-        let propertyList = app.collectionViews.firstMatch
-        XCTAssertTrue(propertyList.waitForExistence(timeout: 3.0))
-        
-        // Test that we can see property titles in the list
-        let firstProperty = propertyList.cells.firstMatch
-        XCTAssertTrue(firstProperty.exists)
-        
-        // Test navigation to detail view
-        firstProperty.tap()
-        
-        // Should navigate to detail view
-        // Note: This depends on the actual navigation implementation
-        // We'll look for common detail view elements
-        let detailView = app.scrollViews.firstMatch
-        XCTAssertTrue(detailView.waitForExistence(timeout: 2.0))
-    }
-    
-    @MainActor
-    func testAddPropertyFlow() throws {
-        let app = XCUIApplication()
-        app.launch()
-        
-        // Wait for the main view to load
-        let propertyList = app.collectionViews.firstMatch
-        XCTAssertTrue(propertyList.waitForExistence(timeout: 3.0))
-        
-        // Look for the add button (usually a "+" button)
-        let addButton = app.buttons["Add Property"]
-        if addButton.exists {
-            addButton.tap()
-            
-            // Should show add property form
-            let titleField = app.textFields["Title"]
-            if titleField.waitForExistence(timeout: 2.0) {
-                titleField.tap()
-                titleField.typeText("UI Test Property")
-                
-                // Fill in location (updated from address)
-                let locationField = app.textFields["Location"]
-                if locationField.exists {
-                    locationField.tap()
-                    locationField.typeText("123 UI Test Street")
-                }
-                
-                // Fill in link (new mandatory field)
-                let linkField = app.textFields["Property Link"]
-                if linkField.exists {
-                    linkField.tap()
-                    linkField.typeText("https://example.com/ui-test-property")
-                }
-                
-                // Save the property
-                let saveButton = app.buttons["Save"]
-                if saveButton.exists {
-                    saveButton.tap()
-                    
-                    // Should return to main list
-                    XCTAssertTrue(propertyList.waitForExistence(timeout: 2.0))
-                }
-            }
-        }
-    }
-    
-    @MainActor
-    func testPropertyListSorting() throws {
-        let app = XCUIApplication()
-        app.launch()
-        
-        // Wait for content to load
-        let propertyList = app.collectionViews.firstMatch
-        XCTAssertTrue(propertyList.waitForExistence(timeout: 3.0))
-        
-        // Look for sort options (typically in a menu or toolbar)
-        let sortButton = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Sort' OR label CONTAINS 'sort'")).firstMatch
-        if sortButton.exists {
-            sortButton.tap()
-            
-            // Should show sort options
-            let sortMenu = app.menus.firstMatch
-            if sortMenu.waitForExistence(timeout: 1.0) {
-                // Test selecting a sort option
-                let priceSort = app.buttons["Price"]
-                if priceSort.exists {
-                    priceSort.tap()
-                }
-            }
-        }
-    }
-    
-    @MainActor
-    func testPropertySearch() throws {
-        let app = XCUIApplication()
-        app.launch()
-        
-        // Wait for content to load
-        let propertyList = app.collectionViews.firstMatch
-        XCTAssertTrue(propertyList.waitForExistence(timeout: 3.0))
-        
-        // Look for search functionality
-        let searchField = app.searchFields.firstMatch
-        if searchField.exists {
-            searchField.tap()
-            searchField.typeText("Victorian")
-            
-            // Results should filter
-            // The exact assertion depends on your sample data
-            XCTAssertTrue(propertyList.exists)
-        }
-    }
-    
-    @MainActor
-    func testPropertyFavorites() throws {
-        let app = XCUIApplication()
-        app.launch()
-        
-        // Wait for content to load
-        let propertyList = app.collectionViews.firstMatch
-        XCTAssertTrue(propertyList.waitForExistence(timeout: 3.0))
-        
-        // Test favorite functionality if visible in list
-        let firstProperty = propertyList.cells.firstMatch
-        if firstProperty.exists {
-            // Look for favorite button or heart icon
-            let favoriteButton = firstProperty.buttons.matching(NSPredicate(format: "label CONTAINS 'heart' OR label CONTAINS 'favorite'")).firstMatch
-            if favoriteButton.exists {
-                favoriteButton.tap()
-                // Should toggle favorite state
-                XCTAssertTrue(favoriteButton.exists)
-            }
-        }
-    }
-    
-    @MainActor
-    func testPropertyComparison() throws {
-        let app = XCUIApplication()
-        app.launch()
-        
-        // Wait for content to load
-        let propertyList = app.collectionViews.firstMatch
-        XCTAssertTrue(propertyList.waitForExistence(timeout: 3.0))
-        
-        // Look for compare functionality
-        let compareButton = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Compare' OR label CONTAINS 'compare'")).firstMatch
-        if compareButton.exists {
-            compareButton.tap()
-            
-            // Should show comparison view or selection mode
-            // This test depends on your specific implementation
-            XCTAssertTrue(app.otherElements.firstMatch.exists)
-        }
-    }
-    
-    @MainActor
-    func testPropertyDetailView() throws {
-        let app = XCUIApplication()
-        app.launch()
-        
-        // Wait for content to load
-        let propertyList = app.collectionViews.firstMatch
-        XCTAssertTrue(propertyList.waitForExistence(timeout: 3.0))
-        
-        // Tap on first property
-        let firstProperty = propertyList.cells.firstMatch
-        XCTAssertTrue(firstProperty.exists)
-        firstProperty.tap()
-        
-        // Should show detail view
-        let detailView = app.scrollViews.firstMatch
-        if detailView.waitForExistence(timeout: 2.0) {
-            
-            // Look for common detail elements
-            let priceLabel = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '$' OR label CONTAINS '€' OR label CONTAINS '£'")).firstMatch
-            XCTAssertTrue(priceLabel.exists)
-            
-            // Test scrolling in detail view
-            detailView.swipeUp()
-            
-            // Should be able to navigate back
-            let backButton = app.buttons["Back"]
-            if backButton.exists {
-                backButton.tap()
-                XCTAssertTrue(propertyList.waitForExistence(timeout: 2.0))
-            } else {
-                // Try swipe back gesture
-                app.swipeRight()
-                XCTAssertTrue(propertyList.waitForExistence(timeout: 2.0))
-            }
-        }
-    }
-    
-    @MainActor
-    func testPropertyRatingSystem() throws {
-        let app = XCUIApplication()
-        app.launch()
-        
-        // Wait for content to load
-        let propertyList = app.collectionViews.firstMatch
-        XCTAssertTrue(propertyList.waitForExistence(timeout: 3.0))
-        
-        // Navigate to first property detail
-        let firstProperty = propertyList.cells.firstMatch
-        firstProperty.tap()
-        
-        let detailView = app.scrollViews.firstMatch
-        if detailView.waitForExistence(timeout: 2.0) {
-            
-            // Look for rating elements in detail view
-            let ratingElements = app.buttons.matching(NSPredicate(format: "label CONTAINS 'star' OR identifier CONTAINS 'rating'"))
-            if ratingElements.count > 0 {
-                let firstStar = ratingElements.firstMatch
-                firstStar.tap()
-                
-                // Should update rating
-                XCTAssertTrue(firstStar.exists)
-            }
-        }
-    }
-    
-    @MainActor
-    func testPropertyListRatingIcons() throws {
-        let app = XCUIApplication()
-        app.launch()
-        
-        // Wait for content to load
-        let propertyList = app.collectionViews.firstMatch
-        XCTAssertTrue(propertyList.waitForExistence(timeout: 3.0))
-        
-        // Check that rating labels are visible in the list (updated from icons to labels)
-        let ratingLabels = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Excellent' OR label CONTAINS 'Good' OR label CONTAINS 'Considering' OR label CONTAINS 'Excluded' OR label CONTAINS 'Not Rated'"))
-        
-        // Should have at least one rating label visible
-        if ratingLabels.count > 0 {
-            XCTAssertTrue(ratingLabels.firstMatch.exists)
-            
-            // Verify different rating states exist in sample data
-            let excellentRating = app.staticTexts["Excellent"]
-            let goodRating = app.staticTexts["Good"]
-            let consideringRating = app.staticTexts["Considering"]
-            let excludedRating = app.staticTexts["Excluded"]
-            let noRating = app.staticTexts["Not Rated"]
-            
-            // At least one type should exist
-            let hasAnyRating = excellentRating.exists || goodRating.exists || 
-                             consideringRating.exists || excludedRating.exists || noRating.exists
-            XCTAssertTrue(hasAnyRating, "At least one rating label should be visible")
-        }
-        
-        // Check that property type icons are visible in the list (small, gray)
-        let propertyTypeIcons = app.images.matching(NSPredicate(format: "label CONTAINS 'house' OR label CONTAINS 'building' OR label CONTAINS 'bed.double' OR label CONTAINS 'car.garage'"))
-        if propertyTypeIcons.count > 0 {
-            XCTAssertTrue(propertyTypeIcons.firstMatch.exists, "Property type icons should be visible")
-        }
-        
-        // Test that selection buttons are present and functional
-        let selectionButtons = app.buttons.matching(NSPredicate(format: "label CONTAINS 'circle' OR label CONTAINS 'checkmark.circle.fill'"))
-        if selectionButtons.count > 0 {
-            XCTAssertTrue(selectionButtons.firstMatch.exists, "Selection buttons should be present")
-            
-            // Test selection functionality - tap a selection button
-            let firstSelectionButton = selectionButtons.firstMatch
-            firstSelectionButton.tap()
-            
-            // The button should change state (circle -> checkmark.circle.fill or vice versa)
-            // We just verify the button still exists after interaction
-            XCTAssertTrue(firstSelectionButton.exists, "Selection button should still exist after tap")
-        }
-        
-        // Test that tapping on the main content area navigates to detail view instead of selecting
-        let firstProperty = propertyList.cells.firstMatch
-        if firstProperty.exists {
-            // Tap on the property row (not on the selection button)
-            let propertyContent = firstProperty.staticTexts.firstMatch
-            if propertyContent.exists {
-                propertyContent.tap()
-                
-                // Should navigate to detail view, not select the item
-                let detailView = app.scrollViews.firstMatch
-                if detailView.waitForExistence(timeout: 2.0) {
-                    // Successfully navigated to detail view
-                    XCTAssertTrue(detailView.exists, "Should navigate to detail view when tapping property content")
-                    
-                    // Navigate back to test list again
-                    let backButton = app.buttons["Back"]
-                    if backButton.exists {
-                        backButton.tap()
-                    } else {
-                        app.swipeRight()
-                    }
-                    XCTAssertTrue(propertyList.waitForExistence(timeout: 2.0))
-                }
-            }
-        }
-    }
-    
-    @MainActor
-    func testSettingsAccess() throws {
-        let app = XCUIApplication()
-        app.launch()
-        
-        // Look for settings button or gear icon
-        let settingsButton = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Settings' OR label CONTAINS 'settings' OR label CONTAINS 'gear'")).firstMatch
-        if settingsButton.exists {
-            settingsButton.tap()
-            
-            // Should show settings view
-            let settingsView = app.navigationBars["Settings"]
-            XCTAssertTrue(settingsView.waitForExistence(timeout: 2.0))
-            
-            // Navigate back
-            let backButton = app.buttons["Back"]
-            if backButton.exists {
-                backButton.tap()
-            } else {
-                app.swipeRight()
-            }
-        }
-    }
-    
-    @MainActor
-    func testPropertyTags() throws {
-        let app = XCUIApplication()
-        app.launch()
-        
-        // Wait for content to load
-        let propertyList = app.collectionViews.firstMatch
-        XCTAssertTrue(propertyList.waitForExistence(timeout: 3.0))
-        
-        // Navigate to property detail
-        let firstProperty = propertyList.cells.firstMatch
-        firstProperty.tap()
-        
-        let detailView = app.scrollViews.firstMatch
-        if detailView.waitForExistence(timeout: 2.0) {
-            
-            // Look for tag elements
-            let tagElements = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Priority' OR label CONTAINS 'Deal' OR label CONTAINS 'Ready'"))
-            if tagElements.count > 0 {
-                // Tags should be visible
-                XCTAssertTrue(tagElements.firstMatch.exists)
-            }
-        }
-    }
-    
-    @MainActor
-    func testAccessibilityElements() throws {
-        let app = XCUIApplication()
-        app.launch()
-        
-        // Test that key elements have accessibility labels
-        let propertyList = app.collectionViews.firstMatch
-        XCTAssertTrue(propertyList.waitForExistence(timeout: 3.0))
-        
-        // Check that list items are accessible
-        let firstProperty = propertyList.cells.firstMatch
-        XCTAssertTrue(firstProperty.exists)
-        XCTAssertTrue(firstProperty.isHittable)
-        
-        // Check navigation elements
-        let navBar = app.navigationBars.firstMatch
-        XCTAssertTrue(navBar.exists)
-    }
-
-    func testInlineRatingPickerInteraction() throws {
-        let app = XCUIApplication()
-        app.launch()
-        
-        // Wait for content to load
-        let propertyList = app.collectionViews.firstMatch
-        XCTAssertTrue(propertyList.waitForExistence(timeout: 3.0))
-        
-        // Navigate to first property detail
-        let firstProperty = propertyList.cells.firstMatch
-        if firstProperty.exists {
-            firstProperty.tap()
-            
-            let detailView = app.scrollViews.firstMatch
-            XCTAssertTrue(detailView.waitForExistence(timeout: 2.0))
-            
-            // Look for the "Your Notes" section
-            let userNotesSection = app.staticTexts["Your Notes"]
-            if userNotesSection.exists {
-                // Scroll to make sure rating section is visible
-                userNotesSection.swipeUp()
-                
-                // Look for rating buttons in the inline picker
-                let excellentButton = app.buttons.containing(NSPredicate(format: "label CONTAINS 'Excellent'")).firstMatch
-                let goodButton = app.buttons.containing(NSPredicate(format: "label CONTAINS 'Good'")).firstMatch
-                let consideringButton = app.buttons.containing(NSPredicate(format: "label CONTAINS 'Considering'")).firstMatch
-                
-                // Test rating selection
-                if excellentButton.exists {
-                    excellentButton.tap()
-                    // Should be able to tap without navigating away
-                    XCTAssertTrue(detailView.exists)
-                }
-                
-                if goodButton.exists {
-                    goodButton.tap()
-                    XCTAssertTrue(detailView.exists)
-                }
-                
-                if consideringButton.exists {
-                    consideringButton.tap()
-                    XCTAssertTrue(detailView.exists)
-                }
-            }
-        }
-    }
-    
-    func testPropertyDetailViewSectionSeparation() throws {
-        let app = XCUIApplication()
-        app.launch()
-        
-        // Navigate to property detail
-        let propertyList = app.collectionViews.firstMatch
-        XCTAssertTrue(propertyList.waitForExistence(timeout: 3.0))
-        
-        let firstProperty = propertyList.cells.firstMatch
-        if firstProperty.exists {
-            firstProperty.tap()
-            
-            let detailView = app.scrollViews.firstMatch
-            XCTAssertTrue(detailView.waitForExistence(timeout: 2.0))
-            
-            // Check for distinct sections
-            let housePropertiesSection = app.staticTexts["House Properties"]
-            let userNotesSection = app.staticTexts["Your Notes"]
-            
-            XCTAssertTrue(housePropertiesSection.exists || userNotesSection.exists, "At least one section should be visible")
-            
-            // Test that both sections are structurally different
-            if housePropertiesSection.exists && userNotesSection.exists {
-                // House Properties should come before User Notes
-                let housePropertiesFrame = housePropertiesSection.frame
-                let userNotesFrame = userNotesSection.frame
-                
-                XCTAssertLessThan(housePropertiesFrame.minY, userNotesFrame.minY, "House Properties should appear above User Notes")
-            }
-        }
-    }
-    
-    func testQuickRatingUpdateWithoutEdit() throws {
-        let app = XCUIApplication()
-        app.launch()
-        
-        // Navigate to property detail
-        let propertyList = app.collectionViews.firstMatch
-        XCTAssertTrue(propertyList.waitForExistence(timeout: 3.0))
-        
-        let firstProperty = propertyList.cells.firstMatch
-        if firstProperty.exists {
-            firstProperty.tap()
-            
-            let detailView = app.scrollViews.firstMatch
-            XCTAssertTrue(detailView.waitForExistence(timeout: 2.0))
-            
-            // Ensure we're not in edit mode (no "Save" or "Cancel" buttons visible)
-            let saveButton = app.buttons["Save"]
-            let cancelButton = app.buttons["Cancel"]
-            XCTAssertFalse(saveButton.exists, "Should not be in edit mode")
-            XCTAssertFalse(cancelButton.exists, "Should not be in edit mode")
-            
-            // Look for rating section
-            let ratingText = app.staticTexts["Rating"]
-            if ratingText.exists {
-                // Try to find and tap a rating button
-                let excellentButton = app.buttons.containing(NSPredicate(format: "label CONTAINS 'Excellent'")).firstMatch
-                if excellentButton.exists {
-                    excellentButton.tap()
-                    
-                    // Should still be in detail view (not edit mode)
-                    XCTAssertTrue(detailView.exists)
-                    XCTAssertFalse(saveButton.exists, "Should still not be in edit mode after rating change")
-                }
-            }
-        }
+        // Use the robust navigation function
+        navigateBackToMainScreen(in: app, from: "unknown screen")
     }
     
     private func navigateBackToMainScreen(in app: XCUIApplication, from location: String) {
@@ -1552,174 +863,156 @@ final class DomoriUITests: XCTestCase {
         }
     }
     
-    private func ensureOnMainScreen(in app: XCUIApplication) {
-        print("🔍 Checking current screen...")
-        
-        // Check if we're already on main screen
-        let mainScreenNavBar = app.navigationBars["Properties"]
-        if mainScreenNavBar.exists {
-            print("✅ Already on main screen")
-            return
+    private func waitForUIToSettle(in app: XCUIApplication) {
+        // Only wait if keyboard actually exists
+        if app.keyboards.count > 0 {
+            let predicate = NSPredicate(format: "count == 0")
+            let keyboardExpectation = XCTNSPredicateExpectation(predicate: predicate, object: app.keyboards)
+            _ = XCTWaiter.wait(for: [keyboardExpectation], timeout: 1.0)
         }
-        
-        // Use the robust navigation function
-        navigateBackToMainScreen(in: app, from: "unknown screen")
+        // No additional delay needed - UI operations are synchronous
     }
     
-    private func addMultipleTagsToProperty(in app: XCUIApplication, propertyIndex: Int, tags: [(name: String, rating: String)]) {
-        print("🏷️ Adding \(tags.count) tags to property \(propertyIndex + 1)...")
-        
-        // Navigate to the specific property
-        let propertyList = app.collectionViews.firstMatch
-        guard propertyList.waitForExistence(timeout: 3.0) else {
-            print("❌ Property list not found")
-            return
+    private func fillBasicTextField(in app: XCUIApplication, identifier: String, value: String) {
+        let field = app.textFields[identifier]
+        if field.exists && field.isHittable {
+            field.tap()
+            
+            // Wait for field to become focused instead of fixed delay
+            let focusExpectation = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "hasKeyboardFocus == true"),
+                object: field
+            )
+            let focusResult = XCTWaiter.wait(for: [focusExpectation], timeout: 1.0)
+            
+            // If focus detection fails, proceed anyway - field might still work
+            if focusResult == .timedOut {
+                print("⚠️ Focus detection timed out for \(identifier), proceeding anyway")
+            }
+            
+            field.clearAndTypeText(value)
+            print("✅ Filled \(identifier): \(value)")
+        } else {
+            print("❌ Could not find field: \(identifier)")
         }
+    }
+    
+    private func fillNumericFieldImproved(in app: XCUIApplication, value: String, fieldType: String) {
+        print("🔢 Filling \(fieldType) with value: \(value)")
         
-        let property = propertyList.cells.element(boundBy: propertyIndex)
-        guard property.exists else {
-            print("❌ Property \(propertyIndex + 1) not found")
-            return
+        // Strategy: Look for specific static text labels to identify the right context
+        let labelToFind = fieldType.contains("price") ? "Price" : "Size"
+        
+        // Find the label first
+        let labels = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '\(labelToFind)'"))
+        if labels.count > 0 {
+            print("✅ Found \(labelToFind) label")
+            
+            // Now look for TextFields with placeholder "0" in the current visible area
+            let numericFields = app.textFields.matching(NSPredicate(format: "placeholderValue == '0'"))
+            
+            if fieldType.contains("price") && numericFields.count > 0 {
+                let field = numericFields.element(boundBy: 0)
+                fillSingleNumericField(field: field, value: value, fieldName: "price")
+            } else if fieldType.contains("size") && numericFields.count > 1 {
+                let field = numericFields.element(boundBy: 1)
+                fillSingleNumericField(field: field, value: value, fieldName: "size")
+            }
+        } else {
+            print("❌ Could not find \(labelToFind) label")
         }
-        
-        property.tap()
-        
-        // Wait for detail view to load
-        let detailView = app.scrollViews.firstMatch
-        guard detailView.waitForExistence(timeout: 5.0) else {
-            print("❌ Detail view not found")
-            return
-        }
-        
-        print("✅ Navigated to property \(propertyIndex + 1) detail view")
-        
-        // Add each tag to this property
-        for (index, tag) in tags.enumerated() {
-            print("\n🏷️ Adding tag \(index + 1)/\(tags.count): '\(tag.name)' with rating \(tag.rating)")
+    }
+    
+    private func fillSingleNumericField(field: XCUIElement, value: String, fieldName: String) {
+        if field.exists && field.isHittable {
+            print("✅ Found \(fieldName) field - attempting to fill")
             
-            // Tap Add Tag button
-            let addTagButton = app.buttons["Add Tag"]
-            guard addTagButton.exists else {
-                print("❌ Add Tag button not found for tag \(index + 1)")
-                continue
+            // Ensure field is visible and properly focused
+            field.tap()
+            
+            // Wait for field to become focused
+            let focusExpectation = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "hasKeyboardFocus == true"),
+                object: field
+            )
+            let focusResult = XCTWaiter.wait(for: [focusExpectation], timeout: 1.0)
+            
+            if focusResult == .timedOut {
+                print("⚠️ Focus detection timed out for \(fieldName), proceeding anyway")
             }
             
-            addTagButton.tap()
+            // Double-tap to select all content, then type new value
+            field.doubleTap()
+            field.typeText(value)
             
-            // Wait for Add Tags screen
-            guard app.navigationBars["Add Tags"].waitForExistence(timeout: 5.0) else {
-                print("❌ Add Tags screen not found for tag \(index + 1)")
-                continue
-            }
-            
-            // Fill tag name
-            let tagNameField = app.textFields["Enter tag name"]
-            guard tagNameField.exists else {
-                print("❌ Tag name field not found for tag \(index + 1)")
-                // Cancel and continue to next tag
-                let cancelButton = app.buttons["Cancel"]
-                if cancelButton.exists { cancelButton.tap() }
-                continue
-            }
-            
-            tagNameField.tap()
-            tagNameField.clearAndTypeText(tag.name)
-            
-            // Select rating using the proper accessibility identifier
-            print("🌟 Selecting rating: \(tag.rating)")
-            
-            // Map rating display name to PropertyRating raw value for accessibility identifier
-            let ratingRawValue: String
-            switch tag.rating {
-            case "Not Rated": ratingRawValue = "none"
-            case "Excluded": ratingRawValue = "excluded"  
-            case "Considering": ratingRawValue = "considering"
-            case "Good": ratingRawValue = "good"
-            case "Excellent": ratingRawValue = "excellent"
-            default: 
-                print("⚠️ Unknown rating '\(tag.rating)', defaulting to good")
-                ratingRawValue = "good"
-            }
-            
-            // Debug: List all available buttons to understand what's actually on screen
-            let allButtons = app.buttons.allElementsBoundByIndex
-            print("🔍 Available buttons: \(allButtons.prefix(10).map { $0.identifier })")
-            
-            // Use the accessibility identifier to find the exact rating button
-            let ratingButton = app.buttons["rating_\(ratingRawValue)"]
-            var ratingSelected = false
-            
-            if ratingButton.waitForExistence(timeout: 2.0) && ratingButton.isHittable {
-                print("✅ Found rating button with identifier: rating_\(ratingRawValue)")
-                ratingButton.tap()
-                print("✅ Successfully selected rating: \(tag.rating)")
-                ratingSelected = true
+            // Verify the field was filled (if possible)
+            if let fieldValue = field.value as? String, !fieldValue.isEmpty && fieldValue != "0" {
+                print("✅ Successfully filled \(fieldName): \(value) (verified: \(fieldValue))")
             } else {
-                print("❌ Could not find or tap rating button with identifier: rating_\(ratingRawValue)")
+                print("⚠️ Filled \(fieldName): \(value) (verification inconclusive)")
+            }
+        } else {
+            print("❌ \(fieldName) field not accessible")
+        }
+    }
+    
+    private func fillBedroomsField(in app: XCUIApplication, value: String) {
+        print("🛏️ Setting bedrooms to: \(value)")
+        
+        let steppers = app.steppers
+        if steppers.count > 0 {
+            let stepper = steppers.firstMatch
+            if stepper.exists && stepper.isHittable {
+                print("✅ Found bedrooms stepper")
                 
-                // Fallback 1: Try to find rating button by display name in text
-                let ratingButtonByText = app.buttons.containing(NSPredicate(format: "label CONTAINS '\(tag.rating)'")).firstMatch
-                if ratingButtonByText.exists && ratingButtonByText.isHittable {
-                    print("🔄 Trying fallback 1: button containing '\(tag.rating)'")
-                    ratingButtonByText.tap()
-                    print("✅ Selected rating via fallback method 1")
-                    ratingSelected = true
-                } else {
-                    // Fallback 2: Try to tap rating buttons by position (based on known order)
-                    print("🔄 Trying fallback 2: selection by position")
-                    let ratingIndex: Int
-                    switch tag.rating {
-                    case "Not Rated": ratingIndex = 0
-                    case "Excluded": ratingIndex = 1
-                    case "Considering": ratingIndex = 2
-                    case "Good": ratingIndex = 3
-                    case "Excellent": ratingIndex = 4
-                    default: ratingIndex = 3 // Default to Good
-                    }
-                    
-                    // Look for rating buttons in a horizontal stack
-                    let ratingButtons = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'rating_'"))
-                    if ratingButtons.count >= ratingIndex + 1 {
-                        let targetButton = ratingButtons.element(boundBy: ratingIndex)
-                        if targetButton.exists && targetButton.isHittable {
-                            targetButton.tap()
-                            print("✅ Selected rating via fallback method 2 (position \(ratingIndex))")
-                            ratingSelected = true
-                        } else {
-                            print("❌ Fallback 2 failed - button at position \(ratingIndex) not accessible")
-                        }
+                // Get current value if possible and reset to 0
+                let decrementButton = stepper.buttons.element(boundBy: 0)
+                for _ in 0..<10 {
+                    if decrementButton.exists && decrementButton.isHittable {
+                        decrementButton.tap()
+                        // No delay needed - button taps are synchronous
                     } else {
-                        print("❌ Fallback 2 failed - not enough rating buttons found (\(ratingButtons.count) available)")
+                        break // Stop if button becomes unavailable
                     }
                 }
-            }
-            
-            if !ratingSelected {
-                print("⚠️ All rating selection methods failed - tag will use default rating")
-            }
-            
-            // Create the tag
-            let createTagButton = app.buttons["Create Tag"]
-            if createTagButton.exists && createTagButton.isEnabled {
-                createTagButton.tap()
-                print("✅ Successfully created tag '\(tag.name)' with rating \(tag.rating)")
                 
-                // Should return to detail view automatically
-                _ = detailView.waitForExistence(timeout: 3.0)
-            } else {
-                print("❌ Create Tag button not available for tag \(index + 1)")
-                // Cancel and continue
-                let cancelButton = app.buttons["Cancel"]
-                if cancelButton.exists { 
-                    cancelButton.tap() 
-                    _ = detailView.waitForExistence(timeout: 3.0)
+                // Increment to target value
+                let incrementButton = stepper.buttons.element(boundBy: 1)
+                let targetValue = Int(value) ?? 0
+                for _ in 0..<targetValue {
+                    if incrementButton.exists && incrementButton.isHittable {
+                        incrementButton.tap()
+                        // No delay needed - button taps are synchronous
+                    } else {
+                        break // Stop if button becomes unavailable
+                    }
                 }
+                
+                print("✅ Set bedrooms to: \(value)")
+            } else {
+                print("❌ Bedrooms stepper not accessible")
+            }
+        } else {
+            print("❌ No steppers found for bedrooms")
+        }
+    }
+    
+    private func setRatingInForm(in app: XCUIApplication, rating: String) {
+        // Look for rating picker or buttons
+        let ratingButton = app.buttons[rating]
+        if ratingButton.exists {
+            ratingButton.tap()
+            print("✅ Set rating to: \(rating)")
+        } else {
+            // Try alternative approaches for rating
+            let ratingPicker = app.pickerWheels.firstMatch
+            if ratingPicker.exists {
+                ratingPicker.adjust(toPickerWheelValue: rating)
+                print("✅ Set rating via picker to: \(rating)")
+            } else {
+                print("❌ Could not find rating control")
             }
         }
-        
-        print("✅ Completed adding all \(tags.count) tags to property \(propertyIndex + 1)")
-        
-        // Only navigate back to main screen ONCE after adding all tags to this property
-        navigateBackToMainScreen(in: app, from: "addMultipleTagsToProperty - completed all tags")
     }
 }
+

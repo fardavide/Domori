@@ -1,167 +1,214 @@
-# 📱 App Store Screenshots Requirements - DEFINITIVE SPECIFICATION
+# App Store Screenshot Requirements - Domori
 
-## 🎯 **MANDATORY REQUIREMENTS FOR DOMORI APP SCREENSHOTS**
+## 🚨 CRITICAL: MANDATORY PROPERTY DATA
 
-> **⚠️ CRITICAL**: This document contains the FINAL, AUTHORITATIVE requirements for Domori app screenshots. 
-> All future screenshot generation MUST follow these exact specifications.
+**ALL screenshots featuring property data MUST show these fields filled:**
 
----
+### Essential Property Information (NEVER EMPTY!)
+- **💰 PRICE**: €485,000, €650,000, €1,250,000 - MOST IMPORTANT!
+- **📐 SIZE**: 85 sqm, 120 sqm, 150 sqm - ESSENTIAL!  
+- **🛏️ BEDROOMS**: 2, 3, 4 bedrooms - REQUIRED!
+- **🚿 BATHROOMS**: 1, 2, 3 bathrooms - REQUIRED!
+- **⭐ RATING**: Good, Excellent, Considering - Important for credibility
+- **🏷️ TAGS**: 2-3 meaningful tags with ratings
 
-## 📱 **SUPPORTED PLATFORMS & TECHNICAL SPECS**
-
-### ✅ **iPhone (Completed)**
-- **Device**: iPhone 16 Pro (6.3" display)
-- **Simulator**: iPhone 16 Pro in portrait mode
-- **Format**: PNG files
-- **Quality**: High resolution, production-ready
-- **Test**: `testAppStoreScreenshots_iPhone()`
-
-### ✅ **iPad (Completed)**
-- **Device**: iPad Pro 13" (13" display)  
-- **Simulator**: iPad Pro 13" in portrait mode
-- **Format**: PNG files
-- **Quality**: High resolution, optimized for tablet layout
-- **Test**: `testAppStoreScreenshots_iPad()`
-
-### 🚧 **Mac (Future - Requires macOS Target)**
-- **Platform**: macOS Catalyst or native macOS
-- **Requirements**: Would need macOS app target to implement
-- **Test**: `testAppStoreScreenshots_Mac()` (prepared but not active)
-- **Status**: Currently iOS-only app, macOS support requires platform expansion
+**Empty or missing property data makes screenshots look broken and unprofessional!**
 
 ---
 
-## 📸 **SCREENSHOT SPECIFICATIONS**
+## 📱 Platform Requirements
 
-### **REQUIRED Screenshots per Platform (5 Total):**
-1. **Main Screen** - Show property listings with European data **WITH TAGS VISIBLE**
-2. **Add Property Form** - Filled form with realistic European property data  
-3. **Property Detail** - Detailed view of a selected property **WITH TAGS VISIBLE**
-4. **Tag Addition View** - Add Tags screen showing tag creation interface
-5. **Property Comparison** - Comparison view showing multiple properties side-by-side
+### iPhone Screenshots (5 required)
+- **Device**: iPhone 16 Pro
+- **Orientation**: Portrait only
+- **Resolution**: Native device resolution
+- **Platform Prefix**: `iPhone`
 
-### **Naming Convention:**
-- iPhone: `01_iPhone_MainScreen_ThreeListings.png`, `02_iPhone_AddProperty_FilledForm.png`, `03_iPhone_PropertyDetail.png`, `04_iPhone_TagAddition.png`, `05_iPhone_PropertyComparison.png`
-- iPad: `01_iPad_MainScreen_ThreeListings.png`, `02_iPad_AddProperty_FilledForm.png`, `03_iPad_PropertyDetail.png`, `04_iPad_TagAddition.png`, `05_iPad_PropertyComparison.png`
-- Mac: `01_Mac_MainScreen_ThreeListings.png`, `02_Mac_AddProperty_FilledForm.png`, `03_Mac_PropertyDetail.png`, `04_Mac_TagAddition.png`, `05_Mac_PropertyComparison.png`
+### iPad Screenshots (5 required)  
+- **Device**: iPad Pro 13-inch (M4)
+- **Orientation**: Portrait only
+- **Resolution**: Native device resolution
+- **Platform Prefix**: `iPad`
 
----
+### Mac Screenshots (5 required)
+- **Device**: Mac (Apple Silicon)
+- **Window Size**: Standard app window
+- **Resolution**: Standard Mac display
+- **Platform Prefix**: `Mac`
 
-## 🏷️ **CRITICAL TAG REQUIREMENTS**
+## 📸 Required Screenshots
 
-### **MANDATORY Tag Display:**
-- **Properties in screenshots 01 & 03 MUST show tags** ✅ **IMPLEMENTED**
-- **Tags should be diverse** with realistic variety ✅ **IMPLEMENTED** 
-- **Tags should have different colors/styles** ✅ **IMPLEMENTED** (Blue/Green/Orange/Red/Gray)
-- **Tag functionality is a KEY FEATURE** ✅ **SUCCESSFULLY DEMONSTRATED**
+### 01_Platform_MainScreen_ThreeListings.png
+**Content Requirements:**
+- Property list showing exactly 3 properties
+- Each property must display:
+  - Title (clear, readable)
+  - Price (realistic Euro amounts)
+  - Size (realistic sqm)
+  - Rating indicator
+  - Visible tags (2-3 per property)
+- Search bar visible at top
+- Add button (+) visible in navigation
+- Clean, organized layout
 
-### **Tag Addition Process:**
-- **Screenshot 04** must show the tag addition interface ✅ **IMPLEMENTED**
-- **Must demonstrate** how users add tags to properties ✅ **IMPLEMENTED**
-- **Should show** realistic tag names being entered ✅ **IMPLEMENTED**
+**Example Properties:**
+1. Modern City Apartment - €485,000 - 85 sqm - Milan
+2. Victorian Townhouse - €750,000 - 120 sqm - Berlin  
+3. Riverside Penthouse - €1,250,000 - 150 sqm - Paris
 
-### **Tag Rating Variety (SUCCESSFULLY IMPLEMENTED):**
-- **Property 1** (Excellent overall): Prime Location (Excellent/Blue) + Investment Grade (Good/Green) + High Price Point (Considering/Orange)
-- **Property 2** (Good overall): Historic Charm (Good/Green) + Renovation Needed (Considering/Orange) + Good Value (Good/Green)
-- **Property 3** (Considering overall): Luxury Features (Good/Green) + Very Expensive (Excluded/Red) + Great Views (Good/Green)
+### 02_Platform_AddProperty_FilledForm.png  
+**Content Requirements:**
+- Add Property form completely filled
+- **CRITICAL FIELDS** (all must be visible):
+  - **Property Title**: "Modern City Apartment"
+  - **Location**: "Via Roma 123, Milano, Italy"
+  - **Price**: "485000" (no commas, numeric field)
+  - **Size**: "85" (numeric field)
+  - **Bedrooms**: "2" (stepper/picker control)
+  - **Bathrooms**: "2" (picker control)
+  - **Rating**: "Excellent" or similar
+- Form should look professional and complete
+- No empty fields visible
+- Save/Cancel buttons visible
 
----
+### 03_Platform_PropertyDetail.png
+**Content Requirements:**
+- Property detail view for first property
+- All property information displayed:
+  - Full title, location, price, size
+  - Bedrooms/bathrooms count
+  - Rating prominently displayed
+  - Tags section with 2-3 tags
+  - Add Tag button visible
+- Clean, readable layout
+- Professional appearance
 
-## 🇪🇺 **EUROPEAN DATA REQUIREMENTS**
+### 04_Platform_TagAddition.png
+**Content Requirements:**
+- Add Tags screen/modal
+- Tag name field filled with sample text: "Premium Location"
+- Rating selection visible
+- Available rating options displayed
+- Create Tag button enabled/visible
+- Cancel option available
+- Form appears functional and intuitive
 
-### **MANDATORY European Property Data:**
-- **Addresses**: Use realistic European addresses (Italian, German, French cities)
-- **Currency**: Euro (€) format - NEVER show "€0"
-- **Size**: Square meters (sqm) - NEVER show "0 sqm" 
-- **Price per sqm**: Calculate dynamically - NEVER show "NaN/sqm"
+### 05_Platform_PropertyComparison.png
+**Content Requirements:**
+- Property comparison view
+- At least 2 properties side by side
+- Comparison of key metrics visible
+- Clear visual differentiation
+- Professional comparison layout
+- Properties should be different (from our 3 sample properties)
 
-### **Sample Data Used:**
-1. **Modern City Apartment** - Via Roma 123, Milano, Italy - €485,000 - 85 sqm
-2. **Victorian Townhouse** - Kurfürstendamm 45, Berlin, Germany - €750,000 - 120 sqm  
-3. **Riverside Penthouse** - Quai des Grands Augustins 12, Paris, France - €1,250,000 - 150 sqm
+## 🎯 Quality Standards
 
----
+### Visual Quality
+- **Sharp, clear images** - no blur or pixelation
+- **Proper contrast** - text clearly readable
+- **Consistent lighting** - no dark/light inconsistencies
+- **Professional appearance** - app looks production-ready
 
-## ❌ **CRITICAL PROHIBITIONS**
+### Content Quality  
+- **Realistic data** - European properties with realistic prices
+- **Consistent branding** - follows app design language
+- **No test/dummy data** - avoid "Test Property" or placeholder text
+- **Proper formatting** - prices in euros, sizes in sqm
 
-**These values MUST NEVER appear in screenshots:**
-- "€0" or "0 EUR" 
-- "0 sqm" or "0 m²"
-- "NaN/sqm" or "NaN €/m²"
-- Any placeholder or zero values
-- Non-European addresses or currency
-- **Properties without any tags** (tags are a key feature to showcase)
+### Technical Quality
+- **Correct naming** - follows exact naming convention
+- **Proper resolution** - native device resolution
+- **Complete coverage** - all 5 screenshots per platform
+- **Up-to-date** - reflects current app state
 
----
+## 📁 File Organization
 
-## 🧪 **TESTING FRAMEWORK**
-
-### **Multi-Platform Test Structure:**
-```swift
-// Main entry points
-testAppStoreScreenshots_iPhone()  // ✅ Active - Must generate all 5 screenshots
-testAppStoreScreenshots_iPad()    // ✅ Active - Must generate all 5 screenshots
-testAppStoreScreenshots_Mac()     // 🚧 Prepared for future
-
-// Core platform-agnostic logic
-generateScreenshotsForPlatform(platform: .iPhone/.iPad/.Mac, deviceName: String)
+### Directory Structure
+```
+AppStoreScreenshots/
+├── 01_iPhone_MainScreen_ThreeListings.png
+├── 02_iPhone_AddProperty_FilledForm.png  
+├── 03_iPhone_PropertyDetail.png
+├── 04_iPhone_TagAddition.png
+├── 05_iPhone_PropertyComparison.png
+├── 01_iPad_MainScreen_ThreeListings.png
+├── 02_iPad_AddProperty_FilledForm.png
+├── 03_iPad_PropertyDetail.png
+├── 04_iPad_TagAddition.png
+├── 05_iPad_PropertyComparison.png
+├── 01_Mac_MainScreen_ThreeListings.png
+├── 02_Mac_AddProperty_FilledForm.png
+├── 03_Mac_PropertyDetail.png
+├── 04_Mac_TagAddition.png
+└── 05_Mac_PropertyComparison.png
 ```
 
-### **Platform Optimization:**
-- **iPhone**: Standard mobile layout, keyboard dismissal, vertical scrolling
-- **iPad**: Enhanced tablet layout, larger form display, master-detail optimization
-- **Mac**: Desktop layout optimization (prepared for future implementation)
+### Naming Convention Rules
+- **Format**: `{ScreenNumber}_{Platform}_{ScreenName}.png`
+- **Screen Numbers**: 01, 02, 03, 04, 05 (zero-padded)
+- **Platforms**: iPhone, iPad, Mac (exact case)
+- **Screen Names**: Use underscore_case, descriptive
+- **Extension**: .png only
 
-### **Performance:**
-- iPhone: ~175 seconds 
-- iPad: ~199 seconds (slightly longer due to larger interface)
-- All tests use optimized timing with `usleep()` and `XCTWaiter` for reliability
-
----
-
-## 🔄 **AUTOMATION STATUS**
-
-### **Current Implementation:**
-- ✅ **Fully automated** screenshot generation for iPhone and iPad
-- ✅ **Multi-platform** test architecture ready for expansion
-- ✅ **Apple guidelines compliance** with proper form filling and navigation
-- ✅ **European data validation** prevents placeholder values
-- ✅ **Optimized performance** with reduced delays and smart waiting
-- ✅ **Tag rating variety** with different colors working correctly
-- ✅ **ALL 5 screenshots generated** including PropertyComparison
-- ✅ **Tag addition to properties** working with realistic variety
-- ✅ **Efficient navigation** reducing test execution time to ~3.5 minutes
-
-### **Screenshot Generation Commands:**
+### File Verification
 ```bash
-# iPhone screenshots (all 5)
-xcodebuild test -project Domori.xcodeproj -scheme Domori \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
-  -only-testing:DomoriUITests/DomoriUITests/testAppStoreScreenshots_iPhone
+# Check all files exist (should be 15 total)
+ls -la AppStoreScreenshots/ | wc -l
 
-# iPad screenshots (all 5)
-xcodebuild test -project Domori.xcodeproj -scheme Domori \
-  -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M4)' \
-  -only-testing:DomoriUITests/DomoriUITests/testAppStoreScreenshots_iPad
+# Verify latest iPhone form screenshot
+ls -la AppStoreScreenshots/02_iPhone_AddProperty_FilledForm.png
+
+# Check file sizes (should be reasonable, not empty)
+du -h AppStoreScreenshots/
 ```
 
----
+## 🇪🇺 Sample European Data
 
-## 📋 **VALIDATION CHECKLIST**
+### Property 1: Milan Apartment
+- **Title**: Modern City Apartment
+- **Location**: Via Roma 123, Milano, Italy
+- **Price**: €485,000
+- **Size**: 85 sqm
+- **Bedrooms**: 2
+- **Bathrooms**: 2
+- **Tags**: Prime Location (Excellent), Investment Grade (Good), High Price Point (Considering)
 
-Before submitting screenshots, verify:
-- [x] All prices show realistic Euro amounts (never €0)
-- [x] All sizes show realistic square meters (never 0 sqm)
-- [x] All addresses are European locations 
-- [x] Price per sqm is calculated correctly (never NaN/sqm)
-- [x] **Properties have tags visible in screenshots 01 and 03** ✅ **IMPLEMENTED**
-- [x] **All 5 screenshots are generated** (including PropertyComparison) ✅ **IMPLEMENTED**
-- [x] Screenshots are high resolution and production-ready
-- [x] Both iPhone and iPad variants are generated
-- [x] File naming follows the established convention
-- [x] Screenshots showcase the app's property management AND tagging features effectively ✅ **SUCCESSFULLY DEMONSTRATED**
-- [x] **Tag ratings show correct colors** (Blue/Green/Orange/Red/Gray) ✅ **WORKING PERFECTLY**
+### Property 2: Berlin Townhouse  
+- **Title**: Victorian Townhouse
+- **Location**: Kurfürstendamm 45, Berlin, Germany
+- **Price**: €750,000
+- **Size**: 120 sqm
+- **Bedrooms**: 3
+- **Bathrooms**: 2
+- **Tags**: Historic Charm (Good), Renovation Needed (Considering), Good Value (Good)
 
----
+### Property 3: Paris Penthouse
+- **Title**: Riverside Penthouse
+- **Location**: Quai des Grands Augustins 12, Paris, France  
+- **Price**: €1,250,000
+- **Size**: 150 sqm
+- **Bedrooms**: 4
+- **Bathrooms**: 3
+- **Tags**: Luxury Features (Good), Very Expensive (Excluded), Great Views (Good)
 
-**Last Updated**: June 2025 - **✅ COMPLETE SUCCESS**: Multi-platform screenshot automation with full tag rating variety implemented. All 5 screenshots generating correctly with realistic European data and diverse tag colors demonstrating the full feature set. 
+## ⚠️ Common Mistakes to Avoid
+
+### Field Issues
+- ❌ Empty price field (shows €0 or blank)
+- ❌ Empty size field (shows 0 sqm or blank)
+- ❌ Bedrooms/bathrooms not set (shows 0)
+- ❌ Missing or placeholder property titles
+- ❌ No tags visible on properties
+
+### Technical Issues
+- ❌ Wrong file names (case sensitivity matters)
+- ❌ Missing screenshots (incomplete platform coverage)
+- ❌ Old screenshots (not reflecting latest test run)
+- ❌ Wrong device orientation (landscape instead of portrait)
+
+### Content Issues
+- ❌ Unrealistic data (prices too low/high)
+- ❌ Non-European locations/currency
+- ❌ Test/dummy data visible
+- ❌ UI elements cut off or partially visible 
