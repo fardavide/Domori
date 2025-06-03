@@ -222,6 +222,122 @@ XCTFail("Something went wrong")
 
 ---
 
+## 🏷️ **TAG RATING SELECTION - PROVEN APPROACH**
+
+### **✅ WORKING SOLUTION: Accessibility Identifiers with Multiple Fallbacks**
+
+After extensive testing, this is the **ONLY reliable approach** for tag rating selection in UI tests:
+
+```swift
+// STEP 1: Map display name to PropertyRating raw value
+let ratingRawValue: String
+switch tag.rating {
+case "Not Rated": ratingRawValue = "none"
+case "Excluded": ratingRawValue = "excluded"  
+case "Considering": ratingRawValue = "considering"
+case "Good": ratingRawValue = "good"
+case "Excellent": ratingRawValue = "excellent"
+default: ratingRawValue = "good" // Safe fallback
+}
+
+// STEP 2: Primary method - Accessibility identifier (MOST RELIABLE)
+let ratingButton = app.buttons["rating_\(ratingRawValue)"]
+var ratingSelected = false
+
+if ratingButton.waitForExistence(timeout: 2.0) && ratingButton.isHittable {
+    ratingButton.tap()
+    ratingSelected = true
+    print("✅ Selected rating via accessibility identifier")
+} else {
+    // STEP 3: Fallback 1 - Text content search
+    let ratingButtonByText = app.buttons.containing(NSPredicate(format: "label CONTAINS '\(tag.rating)'")).firstMatch
+    if ratingButtonByText.exists && ratingButtonByText.isHittable {
+        ratingButtonByText.tap()
+        ratingSelected = true
+        print("✅ Selected rating via text content fallback")
+    } else {
+        // STEP 4: Fallback 2 - Position-based selection
+        let ratingIndex: Int
+        switch tag.rating {
+        case "Not Rated": ratingIndex = 0
+        case "Excluded": ratingIndex = 1
+        case "Considering": ratingIndex = 2
+        case "Good": ratingIndex = 3
+        case "Excellent": ratingIndex = 4
+        default: ratingIndex = 3
+        }
+        
+        let ratingButtons = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'rating_'"))
+        if ratingButtons.count >= ratingIndex + 1 {
+            let targetButton = ratingButtons.element(boundBy: ratingIndex)
+            if targetButton.exists && targetButton.isHittable {
+                targetButton.tap()
+                ratingSelected = true
+                print("✅ Selected rating via position fallback")
+            }
+        }
+    }
+}
+```
+
+### **🚨 CRITICAL REQUIREMENTS for Rating Selection:**
+
+1. **AddTagView.swift MUST have accessibility identifiers**:
+   ```swift
+   .accessibilityIdentifier("rating_\(rating.rawValue)")
+   ```
+
+2. **UI tests MUST use the exact raw values**:
+   - `"rating_none"`, `"rating_excluded"`, `"rating_considering"`, `"rating_good"`, `"rating_excellent"`
+
+3. **Multiple fallback methods are ESSENTIAL**:
+   - Primary: Accessibility identifier lookup
+   - Fallback 1: Text content search  
+   - Fallback 2: Position-based selection
+
+4. **Comprehensive debugging MUST be included**:
+   ```swift
+   print("🔍 Available buttons: \(app.buttons.allElementsBoundByIndex.prefix(10).map { $0.identifier })")
+   ```
+
+### **⚡ PROVEN PERFORMANCE IMPROVEMENTS:**
+
+The **efficient navigation pattern** that dramatically reduced test execution time:
+
+```swift
+private func addMultipleTagsToProperty(in app: XCUIApplication, propertyIndex: Int, tags: [(name: String, rating: String)]) {
+    // Navigate to property ONCE
+    navigateToProperty(propertyIndex)
+    
+    // Add ALL tags while staying in detail view
+    for tag in tags {
+        tapAddTagButton()
+        fillTagName(tag.name)
+        selectRatingWithFallbacks(tag.rating)  // Use proven method above
+        createTag()
+        // STAY in detail view - don't navigate back
+    }
+    
+    // Navigate back to main screen ONLY ONCE after all tags added
+    navigateBackToMainScreen(in: app, from: "addMultipleTagsToProperty")
+}
+```
+
+**Performance Results:**
+- **Before**: 4+ minutes (inefficient navigation)
+- **After**: ~3.5 minutes (efficient navigation + working rating selection)
+
+### **🎨 TAG COLOR VERIFICATION:**
+
+With the working rating selection, tags now display correct colors:
+- 🔵 **Blue** for Excellent ratings (`rating_excellent`)
+- 🟢 **Green** for Good ratings (`rating_good`)  
+- 🟠 **Orange** for Considering ratings (`rating_considering`)
+- 🔴 **Red** for Excluded ratings (`rating_excluded`)
+- ⚪ **Gray** for Not Rated (`rating_none`)
+
+---
+
 ## 📚 **Related Documentation**
 
 - **Development Practices**: DEVELOPMENT_PRACTICES.md

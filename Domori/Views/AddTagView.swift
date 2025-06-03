@@ -60,6 +60,8 @@ struct AddTagView: View {
                                             )
                                         }
                                         .buttonStyle(PlainButtonStyle())
+                                        .accessibilityIdentifier("rating_\(rating.rawValue)")
+                                        .accessibilityLabel(rating.displayName)
                                     }
                                 }
                             }

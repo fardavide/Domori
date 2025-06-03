@@ -295,19 +295,27 @@ final class DomoriUITests: XCTestCase {
         print("\n🏷️ === Adding Tags to All Properties for Screenshots ===")
         ensureOnMainScreen(in: app)
         
-        // Property 1: Modern City Apartment (Rating: Excellent) - Add excellent/good tags
-        addTagToSpecificProperty(in: app, propertyIndex: 0, tagName: "Prime Location", rating: "Excellent")
-        addTagToSpecificProperty(in: app, propertyIndex: 0, tagName: "Investment Grade", rating: "Excellent") 
-        addTagToSpecificProperty(in: app, propertyIndex: 0, tagName: "Move-in Ready", rating: "Good")
+        // Property 1: Modern City Apartment (Overall Rating: Excellent) 
+        // Add multiple tags efficiently by staying in detail view
+        addMultipleTagsToProperty(in: app, propertyIndex: 0, tags: [
+            (name: "Prime Location", rating: "Excellent"),
+            (name: "Investment Grade", rating: "Good"),
+            (name: "High Price Point", rating: "Considering")
+        ])
         
-        // Property 2: Victorian Townhouse (Rating: Good) - Add good/considering tags
-        addTagToSpecificProperty(in: app, propertyIndex: 1, tagName: "Historic Charm", rating: "Good")
-        addTagToSpecificProperty(in: app, propertyIndex: 1, tagName: "Good Value", rating: "Good")
-        addTagToSpecificProperty(in: app, propertyIndex: 1, tagName: "Renovation Potential", rating: "Considering")
+        // Property 2: Victorian Townhouse (Overall Rating: Good) 
+        addMultipleTagsToProperty(in: app, propertyIndex: 1, tags: [
+            (name: "Historic Charm", rating: "Good"),
+            (name: "Renovation Needed", rating: "Considering"),
+            (name: "Good Value", rating: "Good")
+        ])
         
-        // Property 3: Riverside Penthouse (Rating: Considering) - Add mixed tags  
-        addTagToSpecificProperty(in: app, propertyIndex: 2, tagName: "Luxury Features", rating: "Good")
-        addTagToSpecificProperty(in: app, propertyIndex: 2, tagName: "High Price Point", rating: "Considering")
+        // Property 3: Riverside Penthouse (Overall Rating: Considering)  
+        addMultipleTagsToProperty(in: app, propertyIndex: 2, tags: [
+            (name: "Luxury Features", rating: "Good"),
+            (name: "Very Expensive", rating: "Excluded"),
+            (name: "Great Views", rating: "Good")
+        ])
         
         // Ensure we're back on main screen for MainScreen screenshot
         print("\n📸 === Ensuring we're on Main Screen ===")
@@ -1558,8 +1566,8 @@ final class DomoriUITests: XCTestCase {
         navigateBackToMainScreen(in: app, from: "unknown screen")
     }
     
-    private func addTagToSpecificProperty(in app: XCUIApplication, propertyIndex: Int, tagName: String, rating: String) {
-        print("🏷️ Adding tag '\(tagName)' to property \(propertyIndex + 1) with rating \(rating)...")
+    private func addMultipleTagsToProperty(in app: XCUIApplication, propertyIndex: Int, tags: [(name: String, rating: String)]) {
+        print("🏷️ Adding \(tags.count) tags to property \(propertyIndex + 1)...")
         
         // Navigate to the specific property
         let propertyList = app.collectionViews.firstMatch
@@ -1576,85 +1584,142 @@ final class DomoriUITests: XCTestCase {
         
         property.tap()
         
+        // Wait for detail view to load
         let detailView = app.scrollViews.firstMatch
         guard detailView.waitForExistence(timeout: 5.0) else {
-            print("❌ Detail view failed to load")
+            print("❌ Detail view not found")
             return
         }
         
-        // Check if the tag already exists
-        let existingTag = app.buttons.matching(NSPredicate(format: "label CONTAINS '\(tagName)'")).firstMatch
-        if existingTag.exists {
-            print("✅ Tag '\(tagName)' already exists on property")
-            navigateBackToMainScreen(in: app, from: "addTagToSpecificProperty - tag exists")
-            return
+        print("✅ Navigated to property \(propertyIndex + 1) detail view")
+        
+        // Add each tag to this property
+        for (index, tag) in tags.enumerated() {
+            print("\n🏷️ Adding tag \(index + 1)/\(tags.count): '\(tag.name)' with rating \(tag.rating)")
+            
+            // Tap Add Tag button
+            let addTagButton = app.buttons["Add Tag"]
+            guard addTagButton.exists else {
+                print("❌ Add Tag button not found for tag \(index + 1)")
+                continue
+            }
+            
+            addTagButton.tap()
+            
+            // Wait for Add Tags screen
+            guard app.navigationBars["Add Tags"].waitForExistence(timeout: 5.0) else {
+                print("❌ Add Tags screen not found for tag \(index + 1)")
+                continue
+            }
+            
+            // Fill tag name
+            let tagNameField = app.textFields["Enter tag name"]
+            guard tagNameField.exists else {
+                print("❌ Tag name field not found for tag \(index + 1)")
+                // Cancel and continue to next tag
+                let cancelButton = app.buttons["Cancel"]
+                if cancelButton.exists { cancelButton.tap() }
+                continue
+            }
+            
+            tagNameField.tap()
+            tagNameField.clearAndTypeText(tag.name)
+            
+            // Select rating using the proper accessibility identifier
+            print("🌟 Selecting rating: \(tag.rating)")
+            
+            // Map rating display name to PropertyRating raw value for accessibility identifier
+            let ratingRawValue: String
+            switch tag.rating {
+            case "Not Rated": ratingRawValue = "none"
+            case "Excluded": ratingRawValue = "excluded"  
+            case "Considering": ratingRawValue = "considering"
+            case "Good": ratingRawValue = "good"
+            case "Excellent": ratingRawValue = "excellent"
+            default: 
+                print("⚠️ Unknown rating '\(tag.rating)', defaulting to good")
+                ratingRawValue = "good"
+            }
+            
+            // Debug: List all available buttons to understand what's actually on screen
+            let allButtons = app.buttons.allElementsBoundByIndex
+            print("🔍 Available buttons: \(allButtons.prefix(10).map { $0.identifier })")
+            
+            // Use the accessibility identifier to find the exact rating button
+            let ratingButton = app.buttons["rating_\(ratingRawValue)"]
+            var ratingSelected = false
+            
+            if ratingButton.waitForExistence(timeout: 2.0) && ratingButton.isHittable {
+                print("✅ Found rating button with identifier: rating_\(ratingRawValue)")
+                ratingButton.tap()
+                print("✅ Successfully selected rating: \(tag.rating)")
+                ratingSelected = true
+            } else {
+                print("❌ Could not find or tap rating button with identifier: rating_\(ratingRawValue)")
+                
+                // Fallback 1: Try to find rating button by display name in text
+                let ratingButtonByText = app.buttons.containing(NSPredicate(format: "label CONTAINS '\(tag.rating)'")).firstMatch
+                if ratingButtonByText.exists && ratingButtonByText.isHittable {
+                    print("🔄 Trying fallback 1: button containing '\(tag.rating)'")
+                    ratingButtonByText.tap()
+                    print("✅ Selected rating via fallback method 1")
+                    ratingSelected = true
+                } else {
+                    // Fallback 2: Try to tap rating buttons by position (based on known order)
+                    print("🔄 Trying fallback 2: selection by position")
+                    let ratingIndex: Int
+                    switch tag.rating {
+                    case "Not Rated": ratingIndex = 0
+                    case "Excluded": ratingIndex = 1
+                    case "Considering": ratingIndex = 2
+                    case "Good": ratingIndex = 3
+                    case "Excellent": ratingIndex = 4
+                    default: ratingIndex = 3 // Default to Good
+                    }
+                    
+                    // Look for rating buttons in a horizontal stack
+                    let ratingButtons = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'rating_'"))
+                    if ratingButtons.count >= ratingIndex + 1 {
+                        let targetButton = ratingButtons.element(boundBy: ratingIndex)
+                        if targetButton.exists && targetButton.isHittable {
+                            targetButton.tap()
+                            print("✅ Selected rating via fallback method 2 (position \(ratingIndex))")
+                            ratingSelected = true
+                        } else {
+                            print("❌ Fallback 2 failed - button at position \(ratingIndex) not accessible")
+                        }
+                    } else {
+                        print("❌ Fallback 2 failed - not enough rating buttons found (\(ratingButtons.count) available)")
+                    }
+                }
+            }
+            
+            if !ratingSelected {
+                print("⚠️ All rating selection methods failed - tag will use default rating")
+            }
+            
+            // Create the tag
+            let createTagButton = app.buttons["Create Tag"]
+            if createTagButton.exists && createTagButton.isEnabled {
+                createTagButton.tap()
+                print("✅ Successfully created tag '\(tag.name)' with rating \(tag.rating)")
+                
+                // Should return to detail view automatically
+                _ = detailView.waitForExistence(timeout: 3.0)
+            } else {
+                print("❌ Create Tag button not available for tag \(index + 1)")
+                // Cancel and continue
+                let cancelButton = app.buttons["Cancel"]
+                if cancelButton.exists { 
+                    cancelButton.tap() 
+                    _ = detailView.waitForExistence(timeout: 3.0)
+                }
+            }
         }
         
-        // Add a new tag
-        let addTagButton = app.buttons["Add Tag"]
-        guard addTagButton.exists else {
-            print("❌ Add Tag button not found")
-            navigateBackToMainScreen(in: app, from: "addTagToSpecificProperty - no button")
-            return
-        }
+        print("✅ Completed adding all \(tags.count) tags to property \(propertyIndex + 1)")
         
-        addTagButton.tap()
-        
-        // Wait for the Add Tags screen to appear
-        guard app.navigationBars["Add Tags"].waitForExistence(timeout: 5) else {
-            print("❌ Add Tags screen failed to appear")
-            navigateBackToMainScreen(in: app, from: "addTagToSpecificProperty - screen failed")
-            return
-        }
-        
-        // Fill in the tag name
-        let tagNameField = app.textFields["Enter tag name"]
-        guard tagNameField.exists else {
-            print("❌ Tag name field not found")
-            navigateBackToMainScreen(in: app, from: "addTagToSpecificProperty - no field")
-            return
-        }
-        
-        tagNameField.tap()
-        tagNameField.clearAndTypeText(tagName)
-        
-        // Select the appropriate rating 
-        print("🌟 Setting tag rating to: \(rating)")
-        let ratingButton = app.buttons[rating]
-        if ratingButton.exists && ratingButton.isHittable {
-            ratingButton.tap()
-            print("✅ Successfully selected rating: \(rating)")
-        } else {
-            print("⚠️ Rating button '\(rating)' not found, using default")
-        }
-        
-        // Create the tag
-        let createTagButton = app.buttons["Create Tag"]
-        guard createTagButton.exists && createTagButton.isEnabled else {
-            print("❌ Create Tag button not available")
-            navigateBackToMainScreen(in: app, from: "addTagToSpecificProperty - create button")
-            return
-        }
-        
-        createTagButton.tap()
-        
-        // Wait for the tag creation to complete and return to detail view
-        guard detailView.waitForExistence(timeout: 5.0) else {
-            print("❌ Failed to return to detail view after tag creation")
-            return
-        }
-        
-        waitForUIToSettle(in: app)
-        
-        // Verify the tag was added
-        let addedTag = app.buttons.matching(NSPredicate(format: "label CONTAINS '\(tagName)'")).firstMatch
-        if addedTag.exists {
-            print("✅ Successfully added tag '\(tagName)' to property")
-        } else {
-            print("⚠️ Tag '\(tagName)' may not be visible but creation appeared to succeed")
-        }
-        
-        // Navigate back to main screen
-        navigateBackToMainScreen(in: app, from: "addTagToSpecificProperty - success")
+        // Only navigate back to main screen ONCE after adding all tags to this property
+        navigateBackToMainScreen(in: app, from: "addMultipleTagsToProperty - completed all tags")
     }
 }
