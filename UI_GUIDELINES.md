@@ -61,10 +61,38 @@ FlexibleWrapView(data: tags, spacing: 3) { tag in
 Component for creating custom property tags with rating:
 - **Interface**: Modal presentation with clear title "Add Tags"
 - **Input Field**: Text field with "Enter tag name" placeholder 
-- **Rating Selection**: Visual rating buttons with descriptive labels
-- **Color Options**: 14 predefined color choices with visual feedback
+- **Rating Selection**: Responsive 3-column grid layout with visual rating buttons
+  - **Grid**: LazyVGrid with 3 flexible columns, 8px spacing
+  - **Buttons**: Minimum 50px height, compact padding (6px vertical, 4px horizontal)
+  - **Text**: Caption font with medium weight, 2-line limit, auto-scaling
+  - **Icons**: Title3 font size for proper visibility
+  - **States**: 15% opacity background for selected, 1.5px stroke width
 - **Actions**: Clear "Create Tag" and "Cancel" buttons
 - **Validation**: Real-time input validation and error handling
+- **Accessibility**: Proper identifiers for UI testing (rating_\{rawValue\})
+
+**Rating Button Specifications:**
+```swift
+// Responsive rating selection layout
+LazyVGrid(columns: [
+    GridItem(.flexible(), spacing: 8),
+    GridItem(.flexible(), spacing: 8), 
+    GridItem(.flexible(), spacing: 8)
+], spacing: 8) {
+    // Each rating button with compact, readable design
+    VStack(spacing: 3) {
+        Image(systemName: rating.systemImage)
+            .font(.title3)
+        Text(rating.displayName)
+            .font(.caption)
+            .fontWeight(.medium)
+            .lineLimit(2)
+            .multilineTextAlignment(.center)
+            .minimumScaleFactor(0.8)
+    }
+    .frame(maxWidth: .infinity, minHeight: 50)
+}
+```
 
 ### **Comparison Screen**  
 Side-by-side property analysis interface:

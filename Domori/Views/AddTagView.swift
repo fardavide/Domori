@@ -34,29 +34,39 @@ struct AddTagView: View {
                                 Text("Rating:")
                                     .fontWeight(.medium)
                                 
-                                HStack(spacing: 12) {
+                                LazyVGrid(columns: [
+                                    GridItem(.flexible(), spacing: 8),
+                                    GridItem(.flexible(), spacing: 8),
+                                    GridItem(.flexible(), spacing: 8)
+                                ], spacing: 8) {
                                     ForEach(PropertyRating.allCases, id: \.self) { rating in
                                         Button(action: {
                                             selectedRating = rating
                                         }) {
-                                            VStack(spacing: 4) {
+                                            VStack(spacing: 3) {
                                                 Image(systemName: rating.systemImage)
-                                                    .font(.title2)
+                                                    .font(.title3)
                                                     .foregroundColor(PropertyTag(name: "", rating: rating).swiftUiColor)
                                                 
                                                 Text(rating.displayName)
-                                                    .font(.caption2)
+                                                    .font(.caption)
+                                                    .fontWeight(.medium)
                                                     .foregroundColor(.primary)
+                                                    .lineLimit(2)
+                                                    .multilineTextAlignment(.center)
+                                                    .minimumScaleFactor(0.8)
                                             }
-                                            .padding(8)
+                                            .frame(maxWidth: .infinity, minHeight: 50)
+                                            .padding(.vertical, 6)
+                                            .padding(.horizontal, 4)
                                             .background(
                                                 RoundedRectangle(cornerRadius: 8)
                                                     .fill(selectedRating == rating ? 
-                                                         PropertyTag(name: "", rating: rating).swiftUiColor.opacity(0.2) : 
+                                                         PropertyTag(name: "", rating: rating).swiftUiColor.opacity(0.15) : 
                                                          Color.clear)
                                                     .stroke(selectedRating == rating ? 
                                                            PropertyTag(name: "", rating: rating).swiftUiColor : 
-                                                           Color.gray.opacity(0.3), lineWidth: 1)
+                                                           Color.gray.opacity(0.3), lineWidth: 1.5)
                                             )
                                         }
                                         .buttonStyle(PlainButtonStyle())

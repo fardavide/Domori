@@ -153,4 +153,19 @@
 - **Code Style Guidelines**: CODE_STYLE.md
 - **Visual Design Standards**: SCREENSHOT_REQUIREMENTS.md  
 - **Commit Standards**: COMMIT_RULES.md
-- **App Store Guidelines**: APP_STORE_SUBMISSION_GUIDE.md 
+- **App Store Guidelines**: APP_STORE_SUBMISSION_GUIDE.md
+
+## 🎨 **UI/UX IMPROVEMENTS**
+
+### **Responsive Design Enhancements**
+- **Add Tag Screen**: Implemented responsive 3-column grid layout for rating selection
+  - **Issue**: Rating text was splitting across multiple lines on iPhone screens
+  - **Solution**: LazyVGrid with flexible columns, optimized padding and text scaling
+  - **Result**: Clean, professional layout that adapts to all iPhone screen sizes
+  - **Implementation**: Lines 35-65 in `AddTagView.swift`
+
+### **Component Optimization Guidelines**
+- **Text Scaling**: Use `minimumScaleFactor(0.8)` for automatic text size adjustment
+- **Grid Layouts**: Prefer LazyVGrid over HStack for multi-column responsive layouts  
+- **Touch Targets**: Maintain minimum 50px height for interactive elements
+- **Visual Hierarchy**: Use proper spacing (3-8px) and font weights for clarity 
