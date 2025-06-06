@@ -88,8 +88,8 @@ struct PropertyListRowView: View {
                 }
                 
                 // Tags flow layout - show all tags below price
-                if !listing.tags.isEmpty {
-                    TagFlowLayout(tags: listing.tags.sorted(by: { $0.name < $1.name }))
+                if let tags = listing.tags, !tags.isEmpty {
+                    TagFlowLayout(tags: tags.sorted(by: { $0.name < $1.name }))
                         .padding(.top, 4)
                 }
             }

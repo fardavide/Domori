@@ -11,22 +11,11 @@ struct DomoriApp: App {
             PropertyTag.self
         ])
         
-        // Use CloudKit only on real devices, not in simulator
-        #if targetEnvironment(simulator)
-        let modelConfiguration = ModelConfiguration(
-            schema: schema,
-            isStoredInMemoryOnly: false,
-            cloudKitDatabase: .none
-        )
-        print("Running in simulator - using local storage")
-        #else
         let modelConfiguration = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: false,
             cloudKitDatabase: .automatic
         )
-        print("Running on device - using CloudKit")
-        #endif
 
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])

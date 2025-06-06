@@ -135,7 +135,7 @@ struct ComparePropertiesView: View {
                             ForEach(listings, id: \.title) { listing in
                                 ScrollView {
                                     LazyVGrid(columns: [GridItem(.flexible())], spacing: 4) {
-                                        ForEach(listing.tags, id: \.name) { tag in
+                                        ForEach(listing.tags ?? [], id: \.name) { tag in
                                             Text(tag.name)
                                                 .font(.caption2)
                                                 .padding(.horizontal, 6)

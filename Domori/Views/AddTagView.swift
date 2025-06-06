@@ -121,7 +121,7 @@ struct AddTagView: View {
     
     private var availableTags: [PropertyTag] {
         allTags.filter { tag in
-            !listing.tags.contains { $0.id == tag.id }
+            !(listing.tags?.contains { $0.id == tag.id } ?? false)
         }
     }
     
@@ -132,7 +132,10 @@ struct AddTagView: View {
         let newTag = PropertyTag(name: trimmedName, rating: selectedRating)
         modelContext.insert(newTag)
         
-        listing.tags.append(newTag)
+        if listing.tags == nil {
+            listing.tags = []
+        }
+        listing.tags?.append(newTag)
         try? modelContext.save()
         
         newTagName = ""
@@ -141,7 +144,10 @@ struct AddTagView: View {
     }
     
     private func addExistingTag(_ tag: PropertyTag) {
-        listing.tags.append(tag)
+        if listing.tags == nil {
+            listing.tags = []
+        }
+        listing.tags?.append(tag)
         try? modelContext.save()
         dismiss()
     }

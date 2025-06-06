@@ -4,12 +4,12 @@ import SwiftUI
 
 @Model
 final class PropertyTag: Identifiable {
-    var id: UUID
-    var name: String
-    var rating: PropertyRating
+    var id: UUID = UUID()
+    var name: String = ""
+    var rating: PropertyRating = PropertyRating.none
     
     @Relationship(deleteRule: .nullify)
-    var properties: [PropertyListing]
+    var properties: [PropertyListing]?
     
     init(name: String, rating: PropertyRating) {
         self.id = UUID()

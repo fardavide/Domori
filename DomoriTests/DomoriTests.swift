@@ -68,7 +68,10 @@ struct DomoriTests {
         let tag2 = PropertyTag(name: "Needs Work", rating: .considering)
         
         // Add tags to property
-        property.tags.append(contentsOf: [tag1, tag2])
+        if property.tags == nil {
+            property.tags = []
+        }
+        property.tags?.append(contentsOf: [tag1, tag2])
         
         // Insert into context
         context.insert(property)
@@ -76,9 +79,9 @@ struct DomoriTests {
         context.insert(tag2)
         
         // Verify tags are associated with property
-        #expect(property.tags.count == 2)
-        #expect(property.tags.contains { $0.name == "Great Location" })
-        #expect(property.tags.contains { $0.name == "Needs Work" })
+        #expect(property.tags?.count == 2)
+        #expect(property.tags?.contains { $0.name == "Great Location" } ?? false)
+        #expect(property.tags?.contains { $0.name == "Needs Work" } ?? false)
     }
     
     @Test func testPropertyTagCreation() async throws {
@@ -89,7 +92,7 @@ struct DomoriTests {
             let tag = PropertyTag(name: "Test tag \(index)", rating: rating)
             #expect(tag.name == "Test tag \(index)")
             #expect(tag.rating == rating)
-            #expect(tag.properties.isEmpty)
+            #expect(tag.properties?.isEmpty ?? true)
             
             // Verify the color mapping works
             let expectedColor: Color

@@ -22,6 +22,14 @@
 
 ---
 
+## [1.0.4] - 2025-01-06
+
+### 🛠️ Technical Improvements
+- **Fixed CloudKit Integration**: Resolved Core Data CloudKit sync requirements for seamless data synchronization across devices
+- **Enhanced Data Reliability**: Improved data model structure for better cloud sync performance
+
+---
+
 ## [1.0.3] - 2025-01-06
 
 ### 🎨 Visual Updates

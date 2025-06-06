@@ -3,24 +3,24 @@ import SwiftData
 
 @Model
 final class PropertyListing {
-    var title: String
-    var location: String // Renamed from address
+    var title: String = ""
+    var location: String = "" // Renamed from address
     var link: String? // New mandatory property for new listings, optional for legacy support
-    var price: Double
-    var size: Double // in square meters or square feet based on locale
-    var bedrooms: Int
-    var bathrooms: Double
-    var propertyType: PropertyType
-    var rating: Double // 1-5 stars (legacy)
+    var price: Double = 0.0
+    var size: Double = 0.0 // in square meters or square feet based on locale
+    var bedrooms: Int = 0
+    var bathrooms: Double = 0.0
+    var propertyType: PropertyType = PropertyType.apartment
+    var rating: Double = 0.0 // 1-5 stars (legacy)
     
     // New property rating system (added for migration)
     var propertyRating: PropertyRating?
     
-    var createdDate: Date
-    var updatedDate: Date
+    var createdDate: Date = Date()
+    var updatedDate: Date = Date()
     
     // Relationships
-    @Relationship(deleteRule: .nullify, inverse: \PropertyTag.properties) var tags: [PropertyTag] = []
+    @Relationship(deleteRule: .nullify, inverse: \PropertyTag.properties) var tags: [PropertyTag]?
     
     init(
         title: String,
@@ -44,6 +44,7 @@ final class PropertyListing {
         self.propertyType = propertyType
         self.createdDate = Date()
         self.updatedDate = Date()
+        self.tags = []
         
         // Handle rating initialization: prioritize the new propertyRating system
         if let propertyRating = propertyRating {

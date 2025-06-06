@@ -29,7 +29,7 @@ struct PropertyListingTests {
         #expect(listing.bathrooms == 1.5)
         #expect(listing.propertyType == PropertyType.house)
         #expect(listing.propertyRating == PropertyRating.good)
-        #expect(listing.tags.isEmpty)
+        #expect(listing.tags?.isEmpty ?? true)
     }
     
     @Test("PropertyListing creation with legacy parameters")
@@ -72,7 +72,7 @@ struct PropertyListingTests {
         
         #expect(listing.rating == 0.0)
         #expect(listing.propertyRating == PropertyRating.none)
-        #expect(listing.tags.isEmpty)
+        #expect(listing.tags?.isEmpty ?? true)
     }
     
     @Test("PropertyListing formatted values")

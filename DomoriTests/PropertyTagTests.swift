@@ -12,7 +12,7 @@ struct PropertyTagTests {
         
         #expect(tag.name == "Test Tag")
         #expect(tag.rating == .excellent)
-        #expect(tag.properties.isEmpty)
+        #expect(tag.properties?.isEmpty ?? true)
         #expect(tag.id != UUID(uuidString: "00000000-0000-0000-0000-000000000000"))
     }
     
@@ -52,17 +52,23 @@ struct PropertyTagTests {
         let tag = PropertyTag(name: "Test Tag", rating: .good)
         
         // Add tag to property
-        property.tags.append(tag)
-        tag.properties.append(property)
+        if property.tags == nil {
+            property.tags = []
+        }
+        if tag.properties == nil {
+            tag.properties = []
+        }
+        property.tags?.append(tag)
+        tag.properties?.append(property)
         
         // Insert into context
         context.insert(property)
         context.insert(tag)
         
         // Verify relationship
-        #expect(property.tags.count == 1)
-        #expect(property.tags.first?.name == "Test Tag")
-        #expect(tag.properties.count == 1)
-        #expect(tag.properties.first?.title == "Test Property")
+        #expect(property.tags?.count == 1)
+        #expect(property.tags?.first?.name == "Test Tag")
+        #expect(tag.properties?.count == 1)
+        #expect(tag.properties?.first?.title == "Test Property")
     }
 } 

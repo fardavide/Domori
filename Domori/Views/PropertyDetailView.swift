@@ -155,10 +155,10 @@ struct PropertyDetailView: View {
                     
                     // Debug info
                     if let current = currentListing {
-                        if !current.tags.isEmpty {
+                        if let tags = current.tags, !tags.isEmpty {
                             // Full width flow layout for tags
                             VStack(alignment: .leading, spacing: 8) {
-                                FlowLayout(spacing: 8, data: current.tags.sorted(by: { $0.name < $1.name })) { tag in
+                                FlowLayout(spacing: 8, data: tags.sorted(by: { $0.name < $1.name })) { tag in
                                     TagChipView(tag: tag) {
                                         // Remove tag when tapped
                                         removeTag(tag)
@@ -181,9 +181,9 @@ struct PropertyDetailView: View {
                         }
                     } else {
                         // Fallback to original listing
-                        if !listing.tags.isEmpty {
+                        if let tags = listing.tags, !tags.isEmpty {
                             VStack(alignment: .leading, spacing: 8) {
-                                FlowLayout(spacing: 8, data: listing.tags.sorted(by: { $0.name < $1.name })) { tag in
+                                FlowLayout(spacing: 8, data: tags.sorted(by: { $0.name < $1.name })) { tag in
                                     TagChipView(tag: tag) {
                                         // Remove tag when tapped
                                         removeTag(tag)
@@ -275,8 +275,9 @@ struct PropertyDetailView: View {
     }
     
     private func removeTag(_ tag: PropertyTag) {
-        if let index = listing.tags.firstIndex(where: { $0.id == tag.id }) {
-            listing.tags.remove(at: index)
+        if var tags = listing.tags, let index = tags.firstIndex(where: { $0.id == tag.id }) {
+            tags.remove(at: index)
+            listing.tags = tags
             try? modelContext.save()
         }
     }
