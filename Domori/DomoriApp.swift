@@ -31,19 +31,7 @@ struct DomoriApp: App {
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
-            print("ModelContainer creation failed: \(error)")
-            // If CloudKit fails on device, fallback to local storage
-            let fallbackConfiguration = ModelConfiguration(
-                schema: schema,
-                isStoredInMemoryOnly: false,
-                cloudKitDatabase: .none
-            )
-            do {
-                print("Falling back to local storage...")
-                return try ModelContainer(for: schema, configurations: [fallbackConfiguration])
-            } catch {
-                fatalError("Could not create ModelContainer: \(error)")
-            }
+          fatalError("CloudKit ModelContainer init failed: \(error)")
         }
     }()
 

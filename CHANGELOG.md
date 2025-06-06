@@ -22,6 +22,13 @@
 
 ---
 
+## [1.0.3] - 2025-01-06
+
+### 🎨 Visual Updates
+- **Improved App Icon**: Enhanced app icon design for better visual appeal
+
+---
+
 ## [1.0.2] - 2025-01-06
 
 ### 🐛 Bug Fixes
