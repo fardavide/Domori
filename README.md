@@ -26,6 +26,7 @@ This project represents an experiment in AI-powered software development using C
 
 ### Property Details
 - 🏠 **Basic Information**: Title, location, link, price, size, bedrooms, bathrooms, property type
+- 📞 **Agent Contact**: Add agent phone numbers with tap-to-call and copy functionality
 - 🎯 **Rating System**: Modern enum-based rating with visual color indicators
 - 🏷️ **Custom Tags**: Create and assign unlimited custom tags with rating-based colors
 - 🔗 **External Links**: Support for property listing URLs with automatic opening

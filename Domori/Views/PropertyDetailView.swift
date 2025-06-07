@@ -136,6 +136,83 @@ struct PropertyDetailView: View {
                 .background(systemBackgroundColor)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
+                
+                // Agent Contact Section
+                if let agentContact = listing.agentContact, !agentContact.isEmpty {
+                    Button(action: {
+                        // Format phone number for dialing
+                        let phoneNumber = agentContact.replacingOccurrences(of: " ", with: "")
+                            .replacingOccurrences(of: "-", with: "")
+                            .replacingOccurrences(of: "(", with: "")
+                            .replacingOccurrences(of: ")", with: "")
+                        
+                        if let url = URL(string: "tel:\(phoneNumber)") {
+#if os(iOS)
+                            UIApplication.shared.open(url)
+#endif
+                        }
+                    }) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Agent Contact")
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primary)
+                            
+                            HStack(spacing: 12) {
+                                Image(systemName: "phone.fill")
+                                    .foregroundColor(.green)
+                                    .font(.title2)
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Phone Number")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                    
+                                    Text(agentContact)
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(.blue)
+                                }
+                                
+                                Spacer()
+                            }
+                        }
+                        .padding()
+                        .background(systemBackgroundColor)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .contextMenu {
+                        Button(action: {
+                            // Copy to clipboard
+#if os(iOS)
+                            UIPasteboard.general.string = agentContact
+#else
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(agentContact, forType: .string)
+#endif
+                        }) {
+                            Label("Copy Phone Number", systemImage: "doc.on.doc")
+                        }
+                        
+                        Button(action: {
+                            // Format phone number for dialing
+                            let phoneNumber = agentContact.replacingOccurrences(of: " ", with: "")
+                                .replacingOccurrences(of: "-", with: "")
+                                .replacingOccurrences(of: "(", with: "")
+                                .replacingOccurrences(of: ")", with: "")
+                            
+                            if let url = URL(string: "tel:\(phoneNumber)") {
+#if os(iOS)
+                                UIApplication.shared.open(url)
+#endif
+                            }
+                        }) {
+                            Label("Call", systemImage: "phone")
+                        }
+                    }
+                }
 
                 // Tags Section
                 VStack(alignment: .leading, spacing: 12) {

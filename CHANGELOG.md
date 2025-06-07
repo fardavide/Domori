@@ -22,6 +22,13 @@
 
 ---
 
+## [1.0.5] - 2025-01-06
+
+### 🎉 New Features
+- **Agent Contact**: Add and call agent phone numbers directly from property details
+
+---
+
 ## [1.0.4] - 2025-01-06
 
 ### 🛠️ Technical Improvements

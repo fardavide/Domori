@@ -200,6 +200,11 @@ final class DomoriUITests: XCTestCase {
     }
     
     @MainActor
+    func testAppStoreScreenshots_iPhoneProMax() throws {
+        generateScreenshotsForPlatform(platform: .iPhoneProMax, deviceName: "iPhone 16 Pro Max")
+    }
+    
+    @MainActor
     func testAppStoreScreenshots_iPad() throws {
         generateScreenshotsForPlatform(platform: .iPad, deviceName: "iPad Pro 13-inch (M4)")
     }
@@ -213,12 +218,14 @@ final class DomoriUITests: XCTestCase {
     
     enum ScreenshotPlatform {
         case iPhone
+        case iPhoneProMax
         case iPad
         case Mac
         
         var prefix: String {
             switch self {
             case .iPhone: return "iPhone"
+            case .iPhoneProMax: return "iPhone_ProMax"
             case .iPad: return "iPad" 
             case .Mac: return "Mac"
             }
@@ -226,7 +233,7 @@ final class DomoriUITests: XCTestCase {
         
         var isTabletOrDesktop: Bool {
             switch self {
-            case .iPhone: return false
+            case .iPhone, .iPhoneProMax: return false
             case .iPad, .Mac: return true
             }
         }

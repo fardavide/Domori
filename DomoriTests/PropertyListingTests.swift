@@ -12,6 +12,7 @@ struct PropertyListingTests {
             title: "Test Property",
             location: "123 Test Street",
             link: "https://example.com/test",
+            agentContact: "+1 (555) 123-4567",
             price: 500000,
             size: 100,
             bedrooms: 2,
@@ -23,6 +24,7 @@ struct PropertyListingTests {
         #expect(listing.title == "Test Property")
         #expect(listing.location == "123 Test Street")
         #expect(listing.link == "https://example.com/test")
+        #expect(listing.agentContact == "+1 (555) 123-4567")
         #expect(listing.price == 500000)
         #expect(listing.size == 100)
         #expect(listing.bedrooms == 2)
@@ -49,6 +51,7 @@ struct PropertyListingTests {
         #expect(listing.title == "Legacy Property")
         #expect(listing.location == "456 Legacy Avenue")
         #expect(listing.link == nil)
+        #expect(listing.agentContact == nil)
         #expect(listing.price == 750000)
         #expect(listing.size == 150)
         #expect(listing.bedrooms == 3)
@@ -133,11 +136,11 @@ struct PropertyListingTests {
         #expect(PropertyType.apartment.systemImage == "building")
         #expect(PropertyType.condo.systemImage == "building.2")
         #expect(PropertyType.townhouse.systemImage == "house.lodge")
-        #expect(PropertyType.villa.systemImage == "house.and.flag")
-        #expect(PropertyType.studio.systemImage == "square.dashed")
-        #expect(PropertyType.loft.systemImage == "building.columns")
-        #expect(PropertyType.duplex.systemImage == "house.2")
-        #expect(PropertyType.penthouse.systemImage == "building.2.crop.circle")
+        #expect(PropertyType.villa.systemImage == "house.circle")
+        #expect(PropertyType.studio.systemImage == "square.stack")
+        #expect(PropertyType.loft.systemImage == "archivebox")
+        #expect(PropertyType.duplex.systemImage == "house.and.flag")
+        #expect(PropertyType.penthouse.systemImage == "building.columns")
         #expect(PropertyType.other.systemImage == "questionmark.square")
     }
     
@@ -207,5 +210,55 @@ struct PropertyListingTests {
         #expect(sampleData.allSatisfy { $0.size > 0 })
         #expect(sampleData.allSatisfy { $0.bedrooms >= 0 })
         #expect(sampleData.allSatisfy { $0.bathrooms > 0 })
+    }
+    
+    @Test("PropertyListing agent contact functionality")
+    func propertyListingAgentContact() {
+        // Test with agent contact
+        let listingWithContact = PropertyListing(
+            title: "Property with Agent",
+            location: "123 Agent Street",
+            link: "https://example.com/agent-property",
+            agentContact: "+1 (555) 987-6543",
+            price: 600000,
+            size: 120,
+            bedrooms: 3,
+            bathrooms: 2.0,
+            propertyType: PropertyType.house,
+            propertyRating: PropertyRating.good
+        )
+        
+        #expect(listingWithContact.agentContact == "+1 (555) 987-6543")
+        
+        // Test without agent contact
+        let listingWithoutContact = PropertyListing(
+            title: "Property without Agent",
+            location: "456 No Agent Street",
+            link: "https://example.com/no-agent-property",
+            price: 500000,
+            size: 100,
+            bedrooms: 2,
+            bathrooms: 1.5,
+            propertyType: PropertyType.apartment,
+            propertyRating: PropertyRating.considering
+        )
+        
+        #expect(listingWithoutContact.agentContact == nil)
+        
+        // Test with empty string (should be stored as nil)
+        let listingWithEmptyContact = PropertyListing(
+            title: "Property with Empty Contact",
+            location: "789 Empty Contact Street",
+            link: "https://example.com/empty-contact",
+            agentContact: "",
+            price: 400000,
+            size: 90,
+            bedrooms: 2,
+            bathrooms: 1.0,
+            propertyType: PropertyType.condo,
+            propertyRating: PropertyRating.none
+        )
+        
+        #expect(listingWithEmptyContact.agentContact == "")
     }
 } 

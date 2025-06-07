@@ -6,6 +6,7 @@ final class PropertyListing {
     var title: String = ""
     var location: String = "" // Renamed from address
     var link: String? // New mandatory property for new listings, optional for legacy support
+    var agentContact: String? // Optional agent phone number for contact
     var price: Double = 0.0
     var size: Double = 0.0 // in square meters or square feet based on locale
     var bedrooms: Int = 0
@@ -26,6 +27,7 @@ final class PropertyListing {
         title: String,
         location: String, // Renamed from address
         link: String? = nil, // New optional parameter for link
+        agentContact: String? = nil, // Optional agent phone number
         price: Double,
         size: Double,
         bedrooms: Int,
@@ -37,6 +39,7 @@ final class PropertyListing {
         self.title = title
         self.location = location // Renamed from address
         self.link = link // New property assignment
+        self.agentContact = agentContact // Agent contact assignment
         self.price = price
         self.size = size
         self.bedrooms = bedrooms
@@ -78,6 +81,7 @@ final class PropertyListing {
             title: title,
             location: address, // Map address to location
             link: nil, // Legacy listings don't have links
+            agentContact: nil, // Legacy listings don't have agent contact
             price: price,
             size: size,
             bedrooms: bedrooms,

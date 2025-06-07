@@ -11,6 +11,7 @@ struct AddPropertyView: View {
     @State private var title = ""
     @State private var location = ""
     @State private var link = ""
+    @State private var agentContact = ""
     @State private var price: Double = 0
     @State private var size: Double = 0
     @State private var bedrooms = 0
@@ -92,6 +93,9 @@ struct AddPropertyView: View {
                     .font(.caption)
                     .foregroundColor(.red)
             }
+            
+            TextField("Agent Contact (Phone)", text: $agentContact)
+                .help("Optional phone number of the property agent")
         }
     }
     
@@ -259,6 +263,7 @@ struct AddPropertyView: View {
         title = listing.title
         location = listing.location
         link = listing.link ?? ""
+        agentContact = listing.agentContact ?? ""
         price = listing.price
         size = listing.size
         bedrooms = listing.bedrooms
@@ -273,6 +278,7 @@ struct AddPropertyView: View {
             listing.title = title
             listing.location = location
             listing.link = link.isEmpty ? nil : link
+            listing.agentContact = agentContact.isEmpty ? nil : agentContact
             listing.price = price
             listing.size = size
             listing.bedrooms = bedrooms
@@ -286,6 +292,7 @@ struct AddPropertyView: View {
                 title: title,
                 location: location,
                 link: link,
+                agentContact: agentContact.isEmpty ? nil : agentContact,
                 price: price,
                 size: size,
                 bedrooms: bedrooms,
