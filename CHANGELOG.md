@@ -4,10 +4,18 @@
 
 ---
 
+## [1.1.1] - 2025-06-08
+
+### 🐛 Bug Fixes
+- **Workspace Management**: Fixed issue where "Leave workspace" was incorrectly shown instead of "Delete Workspace" for workspace owners. Workspace owners now properly see "Delete Workspace" option.
+
+---
+
 ## [1.1] - 2025-06-08
 
 ### 🎉 New Features
 - **Collaboration**: Share your properties with others! Invite people to your workspace and collaborate on property listings together.
+- **Export & Import**: Backup and share your property data easily with JSON export/import functionality. Perfect for data backup or transferring properties between workspaces.
 
 ---
 

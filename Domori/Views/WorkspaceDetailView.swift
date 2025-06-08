@@ -176,8 +176,8 @@ struct WorkspaceDetailView: View {
     // MARK: - Computed Properties
     
     private var isCurrentUserOwner: Bool {
-        guard let currentUser = userManager.currentUser else { return false }
-        return workspace.isUserOwner(User(name: currentUser.name, email: currentUser.email))
+        guard let currentUser = userManager.getCurrentUser(context: modelContext) else { return false }
+        return workspace.isUserOwner(currentUser)
     }
     
     private var pendingInvitations: [WorkspaceInvitation] {

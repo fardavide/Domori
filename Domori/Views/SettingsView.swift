@@ -34,6 +34,19 @@ struct SettingsView: View {
                             Spacer()
                         }
                         .padding(.vertical, 4)
+                        .contextMenu {
+                            Button(action: {
+                                // Copy email to clipboard
+#if os(iOS)
+                                UIPasteboard.general.string = currentUser.email
+#else
+                                NSPasteboard.general.clearContents()
+                                NSPasteboard.general.setString(currentUser.email, forType: .string)
+#endif
+                            }) {
+                                Label("Copy Email Address", systemImage: "doc.on.doc")
+                            }
+                        }
                     }
                 }
                 
@@ -199,37 +212,38 @@ struct WorkspaceRowView: View {
     let onTap: () -> Void
     
     var body: some View {
-        Button(action: onTap) {
-            HStack {
-                Image(systemName: "folder.fill")
-                    .foregroundColor(.orange)
-                    .font(.title3)
+        HStack {
+            Image(systemName: "folder.fill")
+                .foregroundColor(.orange)
+                .font(.title3)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(workspace.name)
+                    .font(.headline)
+                    .foregroundColor(.primary)
                 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(workspace.name)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    
-                    if showOwner {
-                        Text("Owner: \(workspace.ownerEmail)")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Text("\(workspace.properties?.count ?? 0) properties • \(workspace.allParticipants.count) members")
+                if showOwner {
+                    Text("Owner: \(workspace.ownerEmail)")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
                 
-                Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .foregroundColor(.secondary)
+                Text("\(workspace.properties?.count ?? 0) properties • \(workspace.allParticipants.count) members")
                     .font(.caption)
+                    .foregroundColor(.secondary)
             }
-            .padding(.vertical, 4)
+            
+            Spacer()
+            
+            Image(systemName: "chevron.right")
+                .foregroundColor(.secondary)
+                .font(.caption)
         }
-        .buttonStyle(PlainButtonStyle())
+        .padding(.vertical, 4)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onTap()
+        }
     }
 }
 
