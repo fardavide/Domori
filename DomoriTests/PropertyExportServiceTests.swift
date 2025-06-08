@@ -1,53 +1,49 @@
-import XCTest
+import Testing
 import SwiftData
 import Foundation
 import UniformTypeIdentifiers
 @testable import Domori
 
 @MainActor
-final class PropertyExportServiceTests: XCTestCase {
+final class PropertyExportServiceTests {
     
     var container: ModelContainer!
     var context: ModelContext!
     private let exportService = PropertyExportService.shared
     
-    override func setUpWithError() throws {
-        try super.setUpWithError()
-        
+    init() throws {
         // Create in-memory container for testing
-        let config = ModelConfiguration(
-            isStoredInMemoryOnly: true,
-            allowsSave: false,
-            groupContainer: .none,
-            cloudKitDatabase: .none
-        )
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
         container = try ModelContainer(for: PropertyListing.self, SharedWorkspace.self, User.self, configurations: config)
         context = container.mainContext
     }
     
-    override func tearDownWithError() throws {
+    deinit {
         container = nil
         context = nil
-        try super.tearDownWithError()
     }
     
     // MARK: - Basic Functionality Tests
     
-    func testExportServiceExists() throws {
-        print("🧪 Testing export service exists")
-        XCTAssertNotNil(exportService, "PropertyExportService.shared should exist")
-        print("✅ Export service exists")
+    @Test("Container setup works")
+    func containerSetupWorks() throws {
+        print("🧪 Testing container setup")
+        #expect(container != nil, "Container should be initialized")
+        #expect(context != nil, "Context should be initialized")
+        print("✅ Container setup works")
     }
     
-    func testSupportedFileTypes() {
+    @Test("Supported file types")
+    func supportedFileTypes() {
         print("🔍 Testing supported file types")
         let supportedTypes = PropertyExportService.supportedFileTypes
         print("📋 Supported types: \(supportedTypes)")
         
-        XCTAssertTrue(supportedTypes.contains(UTType.json), "Should support JSON files")
+        #expect(supportedTypes.contains(UTType.json), "Should support JSON files")
     }
     
-    func testValidateValidData() throws {
+    @Test("Validate valid data")
+    func validateValidData() throws {
         print("🧪 Testing validate valid data")
         
         // Create test data that matches PropertyListingsExport format
@@ -60,42 +56,45 @@ final class PropertyExportServiceTests: XCTestCase {
         let result = exportService.validateImportData(testData)
         
         print("📋 Validation result - isValid: \(result.isValid), count: \(result.listingCount)")
-        XCTAssertTrue(result.isValid, "Valid JSON data should pass validation")
-        XCTAssertEqual(result.listingCount, 0, "Empty export should have 0 listings")
-        XCTAssertEqual(result.version, "1.0", "Version should be 1.0")
+        #expect(result.isValid, "Valid JSON data should pass validation")
+        #expect(result.listingCount == 0, "Empty export should have 0 listings")
+        #expect(result.version == "1.0", "Version should be 1.0")
         print("✅ Valid data validation passed")
     }
     
-    func testValidateInvalidData() throws {
+    @Test("Validate invalid data")
+    func validateInvalidData() throws {
         print("🧪 Testing validate invalid data")
         let invalidData = "invalid json".data(using: .utf8)!
         
         let result = exportService.validateImportData(invalidData)
         
         print("📋 Invalid data validation result: \(result.isValid)")
-        XCTAssertFalse(result.isValid, "Invalid JSON should fail validation")
-        XCTAssertNotNil(result.error, "Should have error message for invalid data")
+        #expect(!result.isValid, "Invalid JSON should fail validation")
+        #expect(result.error != nil, "Should have error message for invalid data")
         print("✅ Invalid data validation failed as expected")
     }
     
     // MARK: - Export Tests
     
-    func testExportEmptyListings() throws {
+    @Test("Export empty listings")
+    func exportEmptyListings() throws {
         print("🧪 Testing export empty listings")
         
         let data = try exportService.exportAllListings(context: context)
         print("📋 Export data size: \(data.count) bytes")
         
-        XCTAssertGreaterThan(data.count, 0, "Export data should not be empty")
+        #expect(data.count > 0, "Export data should not be empty")
         
         // Validate the exported data
         let result = exportService.validateImportData(data)
-        XCTAssertTrue(result.isValid, "Exported data should be valid")
-        XCTAssertEqual(result.listingCount, 0, "Should export 0 listings when database is empty")
+        #expect(result.isValid, "Exported data should be valid")
+        #expect(result.listingCount == 0, "Should export 0 listings when database is empty")
         print("✅ Empty listings export passed")
     }
     
-    func testExportWithListings() throws {
+    @Test("Export with listings")
+    func exportWithListings() throws {
         print("🧪 Testing export with listings")
         
         // Create test user and workspace
@@ -127,14 +126,15 @@ final class PropertyExportServiceTests: XCTestCase {
         
         // Validate the exported data
         let result = exportService.validateImportData(data)
-        XCTAssertTrue(result.isValid, "Exported data should be valid")
-        XCTAssertEqual(result.listingCount, 1, "Should export 1 listing")
+        #expect(result.isValid, "Exported data should be valid")
+        #expect(result.listingCount == 1, "Should export 1 listing")
         print("✅ Export with listings passed")
     }
     
     // MARK: - Import Tests
     
-    func testImportEmptyData() throws {
+    @Test("Import empty data")
+    func importEmptyData() throws {
         print("🧪 Testing import empty data")
         
         // Create test user and workspace
@@ -157,12 +157,13 @@ final class PropertyExportServiceTests: XCTestCase {
         )
         
         print("📋 Import result: success=\(result.success), imported=\(result.importedCount)")
-        XCTAssertTrue(result.success, "Import of empty data should succeed")
-        XCTAssertEqual(result.importedCount, 0, "Should import 0 properties from empty data")
+        #expect(result.success, "Import of empty data should succeed")
+        #expect(result.importedCount == 0, "Should import 0 properties from empty data")
         print("✅ Import empty data passed")
     }
     
-    func testRoundTripExportImport() throws {
+    @Test("Round-trip export/import")
+    func roundTripExportImport() throws {
         print("🧪 Testing round-trip export/import")
         
         // Create test users and workspaces
@@ -207,25 +208,26 @@ final class PropertyExportServiceTests: XCTestCase {
         )
         
         print("📋 Import result: success=\(importResult.success), imported=\(importResult.importedCount)")
-        XCTAssertTrue(importResult.success, "Import should succeed: \(importResult.message)")
-        XCTAssertEqual(importResult.importedCount, 1, "Should import 1 property")
+        #expect(importResult.success, "Import should succeed: \(importResult.message)")
+        #expect(importResult.importedCount == 1, "Should import 1 property")
         
         // Verify imported property using simpler fetch
         let allListings = try context.fetch(FetchDescriptor<PropertyListing>())
         let importedProperties = allListings.filter { $0.workspace?.id == workspace2.id }
         
-        XCTAssertEqual(importedProperties.count, 1, "Should have 1 imported property")
+        #expect(importedProperties.count == 1, "Should have 1 imported property")
         
         let importedProperty = importedProperties.first!
-        XCTAssertEqual(importedProperty.title, originalProperty.title)
-        XCTAssertEqual(importedProperty.location, originalProperty.location)
-        XCTAssertEqual(importedProperty.price, originalProperty.price)
-        XCTAssertEqual(importedProperty.propertyType, originalProperty.propertyType)
+        #expect(importedProperty.title == originalProperty.title)
+        #expect(importedProperty.location == originalProperty.location)
+        #expect(importedProperty.price == originalProperty.price)
+        #expect(importedProperty.propertyType == originalProperty.propertyType)
         
         print("✅ Round-trip export/import passed")
     }
     
-    func testValidateBackupJson() throws {
+    @Test("Validate backup JSON")
+    func validateBackupJson() throws {
         // This is the exact JSON from your backup.json file
         let jsonString = """
         {
@@ -261,19 +263,19 @@ final class PropertyExportServiceTests: XCTestCase {
         // Test the validation directly
         let validation = exportService.validateImportData(jsonData)
         
-        // Use XCTAssert to force display of error message
+        // Use #expect with custom failure message
         if !validation.isValid {
             if let error = validation.error {
-                NSLog("❌ VALIDATION ERROR: \(error)")
-                XCTFail("JSON validation failed with error: \(error)")
+                print("❌ VALIDATION ERROR: \(error)")
+                Issue.record("JSON validation failed with error: \(error)")
             } else {
-                NSLog("❌ VALIDATION FAILED: No error message provided")
-                XCTFail("JSON validation failed with no error message")
+                print("❌ VALIDATION FAILED: No error message provided")
+                Issue.record("JSON validation failed with no error message")
             }
         } else {
-            NSLog("✅ Validation passed!")
-            XCTAssertEqual(validation.version, "1.0")
-            XCTAssertEqual(validation.listingCount, 1)
+            print("✅ Validation passed!")
+            #expect(validation.version == "1.0")
+            #expect(validation.listingCount == 1)
         }
     }
 }
