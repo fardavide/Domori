@@ -16,7 +16,7 @@ final class SharedWorkspace {
     var isShared: Bool = false // Whether this workspace is currently shared
     
     // Relationships - ALL users in this workspace see ALL properties
-    @Relationship(inverse: \User.ownedWorkspaces) var owner: User?
+    @Relationship(inverse: \User.ownedWorkspace) var owner: User?
     @Relationship(inverse: \User.memberWorkspaces) var members: [User]?
     @Relationship(deleteRule: .cascade) var properties: [PropertyListing]? // All properties belong to workspace
     @Relationship(deleteRule: .cascade, inverse: \WorkspaceInvitation.workspace) var invitations: [WorkspaceInvitation]?

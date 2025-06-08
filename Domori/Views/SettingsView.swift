@@ -96,6 +96,10 @@ struct SettingsView: View {
                 }
                 
                 Section("Data & Collaboration") {
+                    NavigationLink(destination: ExportImportView()) {
+                        Label("Export & Import Properties", systemImage: "square.and.arrow.up.on.square")
+                    }
+                    
                     HStack {
                         Text("Properties")
                         Spacer()

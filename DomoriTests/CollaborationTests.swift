@@ -18,7 +18,7 @@ struct CollaborationTests {
         #expect(user.name == "Test User")
         #expect(user.email == "test@example.com")
         #expect(user.id.isEmpty == false)
-        #expect(user.ownedWorkspaces?.isEmpty == true)
+        #expect(user.ownedWorkspace == nil)
         #expect(user.getMemberWorkspaces().isEmpty == true)
     }
     
@@ -196,10 +196,10 @@ struct CollaborationTests {
         context.insert(property)
         
         // Share property with workspace
-        property.sharedWorkspace = workspace
+        property.workspace = workspace
         
         // Verify sharing
-        #expect(property.sharedWorkspace?.name == "Test Workspace")
+        #expect(property.workspace?.name == "Test Workspace")
         #expect(workspace.properties?.contains(property) == true)
     }
     
