@@ -55,8 +55,10 @@ struct UserSignInView: View {
                                     .fontWeight(.medium)
                                 TextField("Enter your email", text: $email)
                                     .textFieldStyle(.roundedBorder)
+                                    #if os(iOS)
                                     .keyboardType(.emailAddress)
                                     .autocapitalization(.none)
+                                    #endif
                                     .autocorrectionDisabled()
                             }
                         }
@@ -93,7 +95,9 @@ struct UserSignInView: View {
                 .padding(.horizontal, 24)
                 .padding(.bottom, 32)
             }
+            #if os(iOS)
             .navigationBarHidden(true)
+            #endif
         }
         .alert("Sign In Error", isPresented: $showingError) {
             Button("OK") { }

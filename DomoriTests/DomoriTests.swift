@@ -41,7 +41,6 @@ struct DomoriTests {
         #expect(property.bathrooms == 1.5)
         #expect(property.propertyType == .house)
         #expect(property.propertyRating == .good)
-        #expect(property.rating == 4.0) // Should convert to legacy rating
     }
     
     @Test func testPropertyListingWithTags() async throws {
@@ -124,7 +123,6 @@ struct DomoriTests {
             )
             
             #expect(property.propertyRating == rating)
-            #expect(property.rating == rating.toLegacyRating)
         }
     }
     
@@ -179,44 +177,6 @@ struct DomoriTests {
         }
     }
     
-    @Test func testPropertyListingLegacyInitializer() async throws {
-        // Test the legacy initializer that maps address to location
-        let property = PropertyListing(
-            title: "Legacy Property",
-            address: "456 Legacy Avenue", // Using legacy parameter name
-            price: 600000,
-            size: 120,
-            bedrooms: 3,
-            bathrooms: 2.0,
-            propertyType: .townhouse,
-            rating: 3.5
-        )
-        
-        // Verify address was mapped to location
-        #expect(property.location == "456 Legacy Avenue")
-        #expect(property.link == nil) // Legacy properties don't have links
-        #expect(property.propertyRating == .considering) // Rating 3.5 should map to considering
-    }
-    
-    @Test func testPropertyRatingConversions() async throws {
-        // Test PropertyRating to legacy rating conversion
-        #expect(PropertyRating.none.toLegacyRating == 0.0)
-        #expect(PropertyRating.excluded.toLegacyRating == 1.0)
-        #expect(PropertyRating.considering.toLegacyRating == 2.5)
-        #expect(PropertyRating.good.toLegacyRating == 4.0)
-        #expect(PropertyRating.excellent.toLegacyRating == 5.0)
-        
-        // Test legacy rating to PropertyRating conversion
-        #expect(PropertyRating.fromLegacy(rating: 0.0, isFavorite: false) == .none)
-        #expect(PropertyRating.fromLegacy(rating: 1.5, isFavorite: false) == .excluded)
-        #expect(PropertyRating.fromLegacy(rating: 3.0, isFavorite: false) == .considering)
-        #expect(PropertyRating.fromLegacy(rating: 4.0, isFavorite: false) == .good)
-        #expect(PropertyRating.fromLegacy(rating: 5.0, isFavorite: false) == .excellent)
-        
-        // Test favorite override
-        #expect(PropertyRating.fromLegacy(rating: 3.0, isFavorite: true) == .good)
-    }
-    
     @Test func testPropertyRatingDisplayProperties() async throws {
         // Test that all ratings have display names and system images
         for rating in PropertyRating.allCases {
@@ -225,10 +185,10 @@ struct DomoriTests {
         }
         
         // Test specific display properties
-        #expect(PropertyRating.none.displayName == "No Rating")
+        #expect(PropertyRating.none.displayName == "Not Rated")
         #expect(PropertyRating.excellent.displayName == "Excellent")
         #expect(PropertyRating.none.systemImage == "circle")
-        #expect(PropertyRating.excellent.systemImage == "star.circle")
+        #expect(PropertyRating.excellent.systemImage == "star.circle.fill")
     }
     
     @Test func testPropertyUpdateRating() async throws {
@@ -252,7 +212,6 @@ struct DomoriTests {
         property.updateRating(.excellent)
         
         #expect(property.propertyRating == .excellent)
-        #expect(property.rating == 5.0)
         #expect(property.updatedDate > originalDate)
     }
 }

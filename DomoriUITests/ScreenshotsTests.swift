@@ -2,27 +2,7 @@
 
 import XCTest
 
-// Extension to help with form filling
-extension XCUIElement {
-    func clearAndTypeText(_ text: String) {
-        // Tap the field to focus it
-        self.tap()
-        
-        // Wait a moment for the field to become focused
-        Thread.sleep(forTimeInterval: 0.1)
-        
-        // Double-tap to select all existing text (including placeholder)
-        self.doubleTap()
-        
-        // Wait a moment for selection to complete
-        Thread.sleep(forTimeInterval: 0.1)
-        
-        // Type the new text (this will replace any selected text)
-        self.typeText(text)
-    }
-}
-
-final class DomoriUITests: XCTestCase {
+final class ScreenshotsTests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
@@ -192,6 +172,28 @@ final class DomoriUITests: XCTestCase {
         }
     }
     
+    // MARK: - Multi-Platform Screenshot Generation Tests
+    
+    @MainActor
+    func testAppStoreScreenshots_iPhone() throws {
+        generateScreenshotsForPlatform(platform: .iPhone, deviceName: "iPhone 16 Pro")
+    }
+    
+    @MainActor
+    func testAppStoreScreenshots_iPhoneProMax() throws {
+        generateScreenshotsForPlatform(platform: .iPhoneProMax, deviceName: "iPhone 16 Pro Max")
+    }
+    
+    @MainActor
+    func testAppStoreScreenshots_iPad() throws {
+        generateScreenshotsForPlatform(platform: .iPad, deviceName: "iPad Pro 13-inch (M4)")
+    }
+    
+    @MainActor
+    func testAppStoreScreenshots_Mac() throws {
+        generateScreenshotsForPlatform(platform: .Mac, deviceName: "Mac")
+    }
+    
     // MARK: - Platform Configuration
     
     enum ScreenshotPlatform {
@@ -215,6 +217,151 @@ final class DomoriUITests: XCTestCase {
             case .iPad, .Mac: return true
             }
         }
+    }
+    
+    private func generateScreenshotsForPlatform(platform: ScreenshotPlatform, deviceName: String) {
+        let app = XCUIApplication()
+        app.launch()
+        
+        print("\n🎯 === Generating \(platform.prefix) Screenshots for \(deviceName) ===")
+        print("📱 Following simplified flow: Create property → Take 02 → Go to main → Repeat 3x → Take remaining screenshots")
+        
+        // Verify app launched correctly
+        XCTAssertTrue(app.navigationBars["Properties"].waitForExistence(timeout: 10))
+        
+        // Define the 3 properties to create
+        let sampleProperties = [
+            (title: "Modern City Apartment", 
+             location: "Via Roma 123, Milano, Italy", 
+             price: "485000", 
+             size: "85", 
+             bedrooms: "2", 
+             tags: [("Prime Location", "Excellent"), ("Investment Grade", "Good"), ("High Price Point", "Considering")]),
+            (title: "Victorian Townhouse", 
+             location: "Kurfürstendamm 45, Berlin, Germany", 
+             price: "750000", 
+             size: "120", 
+             bedrooms: "3", 
+             tags: [("Historic Charm", "Good"), ("Renovation Needed", "Considering"), ("Good Value", "Good")]),
+            (title: "Riverside Penthouse", 
+             location: "Quai des Grands Augustins 12, Paris, France", 
+             price: "1250000", 
+             size: "150", 
+             bedrooms: "4", 
+             tags: [("Luxury Features", "Good"), ("Very Expensive", "Excluded"), ("Great Views", "Good")])
+        ]
+        
+        // MAIN FLOW: Create 3 properties with the exact pattern requested
+        for (index, property) in sampleProperties.enumerated() {
+            print("\n🏠 === Creating Property \(index + 1)/3: \(property.title) ===")
+            
+            // Ensure we're on main screen
+            ensureOnMainScreen(in: app)
+            
+            // Create property form (but don't save yet)
+            fillPropertyForm(in: app, 
+                           title: property.title,
+                           location: property.location, 
+                           price: property.price,
+                           size: property.size,
+                           bedrooms: property.bedrooms,
+                           rating: index == 0 ? "Excellent" : (index == 1 ? "Good" : "Considering"))
+            
+            // Take screen 02 (Add Property Form) - we're in the form now
+            print("📸 Taking screen 02 for property \(index + 1)")
+            takeScreenshot(platform: platform, screenName: "AddProperty_FilledForm", in: app)
+            
+            // Now save the property
+            let saveButton = app.buttons["Save"]
+            XCTAssertTrue(saveButton.exists && saveButton.isEnabled, "Save button should be available")
+            saveButton.tap()
+            
+            // Wait to return to main screen
+            XCTAssertTrue(app.navigationBars["Properties"].waitForExistence(timeout: 10))
+            print("✅ Property saved successfully")
+            
+            // Add the coherent tags to the property we just created
+            addCoherentTagsToProperty(in: app, tags: property.tags)
+            
+            // Go to main
+            print("🔙 Going to main screen")
+            ensureOnMainScreen(in: app)
+            waitForUIToSettle(in: app)
+        }
+        
+        print("\n📸 === All 3 properties created. Taking remaining screenshots ===")
+        
+        // Ensure we're on main screen for screenshot 01
+        ensureOnMainScreen(in: app)
+        waitForUIToSettle(in: app)
+        
+        // Screenshot 01: Main screen with 3 listings
+        print("📸 Taking screen 01: Main Screen")
+        takeScreenshot(platform: platform, screenName: "MainScreen_ThreeListings", in: app)
+        
+        // Screenshot 03: Open detail 
+        print("📸 Taking screen 03: Property Detail")
+        let firstProperty = app.collectionViews.firstMatch.cells.firstMatch
+        XCTAssertTrue(firstProperty.exists, "First property should exist")
+        firstProperty.tap()
+        
+        // Wait for detail view
+        XCTAssertTrue(app.scrollViews.firstMatch.waitForExistence(timeout: 5))
+        waitForUIToSettle(in: app)
+        takeScreenshot(platform: platform, screenName: "PropertyDetail", in: app)
+        
+        // Screenshot 04: Open tags
+        print("📸 Taking screen 04: Tag Addition")
+        let addTagButton = app.buttons["Add Tag"]
+        XCTAssertTrue(addTagButton.exists, "Add Tag button should exist")
+        addTagButton.tap()
+        
+        // Wait for Add Tags screen
+        XCTAssertTrue(app.navigationBars["Add Tags"].waitForExistence(timeout: 5))
+        
+        // Fill in a sample tag for the screenshot
+        let tagNameField = app.textFields["Enter tag name"]
+        if tagNameField.exists {
+            tagNameField.tap()
+            tagNameField.clearAndTypeText("Premium Location")
+        }
+        
+        waitForUIToSettle(in: app)
+        takeScreenshot(platform: platform, screenName: "TagAddition", in: app)
+        
+        // Cancel to go back to detail, then home
+        let cancelButton = app.buttons["Cancel"]
+        if cancelButton.exists {
+            cancelButton.tap()
+        }
+        
+        // Go home
+        print("🏠 Going home")
+        ensureOnMainScreen(in: app)
+        waitForUIToSettle(in: app)
+        
+        // Screenshot 05: Open comparison
+        print("📸 Taking screen 05: Property Comparison")
+        
+        // Look for selection functionality to enable comparison
+        let selectionButtons = app.buttons.matching(NSPredicate(format: "label CONTAINS 'circle'"))
+        
+        if selectionButtons.count >= 2 {
+            // Select first two properties
+            selectionButtons.element(boundBy: 0).tap()
+            selectionButtons.element(boundBy: 1).tap()
+            
+            // Look for compare functionality
+            let compareButton = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Compare'")).firstMatch
+            if compareButton.exists {
+                compareButton.tap()
+                waitForUIToSettle(in: app)
+            }
+        }
+        
+        takeScreenshot(platform: platform, screenName: "PropertyComparison", in: app)
+        
+        print("\n✅ === \(platform.prefix) Screenshot Generation Complete ===")
     }
     
     // MARK: - Simplified Helper Methods

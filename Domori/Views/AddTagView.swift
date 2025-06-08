@@ -59,15 +59,7 @@ struct AddTagView: View {
                                             .frame(maxWidth: .infinity, minHeight: 50)
                                             .padding(.vertical, 6)
                                             .padding(.horizontal, 4)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 8)
-                                                    .fill(selectedRating == rating ? 
-                                                         PropertyTag(name: "", rating: rating).swiftUiColor.opacity(0.15) : 
-                                                         Color.clear)
-                                                    .stroke(selectedRating == rating ? 
-                                                           PropertyTag(name: "", rating: rating).swiftUiColor : 
-                                                           Color.gray.opacity(0.3), lineWidth: 1.5)
-                                            )
+                                            .background(ratingButtonBackground(for: rating))
                                         }
                                         .buttonStyle(PlainButtonStyle())
                                         .accessibilityIdentifier("rating_\(rating.rawValue)")
@@ -84,7 +76,7 @@ struct AddTagView: View {
                         }
                     }
                     .padding()
-                    .background(Color(.systemGray6))
+                    .background(Color.gray.opacity(0.1))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     
                     // Existing tags section
@@ -101,14 +93,13 @@ struct AddTagView: View {
                             }
                         }
                         .padding()
-                        .background(Color(.systemGray6))
+                        .background(Color.gray.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                 }
                 .padding()
             }
             .navigationTitle("Add Tags")
-            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -123,6 +114,15 @@ struct AddTagView: View {
         allTags.filter { tag in
             !(listing.tags?.contains { $0.id == tag.id } ?? false)
         }
+    }
+    
+    private func ratingButtonBackground(for rating: PropertyRating) -> some View {
+        let isSelected = selectedRating == rating
+        let tagColor = PropertyTag(name: "", rating: rating).swiftUiColor
+        
+        return RoundedRectangle(cornerRadius: 8)
+            .fill(isSelected ? tagColor.opacity(0.15) : Color.clear)
+            .stroke(isSelected ? tagColor : Color.gray.opacity(0.3), lineWidth: 1.5)
     }
     
     private func createAndAddTag() {

@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "587F9761-1473-4529-B72D-31A49A46ED1B",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Domori.xcodeproj",
+        "identifier" : "6BD1F3032DECC4F900B7C7E1",
+        "name" : "DomoriTests"
+      }
+    }
+  ],
+  "version" : 1
+}

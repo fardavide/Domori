@@ -270,7 +270,7 @@ struct AddPropertyView: View {
         bedrooms = listing.bedrooms
         bathrooms = listing.bathrooms
         propertyType = listing.propertyType
-        rating = listing.propertyRating ?? .none
+        rating = listing.propertyRating
     }
     
     private func saveProperty() {

@@ -66,8 +66,8 @@ struct CreateWorkspaceView: View {
                 }
             }
             .navigationTitle("Create Workspace")
-            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                #if os(iOS)
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
                         dismiss()
@@ -81,6 +81,21 @@ struct CreateWorkspaceView: View {
                     .disabled(workspaceName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     .fontWeight(.semibold)
                 }
+                #else
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Create") {
+                        createWorkspace()
+                    }
+                    .disabled(workspaceName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .fontWeight(.semibold)
+                }
+                #endif
             }
         }
         .alert("Error", isPresented: $showingError) {

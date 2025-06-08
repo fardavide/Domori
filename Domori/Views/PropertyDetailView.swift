@@ -123,7 +123,7 @@ struct PropertyDetailView: View {
                         
                         InlineRatingPicker(
                             selectedRating: Binding(
-                                get: { listing.propertyRating ?? .none },
+                                get: { listing.propertyRating },
                                 set: { newRating in
                                     listing.updateRating(newRating)
                                     try? modelContext.save()

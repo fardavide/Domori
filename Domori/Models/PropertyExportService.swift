@@ -14,8 +14,7 @@ struct PropertyListingExport: Codable {
     let bedrooms: Int
     let bathrooms: Double
     let propertyType: String
-    let rating: Double
-    let propertyRating: String?
+    let propertyRating: String
     let createdDate: Date
     let updatedDate: Date
     let tags: [PropertyTagExport]?
@@ -30,8 +29,7 @@ struct PropertyListingExport: Codable {
         self.bedrooms = propertyListing.bedrooms
         self.bathrooms = propertyListing.bathrooms
         self.propertyType = propertyListing.propertyType.rawValue
-        self.rating = propertyListing.rating
-        self.propertyRating = propertyListing.propertyRating?.rawValue
+        self.propertyRating = propertyListing.propertyRating.rawValue
         self.createdDate = propertyListing.createdDate
         self.updatedDate = propertyListing.updatedDate
         self.tags = propertyListing.tags?.map { PropertyTagExport(from: $0) }
@@ -39,7 +37,7 @@ struct PropertyListingExport: Codable {
     
     func toPropertyListing() -> PropertyListing {
         let propertyTypeEnum = PropertyType(rawValue: propertyType) ?? .other
-        let propertyRatingEnum = propertyRating.flatMap { PropertyRating(rawValue: $0) }
+      let propertyRatingEnum = PropertyRating(rawValue: propertyRating) ?? .none
         
         let listing = PropertyListing(
             title: title,
@@ -51,7 +49,6 @@ struct PropertyListingExport: Codable {
             bedrooms: bedrooms,
             bathrooms: bathrooms,
             propertyType: propertyTypeEnum,
-            rating: rating,
             propertyRating: propertyRatingEnum
         )
         

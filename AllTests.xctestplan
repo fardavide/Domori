@@ -1,0 +1,34 @@
+{
+  "configurations" : [
+    {
+      "id" : "B34D2B8F-D0E3-4EE0-AAE8-E666585FB247",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Domori.xcodeproj",
+        "identifier" : "6BD1F3032DECC4F900B7C7E1",
+        "name" : "DomoriTests"
+      }
+    },
+    {
+      "skippedTests" : [
+        "ScreenshotsTests"
+      ],
+      "target" : {
+        "containerPath" : "container:Domori.xcodeproj",
+        "identifier" : "6BD1F30D2DECC4F900B7C7E1",
+        "name" : "DomoriUITests"
+      }
+    }
+  ],
+  "version" : 1
+}

@@ -21,7 +21,7 @@ struct MainAppView: View {
                         .foregroundColor(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color(.systemBackground))
+                .background(Color.clear)
             } else {
                 MainTabView()
             }

@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		6BD7497E2DF60A6900C07382 /* UnitTests.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = 6BD7497D2DF60A6900C07382 /* UnitTests.xctestplan */; };
+		6BD749822DF60B1E00C07382 /* AllTests.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = 6BD749812DF60B1E00C07382 /* AllTests.xctestplan */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		6BD1F3052DECC4F900B7C7E1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +32,8 @@
 		6BD1F2F32DECC4F800B7C7E1 /* Domori.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Domori.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6BD1F3042DECC4F900B7C7E1 /* DomoriTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DomoriTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6BD1F30E2DECC4F900B7C7E1 /* DomoriUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DomoriUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		6BD7497D2DF60A6900C07382 /* UnitTests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = UnitTests.xctestplan; sourceTree = "<group>"; };
+		6BD749812DF60B1E00C07382 /* AllTests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = AllTests.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -88,6 +95,8 @@
 		6BD1F2EA2DECC4F800B7C7E1 = {
 			isa = PBXGroup;
 			children = (
+				6BD7497D2DF60A6900C07382 /* UnitTests.xctestplan */,
+				6BD749812DF60B1E00C07382 /* AllTests.xctestplan */,
 				6BD1F2F52DECC4F800B7C7E1 /* Domori */,
 				6BD1F3072DECC4F900B7C7E1 /* DomoriTests */,
 				6BD1F3112DECC4F900B7C7E1 /* DomoriUITests */,
@@ -225,6 +234,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6BD7497E2DF60A6900C07382 /* UnitTests.xctestplan in Resources */,
+				6BD749822DF60B1E00C07382 /* AllTests.xctestplan in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -289,7 +300,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Domori/Domori.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				DEVELOPMENT_TEAM = A7Q83J6LR4;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -309,7 +320,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = fardavide.Domori;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -329,7 +340,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Domori/Domori.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				DEVELOPMENT_TEAM = A7Q83J6LR4;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -349,7 +360,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = fardavide.Domori;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;

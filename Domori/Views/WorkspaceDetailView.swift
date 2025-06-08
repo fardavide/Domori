@@ -140,13 +140,20 @@ struct WorkspaceDetailView: View {
                 }
             }
             .navigationTitle("Workspace")
-            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                #if os(iOS)
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
                         dismiss()
                     }
                 }
+                #else
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+                #endif
             }
             .sheet(isPresented: $showingInviteUser) {
                 InviteUserView(workspace: workspace)
@@ -268,42 +275,42 @@ struct WorkspaceDetailView: View {
 // MARK: - Supporting Views
 
 struct PropertyRowView: View {
-    let property: PropertyListing
-    let onTap: () -> Void
-    
-    var body: some View {
-        Button(action: onTap) {
-            HStack {
-                Image(systemName: property.propertyType.systemImage)
-                    .foregroundColor(.blue)
-                    .font(.title3)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(property.title)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    
-                    Text(property.location)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    Text("\(property.formattedPrice) • \(property.formattedSize)")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-                
-                if let rating = property.propertyRating, rating != .none {
-                    Circle()
-                        .fill(Color(rating.color))
-                        .frame(width: 12, height: 12)
-                }
-            }
-            .padding(.vertical, 4)
+  let property: PropertyListing
+  let onTap: () -> Void
+  
+  var body: some View {
+    Button(action: onTap) {
+      HStack {
+        Image(systemName: property.propertyType.systemImage)
+          .foregroundColor(.blue)
+          .font(.title3)
+        
+        VStack(alignment: .leading, spacing: 2) {
+          Text(property.title)
+            .font(.headline)
+            .foregroundColor(.primary)
+          
+          Text(property.location)
+            .font(.caption)
+            .foregroundColor(.secondary)
+          
+          Text("\(property.formattedPrice) • \(property.formattedSize)")
+            .font(.caption)
+            .foregroundColor(.secondary)
         }
-        .buttonStyle(PlainButtonStyle())
+        
+        Spacer()
+        
+        if property.propertyRating != .none {
+          Circle()
+            .fill(Color(property.propertyRating.color))
+            .frame(width: 12, height: 12)
+        }
+      }
+      .padding(.vertical, 4)
     }
+    .buttonStyle(PlainButtonStyle())
+  }
 }
 
 struct UserRowView: View {

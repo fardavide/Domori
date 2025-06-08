@@ -1,0 +1,51 @@
+{
+  "configurations" : [
+    {
+      "id" : "7E4B5F3A-1234-5678-9ABC-DEF012345678",
+      "name" : "Configuration 1",
+      "options" : {
+        "environmentVariableEntries" : [
+
+        ],
+        "commandLineArgumentEntries" : [
+
+        ],
+        "targetForVariableExpansion" : {
+          "containerPath" : "container:Domori.xcodeproj",
+          "identifier" : "6BD1F2F82DECC4F800B7C7E1",
+          "name" : "Domori"
+        },
+        "language" : "en",
+        "region" : "US",
+        "preferredScreenCaptureFormat" : "screenshot"
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:Domori.xcodeproj",
+      "identifier" : "6BD1F2F82DECC4F800B7C7E1",
+      "name" : "Domori"
+    },
+    "environmentVariableEntries" : [
+
+    ],
+    "commandLineArgumentEntries" : [
+
+    ],
+    "language" : "en",
+    "region" : "US",
+    "preferredScreenCaptureFormat" : "screenshot"
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:Domori.xcodeproj",
+        "identifier" : "6BD1F3092DECC4F900B7C7E1",
+        "name" : "DomoriTests"
+      }
+    }
+  ],
+  "version" : 1
+} 

@@ -87,14 +87,22 @@ struct ShareAcceptanceView: View {
             }
             .padding()
             .navigationTitle("Share Invitation")
-            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                #if os(iOS)
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
                         dismiss()
                     }
                     .disabled(isLoading)
                 }
+                #else
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .disabled(isLoading)
+                }
+                #endif
             }
             .onAppear {
                 loadShareMetadata()

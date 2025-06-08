@@ -191,7 +191,8 @@ struct CollaborationTests {
             size: 100,
             bedrooms: 2,
             bathrooms: 1,
-            propertyType: .apartment
+            propertyType: .apartment,
+            propertyRating: .none
         )
         context.insert(property)
         

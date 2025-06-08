@@ -1,4 +1,9 @@
 import SwiftUI
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 
 struct FlowLayout: View {
     let spacing: CGFloat
@@ -15,7 +20,15 @@ struct FlowLayout: View {
         GeometryReader { geometry in
             self.generateContent(in: geometry)
         }
-        .frame(height: calculateHeight(for: UIScreen.main.bounds.width - 32)) // Approximate container width
+        .frame(height: calculateHeight(for: screenWidth - 32)) // Approximate container width
+    }
+    
+    private var screenWidth: CGFloat {
+        #if os(macOS)
+        return NSScreen.main?.frame.width ?? 800
+        #else
+        return UIScreen.main.bounds.width
+        #endif
     }
     
     private func generateContent(in geometry: GeometryProxy) -> some View {

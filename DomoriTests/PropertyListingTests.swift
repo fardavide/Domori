@@ -44,7 +44,6 @@ struct PropertyListingTests {
             bedrooms: 3,
             bathrooms: 2.0,
             propertyType: PropertyType.condo,
-            rating: 3.5,
             propertyRating: PropertyRating.considering
         )
         
@@ -57,7 +56,6 @@ struct PropertyListingTests {
         #expect(listing.bedrooms == 3)
         #expect(listing.bathrooms == 2.0)
         #expect(listing.propertyType == PropertyType.condo)
-        #expect(listing.rating == 3.5)
         #expect(listing.propertyRating == PropertyRating.considering)
     }
     
@@ -70,10 +68,10 @@ struct PropertyListingTests {
             size: 80,
             bedrooms: 1,
             bathrooms: 1.0,
-            propertyType: PropertyType.apartment
+            propertyType: PropertyType.apartment,
+            propertyRating: .none
         )
         
-        #expect(listing.rating == 0.0)
         #expect(listing.propertyRating == PropertyRating.none)
         #expect(listing.tags?.isEmpty ?? true)
     }
@@ -87,10 +85,11 @@ struct PropertyListingTests {
             size: 150.5,
             bedrooms: 3,
             bathrooms: 2.5,
-            propertyType: PropertyType.house
+            propertyType: PropertyType.house,
+            propertyRating: .none
         )
         
-        #expect(listing.formattedPrice.contains("1,234,567"))
+        #expect(listing.formattedPrice.contains("1,234,567") || listing.formattedPrice.contains("1.234.567"))
         #expect(listing.bathroomText == "2.5")
         #expect(!listing.sizeUnit.isEmpty)
         #expect(!listing.formattedPricePerUnit.isEmpty)
@@ -105,7 +104,8 @@ struct PropertyListingTests {
             size: 100,
             bedrooms: 2,
             bathrooms: 1.5,
-            propertyType: PropertyType.house
+            propertyType: PropertyType.house,
+            propertyRating: .none
         )
         
         let originalDate = listing.updatedDate
@@ -114,7 +114,7 @@ struct PropertyListingTests {
         listing.updateRating(PropertyRating.excellent)
         
         #expect(listing.propertyRating == PropertyRating.excellent)
-        #expect(listing.rating == 5.0)
+
         #expect(listing.updatedDate >= originalDate)
     }
     
@@ -180,23 +180,6 @@ struct PropertyListingTests {
         #expect(PropertyRating.considering.systemImage == "questionmark.circle.fill")
         #expect(PropertyRating.good.systemImage == "checkmark.circle.fill")
         #expect(PropertyRating.excellent.systemImage == "star.circle.fill")
-    }
-    
-    @Test("PropertyRating legacy conversion")
-    func propertyRatingLegacyConversion() {
-        // Test fromLegacy conversion
-        #expect(PropertyRating.fromLegacy(rating: 0.0, isFavorite: false) == PropertyRating.none)
-        #expect(PropertyRating.fromLegacy(rating: 1.5, isFavorite: false) == PropertyRating.excluded)
-        #expect(PropertyRating.fromLegacy(rating: 3.0, isFavorite: false) == PropertyRating.considering)
-        #expect(PropertyRating.fromLegacy(rating: 4.0, isFavorite: false) == PropertyRating.good)
-        #expect(PropertyRating.fromLegacy(rating: 5.0, isFavorite: false) == PropertyRating.excellent)
-        
-        // Test toLegacyRating conversion
-        #expect(PropertyRating.none.toLegacyRating == 0.0)
-        #expect(PropertyRating.excluded.toLegacyRating == 1.5)
-        #expect(PropertyRating.considering.toLegacyRating == 3.0)
-        #expect(PropertyRating.good.toLegacyRating == 4.0)
-        #expect(PropertyRating.excellent.toLegacyRating == 5.0)
     }
     
     @Test("Sample data creation")

@@ -51,9 +51,9 @@ struct PropertyListRowView: View {
                     }
                     
                     // Rating indicator as colored circle
-                    if let propertyRating = listing.propertyRating, propertyRating != .none {
+                    if listing.propertyRating != .none {
                         Circle()
-                            .fill(getColorForRating(propertyRating))
+                        .fill(getColorForRating(listing.propertyRating))
                             .frame(width: 12, height: 12)
                     }
                 }

@@ -25,8 +25,10 @@ struct InviteUserView: View {
                             .font(.headline)
                         TextField("Enter email address", text: $inviteeEmail)
                             .textFieldStyle(.roundedBorder)
+                            #if os(iOS)
                             .keyboardType(.emailAddress)
                             .autocapitalization(.none)
+                            #endif
                             .autocorrectionDisabled()
                         
                         if !inviteeEmail.isEmpty && !isValidEmail(inviteeEmail) {
@@ -99,8 +101,8 @@ struct InviteUserView: View {
                 }
             }
             .navigationTitle("Invite Member")
-            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                #if os(iOS)
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
                         dismiss()
@@ -114,6 +116,21 @@ struct InviteUserView: View {
                     .disabled(!canSendInvitation || isLoading)
                     .fontWeight(.semibold)
                 }
+                #else
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Send Invitation") {
+                        sendInvitation()
+                    }
+                    .disabled(!canSendInvitation || isLoading)
+                    .fontWeight(.semibold)
+                }
+                #endif
             }
         }
         .alert("Error", isPresented: $showingError) {

@@ -115,7 +115,6 @@ final class PropertyExportServiceTests: XCTestCase {
             bedrooms: 2,
             bathrooms: 1,
             propertyType: .apartment,
-            rating: 4.0,
             propertyRating: .good
         )
         property.workspace = workspace
@@ -188,7 +187,6 @@ final class PropertyExportServiceTests: XCTestCase {
             bedrooms: 3,
             bathrooms: 2,
             propertyType: .house,
-            rating: 4.5,
             propertyRating: .excellent
         )
         originalProperty.workspace = workspace1

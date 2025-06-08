@@ -158,8 +158,8 @@ struct ContentView: View {
         return first.title < second.title
       case .rating:
         // Sort by propertyRating, handling nil values
-        let firstRating = first.propertyRating?.rawValue ?? "none"
-        let secondRating = second.propertyRating?.rawValue ?? "none"
+        let firstRating = first.propertyRating.rawValue
+        let secondRating = second.propertyRating.rawValue
         return firstRating > secondRating
       }
     }

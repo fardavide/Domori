@@ -46,7 +46,8 @@ struct PropertyTagTests {
             size: 100,
             bedrooms: 2,
             bathrooms: 1,
-            propertyType: .apartment
+            propertyType: .apartment,
+            propertyRating: .none
         )
         
         let tag = PropertyTag(name: "Test Tag", rating: .good)
