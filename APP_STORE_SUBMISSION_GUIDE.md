@@ -9,8 +9,8 @@
 
 ### ✅ App Configuration Fixed
 - **Bundle ID**: `fardavide.Domori` ✅
-- **Version**: 1.0 ✅  
-- **Build**: 1 ✅
+- **Version**: 1.1 ✅  
+- **Build**: 4 ✅
 - **Info.plist**: ✅ Privacy descriptions added
 - **CloudKit**: ✅ Working (local storage in simulator, CloudKit on device)
 

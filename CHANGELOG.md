@@ -4,6 +4,13 @@
 
 ---
 
+## [1.1] - 2025-06-08
+
+### 🎉 New Features
+- **Collaboration**: Share your properties with others! Invite people to your workspace and collaborate on property listings together.
+
+---
+
 ## How to Update This Changelog
 
 ### For New Releases:

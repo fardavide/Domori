@@ -8,7 +8,10 @@ struct DomoriApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             PropertyListing.self,
-            PropertyTag.self
+            PropertyTag.self,
+            User.self,
+            SharedWorkspace.self,
+            WorkspaceInvitation.self
         ])
         
         let modelConfiguration = ModelConfiguration(
@@ -26,7 +29,7 @@ struct DomoriApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainAppView()
                 .onAppear {
                     // Perform data migration on app startup
                     Task {

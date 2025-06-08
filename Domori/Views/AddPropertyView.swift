@@ -3,6 +3,7 @@ import SwiftUI
 struct AddPropertyView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @State private var userManager = UserManager.shared
     
     // Edit mode
     var listing: PropertyListing?
@@ -287,7 +288,7 @@ struct AddPropertyView: View {
             listing.updateRating(rating)
             listing.updatedDate = Date()
         } else {
-            // Create new listing
+            // Create new listing and add to user's workspace
             let newListing = PropertyListing(
                 title: title,
                 location: location,
@@ -300,7 +301,26 @@ struct AddPropertyView: View {
                 propertyType: propertyType,
                 propertyRating: rating
             )
+            
+            // Add to user's workspace
+            if let currentUser = userManager.getCurrentUser(context: modelContext),
+               let workspace = currentUser.primaryWorkspace {
+                newListing.workspace = workspace
+                if workspace.properties == nil {
+                    workspace.properties = []
+                }
+                workspace.properties!.append(newListing)
+                workspace.updatedDate = Date()
+            }
+            
             modelContext.insert(newListing)
+        }
+        
+        // Save changes to persist immediately
+        do {
+            try modelContext.save()
+        } catch {
+            print("Error saving property: \(error)")
         }
         
         dismiss()

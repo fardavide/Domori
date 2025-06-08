@@ -3,16 +3,21 @@ import SwiftData
 
 struct ContentView: View {
   @Environment(\.modelContext) private var modelContext
-  @Query private var listings: [PropertyListing]
+  @Query private var allProperties: [PropertyListing]
+  @Query private var allWorkspaces: [SharedWorkspace]
+  @State private var userManager = UserManager.shared
   @State private var showingAddListing = false
   @State private var searchText = ""
   @State private var sortOption: SortOption = .dateAdded
   @State private var showingCompareView = false
   @State private var selectedListings: Set<PropertyListing> = []
+
   
   var body: some View {
     NavigationStack {
       VStack(spacing: 0) {
+
+        
         // Search and sort controls
         VStack(alignment: .leading, spacing: 12) {
           HStack {
@@ -111,11 +116,29 @@ struct ContentView: View {
       .sheet(isPresented: $showingCompareView) {
         ComparePropertiesView(listings: Array(selectedListings))
       }
+
     }
   }
   
   private var filteredAndSortedListings: [PropertyListing] {
-    let filtered = listings.filter { listing in
+    // Try to ensure user exists in database
+    if userManager.isSignedIn, let userManagerUser = userManager.currentUser {
+      ensureUserInDatabase(userManagerUser)
+    }
+    
+    // Get current user and workspace
+    guard let currentUser = userManager.getCurrentUser(context: modelContext) else {
+      return []
+    }
+    
+    guard let workspace = currentUser.primaryWorkspace else {
+      return []
+    }
+    
+    let workspaceProperties = workspace.properties ?? []
+    
+    // Filter by search text
+    let filtered = workspaceProperties.filter { listing in
       if searchText.isEmpty {
         return true
       }
@@ -145,6 +168,48 @@ struct ContentView: View {
   private func deleteProperty(_ listing: PropertyListing) {
     modelContext.delete(listing)
     selectedListings.remove(listing)
+  }
+  
+
+  
+  private func getCurrentUserWorkspace() -> SharedWorkspace? {
+    guard let currentUser = userManager.getCurrentUser(context: modelContext) else {
+      return nil
+    }
+    return currentUser.primaryWorkspace
+  }
+  
+  private func ensureUserInDatabase(_ userManagerUser: User) {
+    // Check if user already exists in database
+    let userEmail = userManagerUser.email
+    let descriptor = FetchDescriptor<User>(
+      predicate: #Predicate<User> { user in
+        user.email == userEmail
+      }
+    )
+    
+    do {
+      let existingUsers = try modelContext.fetch(descriptor)
+      if existingUsers.isEmpty {
+        // Create user in database
+        let dbUser = User(name: userManagerUser.name, email: userManagerUser.email)
+        dbUser.id = userManagerUser.id // Keep the same ID
+        modelContext.insert(dbUser)
+        try modelContext.save()
+        
+        // Create personal workspace for user
+        dbUser.createPersonalWorkspace(context: modelContext)
+        try modelContext.save()
+      } else {
+        // Ensure user has a personal workspace
+        if let existingUser = existingUsers.first {
+          existingUser.createPersonalWorkspace(context: modelContext)
+          try modelContext.save()
+        }
+      }
+    } catch {
+      print("Error ensuring user in database: \(error.localizedDescription)")
+    }
   }
 }
 

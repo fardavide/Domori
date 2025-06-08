@@ -290,7 +290,13 @@ This project demonstrates several remarkable aspects of AI-powered development:
 
 ## 🔧 Version History
 
-### Current Version: 1.0.2
+### Current Version: 1.1
+- **Seamless Collaboration**: Properties automatically shared within workspaces
+- **Streamlined Invitations**: Direct invite access from Settings tab
+- **Simplified UX**: Removed sign in/out complexity with automatic iCloud authentication
+- **Enhanced Settings**: Merged collaboration features for easier access
+
+### Version 1.0.2
 - **Critical Fixes**: Text selection and field filling in UI tests
 - **Enhanced Documentation**: Streamlined testing and screenshot requirements
 - **Test Reliability**: All iPhone screenshots verified with mandatory fields

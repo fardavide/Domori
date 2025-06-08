@@ -22,6 +22,7 @@ final class PropertyListing {
     
     // Relationships
     @Relationship(deleteRule: .nullify, inverse: \PropertyTag.properties) var tags: [PropertyTag]?
+    @Relationship(deleteRule: .nullify, inverse: \SharedWorkspace.properties) var workspace: SharedWorkspace?
     
     init(
         title: String,
