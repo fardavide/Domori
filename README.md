@@ -1,106 +1,32 @@
 # Domori 🏠
 
-> **AI Experiment**: This entire cross-platform app was built using [Cursor AI](https://cursor.com) as a proof-of-concept for AI-powered development. From initial concept to final implementation, every line of code, architecture decision, and feature was created through AI assistance.
+A modern, buyers' companion for property listing management app for iPhone, iPad, and macOS. Built with Swift and designed for anyones who's in the process of buying home, and needs a reliable single platform where to keep track of interesting properties.
 
-A modern, production-ready property listing management app for iPhone, iPad, and macOS. Built with the latest Swift technologies and designed for real estate professionals, investors, and anyone managing property portfolios.
-
-## 🤖 About This Project
-
-This project represents an experiment in AI-powered software development using Cursor AI. The entire application was conceived, designed, and implemented through AI assistance, demonstrating the current capabilities of AI in creating production-ready, cross-platform mobile applications.
-
-**Development Stack:**
-- **AI Assistant**: Cursor AI (Claude Sonnet 4)
-- **Language**: Swift 6.0
-- **Frameworks**: SwiftUI, SwiftData, CloudKit
-- **Platform**: iOS 18.5+, iPadOS 18.5+, macOS 14+, visionOS 2.5+
-- **Testing**: swift-testing framework
+> **AI Experiment Update**: This project started as an experiment using AI for development. **Through version 1.1, AI wrote 100% of the code** while the developer only reviewed changes using technical expertise and approved them - the developer didn't write a single line of code. However, AI has proven to be **highly unreliable**: it frequently changes unwanted parts of code, breaks 5 things while fixing 1, doesn't run tests properly, and debugging is troublesome because AI often falsely claims tests have passed. The AI also tends to write poor quality code, putting excessive logic into Views instead of following proper architecture patterns. **Starting from version 1.1, the developer will take over maintaining the project and writing code**, while **AI will only be used for drafting or creating proof-of-concepts for major changes/features**. All AI-generated code will be carefully analyzed by the developer to ensure it's well-tested, follows clean code principles, and adheres to project guidelines and best practices.
 
 ## ✨ Features
 
-### Core Functionality
 - 📝 **Property Management**: Add, edit, and organize property listings with comprehensive details
-- 🏷️ **Smart Tagging System**: Custom tags with rating-based color coding and many-to-many relationships
-- ⭐ **Advanced Rating System**: PropertyRating enum with 5 levels (None, Excluded, Considering, Good, Excellent)
-- 🔍 **Search & Filter**: Advanced search and multiple sorting options including rating-based sorting
+- 🏷️ **Smart Tagging System**: Custom tags with rating-based color coding, to notate pros and cons
+- ⭐ **Advanced Rating System**: 5-level rating system (None, Excluded, Considering, Good, Excellent) to assign a summary rating
+- 🔍 **Search & Filter**: Advanced search and multiple sorting options
 - 📊 **Property Comparison**: Side-by-side analysis with automatic best value highlighting
-
-### Property Details
-- 🏠 **Basic Information**: Title, location, link, price, size, bedrooms, bathrooms, property type
-- 📞 **Agent Contact**: Add agent phone numbers with tap-to-call and copy functionality
-- 🎯 **Rating System**: Modern enum-based rating with visual color indicators
-- 🏷️ **Custom Tags**: Create and assign unlimited custom tags with rating-based colors
-- 🔗 **External Links**: Support for property listing URLs with automatic opening
-
-### International Support
-- 🌍 **Locale-Aware**: Automatic currency detection (USD, EUR, GBP, etc.)
-- 📏 **Unit Adaptation**: Smart metric/imperial system detection with iOS 16+ measurementSystem API
-- 🏛️ **Regional Formatting**: Native number and currency formatting
-- 🗺️ **European Focus**: Optimized for European property markets with Euro pricing and metric units
-
-### Advanced Features
-- 📊 **Property Comparison**: Side-by-side analysis with best value highlighting for price/unit, bedrooms, bathrooms
 - ☁️ **iCloud Sync**: Seamless synchronization across all devices via CloudKit
-- 🎯 **Smart Sorting**: Date, price, size, title, and rating-based sorting options
-- 💫 **Modern UI**: Beautiful SwiftUI interface with flow layouts and responsive design
-- 🔄 **Data Migration**: Seamless migration from legacy rating systems
-- 🖥️ **Cross-Platform**: Native UI adaptations for iOS, iPadOS, and macOS
+- 🌍 **International Support**: Locale-aware currency and unit formatting
+- 🖥️ **Cross-Platform**: Native UI for iOS, iPadOS, and macOS
 
-## 🛠️ Technical Implementation
+## 🛠️ Technical Stack
 
-### Architecture
-- **SwiftData**: Modern Core Data replacement for local persistence
-- **CloudKit**: Automatic iCloud synchronization
-- **SwiftUI**: Declarative UI framework with conditional compilation for platform-specific features
-- **swift-testing**: Modern testing framework with comprehensive coverage
-
-### Models
-- `PropertyListing`: Main property model with relationships and migration support
-- `PropertyRating`: Modern enum-based rating system (None, Excluded, Considering, Good, Excellent)
-- `PropertyTag`: Custom tagging system with rating-based color coding
-- `DataMigrationManager`: Handles smooth transitions between data model versions
-
-### Key Technical Features
-- **Cross-Platform Compatibility**: Conditional compilation for iOS/macOS differences
-- **Modern APIs**: Uses latest iOS 16+ measurementSystem API with fallback support
-- **Type-Safe Enums**: PropertyRating enum for better type safety than numeric ratings
-- **Migration System**: Handles legacy data transitions seamlessly
-- **Build Stability**: Resolved Swift compiler type-checking issues for complex UIs
-- **Test Coverage**: Comprehensive unit tests including migration scenarios
-
-## 🔄 Data Migration
-
-The app includes a robust migration system that handles:
-- Legacy `isFavorite` boolean to new `PropertyRating` enum conversion
-- Automatic rating value mapping (0.0-5.0 scale to enum values)
-- Backwards compatibility for existing data
-- Validation and error handling for edge cases
-
-## 🌍 Internationalization
-
-The app automatically adapts to your device's regional settings:
-
-- **Currency**: Detects and uses local currency (€, £, $, ¥, etc.)
-- **Measurements**: 
-  - Metric countries: Square meters (m²)
-  - Imperial countries: Square feet (sq ft)
-  - Uses modern `measurementSystem` API (iOS 16+) with `usesMetricSystem` fallback
-- **Formatting**: Native number and currency display
-- **Countries Supported**: Worldwide with smart defaults
-
-## 📱 Compatibility
-
-- **iOS**: 18.5+
-- **iPadOS**: 18.5+
-- **macOS**: 14.0+
-- **visionOS**: 2.5+
-- **Xcode**: 16.0+
-- **Swift**: 6.0+
+- **Language**: Swift 6.0
+- **UI Framework**: SwiftUI
+- **Data Persistence**: SwiftData with CloudKit
+- **Testing**: swift-testing framework
+- **Platforms**: iOS 18.5+, iPadOS 18.5+, macOS 14+, visionOS 2.5+
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 - Xcode 16.0 or later
-- iOS 18.5+ / macOS 14.0+ deployment target
 - Apple Developer account (for CloudKit features)
 
 ### Installation
@@ -111,234 +37,79 @@ git clone https://github.com/yourusername/domori.git
 cd domori
 ```
 
-2. Open the project in Xcode:
-```bash
-open Domori.xcodeproj
-```
+2. Open in Xcode:
+```bash open Domori.xcodeproj```
 
-3. Build and run:
-   - Select your target device or simulator
-   - Press `Cmd+R` to build and run
+3. Configure CloudKit:
+   - Set your Apple Developer Team ID in project settings
+   - Enable CloudKit capabilities in your Apple Developer account
 
-### Configuration
-
-The app includes CloudKit entitlements for iCloud sync. For full functionality:
-
-1. Configure your Apple Developer Team ID in project settings
-2. Enable CloudKit capabilities in your Apple Developer account
-3. The app will automatically create the necessary CloudKit containers
-
-## 📂 Project Structure
-
-```
-Domori/
-├── Domori/
-│   ├── Models/                 # Data models
-│   │   ├── PropertyListing.swift
-│   │   ├── PropertyRating.swift        # Enum-based rating system
-│   │   ├── PropertyTag.swift           # Custom tagging system
-│   │   ├── DataMigrationManager.swift  # Migration utilities
-│   │   └── PropertyListing+SampleData.swift
-│   ├── Views/                  # SwiftUI views
-│   │   ├── ContentView.swift           # Main property list
-│   │   ├── PropertyDetailView.swift    # Property details with inline editing
-│   │   ├── PropertyListRowView.swift   # Property list item with tags
-│   │   ├── AddPropertyView.swift       # Add/edit property form
-│   │   ├── AddTagView.swift            # Create and manage tags
-│   │   ├── TagChipView.swift           # Tag display component
-│   │   ├── ComparePropertiesView.swift # Side-by-side comparison
-│   │   ├── FlowLayout.swift            # Dynamic tag layout
-│   │   └── SettingsView.swift          # App settings
-│   ├── Assets.xcassets/        # App icons and images
-│   ├── DomoriApp.swift         # App entry point
-│   ├── Info.plist             # App configuration
-│   └── Domori.entitlements    # CloudKit permissions
-├── DomoriTests/               # Unit tests
-│   ├── DomoriTests.swift      # Integration tests
-│   ├── PropertyListingTests.swift  # Model tests
-│   ├── PropertyTagTests.swift      # Tag system tests
-│   └── MigrationTests.swift   # Migration testing
-├── DomoriUITests/             # UI tests
-│   ├── DomoriUITests.swift    # Screenshot automation
-│   └── TagDisplayUITests.swift # Tag UI testing
-└── Documentation/             # Project documentation
-    ├── README.md              # This file
-    ├── CHANGELOG.md           # Version history
-    ├── TESTING_STRATEGY.md    # Testing guidelines
-    ├── SCREENSHOT_REQUIREMENTS.md # App Store specifications
-    ├── UI_GUIDELINES.md       # Design standards
-    ├── CODE_STYLE.md          # Coding standards
-    ├── DEVELOPMENT_PRACTICES.md # Workflow guidelines
-    └── COMMIT_RULES.md        # Git conventions
-```
+4. Build and run with `Cmd+R`
 
 ## 🧪 Testing
 
-The project includes comprehensive testing using the modern swift-testing framework:
+The project uses the modern swift-testing framework with comprehensive coverage:
 
-### Test Coverage
-- **Unit Tests**: Models, data operations, business logic, and tag system
-- **Migration Tests**: Data migration scenarios and edge cases
-- **Integration Tests**: Cross-component functionality and SwiftData persistence
-- **UI Tests**: User interface, navigation flows, and screenshot automation
-
-### Testing Guidelines
-- **Always use European addresses with Euro currency** in test data
-- **Prefer iPhone 16 Pro simulator** for consistency
-- **Target performance**: iPhone ~171s, iPad ~199s for UI tests
-- **Never allow placeholder values**: "€0", "0 sqm", or "NaN/sqm"
-- **Mandatory fields**: Price, size, bedrooms, bathrooms must always be filled
+- **Unit Tests**: Models, business logic, and data operations
+- **Migration Tests**: Data model transitions and edge cases
+- **Integration Tests**: Cross-component functionality
+- **UI Tests**: User interface and screenshot automation
 
 ### Running Tests
 ```bash
-# Run all tests in Xcode
+# Run all tests
 Cmd+U
 
-# Run specific test on iPhone 16 Pro simulator
+# Run on specific simulator
 xcodebuild test -project Domori.xcodeproj -scheme Domori -destination "platform=iOS Simulator,name=iPhone 16 Pro"
-
-# Generate iPhone screenshots
-xcodebuild test -project Domori.xcodeproj -scheme Domori -destination 'platform=iOS Simulator,name=iPhone 16 Pro' -only-testing:DomoriUITests/DomoriUITests/testAppStoreScreenshots_iPhone
 ```
 
-### Test Results
-✅ All tests pass on iPhone 16 Pro simulator  
-✅ Migration tests verify data integrity  
-✅ Cross-platform compatibility verified  
-✅ Screenshot automation generates App Store ready images
+## 🌍 Internationalization
+
+The app automatically adapts to your device's regional settings:
+
+- **Currency**: Detects and uses local currency (€, £, $, ¥, etc.)
+- **Measurements**: Metric (m²) or Imperial (sq ft) based on locale
+- **Formatting**: Native number and currency display
+
+## 🔄 Data Migration
+
+Includes robust migration system that handles:
+- Legacy data model transitions
+- Automatic rating value mapping
+- Backwards compatibility
+- Validation and error handling
 
 ## 📸 App Store Screenshots
 
-The project includes automated screenshot generation for App Store submission. For detailed requirements and specifications, see [`SCREENSHOT_REQUIREMENTS.md`](SCREENSHOT_REQUIREMENTS.md).
-
-### iPhone Screenshots (iPhone 16 Pro)
-
-<table>
-<tr>
-<td align="center">
-<img src="AppStoreScreenshots/01_iPhone_MainScreen_ThreeListings.png" width="200" alt="Main Screen">
-<br><strong>Main Property List</strong>
-<br>3 European properties with Euro pricing and tag flow layout
-</td>
-<td align="center">
-<img src="AppStoreScreenshots/02_iPhone_AddProperty_FilledForm.png" width="200" alt="Add Property">
-<br><strong>Add Property Form</strong>
-<br>Filled form with European address and all mandatory fields
-</td>
-<td align="center">
-<img src="AppStoreScreenshots/03_iPhone_PropertyDetail.png" width="200" alt="Property Detail">
-<br><strong>Property Detail View</strong>
-<br>Comprehensive property information with custom tags
-</td>
-</tr>
-<tr>
-<td align="center">
-<img src="AppStoreScreenshots/04_iPhone_TagAddition.png" width="200" alt="Tag Addition">
-<br><strong>Tag Addition Screen</strong>
-<br>Create custom tags with rating-based color selection
-</td>
-<td align="center">
-<img src="AppStoreScreenshots/05_iPhone_PropertyComparison.png" width="200" alt="Property Comparison">
-<br><strong>Property Comparison</strong>
-<br>Side-by-side analysis with best value highlighting and tag comparison
-</td>
-<td align="center">
-</td>
-</tr>
-</table>
-
-### Screenshot Overview
-- **Target Device**: iPhone 16 Pro (6.3" display)
-- **Screenshots**: 5 comprehensive images showcasing core functionality
-- **Requirements**: European properties with Euro currency and metric units
-- **Validation**: All mandatory fields (price, size, bedrooms, bathrooms) properly filled
-- **Latest Update**: Version 1.0.2 - Enhanced with robust field validation
-
-### Generated Screenshots
-1. `01_iPhone_MainScreen_ThreeListings.png` - Main property list with tag flow layout
-2. `02_iPhone_AddProperty_FilledForm.png` - Completed add property form with all fields
-3. `03_iPhone_PropertyDetail.png` - Property detail view with custom tags and rating
-4. `04_iPhone_TagAddition.png` - Custom tag creation with rating selection
-5. `05_iPhone_PropertyComparison.png` - Property comparison with tag analysis
-
-## 🎯 AI Development Achievements
-
-This project demonstrates several remarkable aspects of AI-powered development:
-
-### What AI Excelled At:
-- **Architecture Design**: Created a clean, modern SwiftData architecture with migration support
-- **Feature Implementation**: Built complex features like property comparison and tagging systems
-- **Cross-Platform Development**: Implemented conditional compilation for iOS/macOS compatibility
-- **Problem Solving**: Resolved Swift compiler issues and deprecated API usage
-- **Testing**: Created comprehensive test suites including edge cases and screenshot automation
-- **Code Quality**: Generated well-structured, documented, production-ready code
-
-### Recent AI Achievements:
-- **Build Stabilization**: Fixed complex Swift compiler type-checking issues
-- **API Modernization**: Migrated from deprecated APIs to modern alternatives
-- **Data Migration**: Designed and implemented seamless data model transitions
-- **Test Automation**: Created robust UI test suite with screenshot generation
-- **Cross-Platform Polish**: Ensured consistent experience across iOS and macOS
-
-### Development Process:
-1. **Conceptualization**: AI translated high-level requirements into technical specifications
-2. **Implementation**: Generated complete, working code for all features
-3. **Problem Resolution**: Diagnosed and fixed build errors and test failures
-4. **Migration Planning**: Designed backward-compatible data model changes
-5. **Testing**: Created comprehensive unit and integration tests
-6. **Documentation**: Generated thorough documentation and technical guides
+Automated screenshot generation for App Store submission is included. Screenshots showcase:
+- Main property list with European properties
+- Add property form with all fields completed
+- Property detail view with tags and ratings
+- Custom tag creation interface
+- Property comparison functionality
 
 ## 🔧 Version History
 
-### Current Version: 1.1
-- **Seamless Collaboration**: Properties automatically shared within workspaces
-- **Streamlined Invitations**: Direct invite access from Settings tab
-- **Simplified UX**: Removed sign in/out complexity with automatic iCloud authentication
-- **Enhanced Settings**: Merged collaboration features for easier access
-
-### Version 1.0.2
-- **Critical Fixes**: Text selection and field filling in UI tests
-- **Enhanced Documentation**: Streamlined testing and screenshot requirements
-- **Test Reliability**: All iPhone screenshots verified with mandatory fields
-
-### Version 1.0.1
-- **Tag System**: Comprehensive custom tagging with rating-based colors
-- **UI Optimization**: Flow layout and improved visual density
-- **Screenshot Gallery**: iPhone App Store ready images
-
-### Version 1.0.0
-- **Initial Release**: Complete property management system
-- **Cross-Platform**: iOS, iPadOS, macOS support
-- **Modern Architecture**: SwiftData, CloudKit, SwiftUI
-
 For complete version history, see [CHANGELOG.md](CHANGELOG.md).
+
+## 📚 Documentation
+
+- [Testing Strategy](TESTING_STRATEGY.md) - Testing guidelines and best practices
+- [Code Style](CODE_STYLE.md) - Coding standards and conventions
+- [Development Practices](DEVELOPMENT_PRACTICES.md) - Workflow guidelines
+- [UI Guidelines](UI_GUIDELINES.md) - Design standards
+- [Screenshot Requirements](SCREENSHOT_REQUIREMENTS.md) - App Store specifications
 
 ## 🤝 Contributing
 
-This is an AI experiment, but contributions are welcome! Please:
-
 1. Fork the repository
 2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
+3. Make your changes following the code style guidelines
+4. Add comprehensive tests
 5. Ensure all tests pass on both iOS and macOS
 6. Submit a pull request
 
 ## 📄 License
 
-This project is open source and available under the [MIT License](LICENSE).
-
-## 🙏 Acknowledgments
-
-- **Cursor AI**: For providing the AI development environment
-- **Claude Sonnet 4**: The AI model that created this entire application
-- **Apple**: For the excellent development frameworks (SwiftUI, SwiftData, CloudKit)
-- **Swift Community**: For the modern swift-testing framework
-
-## 📞 Contact
-
-This is an experimental project built entirely with AI assistance. For questions or feedback about the AI development process, feel free to open an issue.
-
----
-
-**⚡ Built entirely with AI using Cursor** - Showcasing the future of cross-platform software development 
+This project is available under the [MIT License](LICENSE).
