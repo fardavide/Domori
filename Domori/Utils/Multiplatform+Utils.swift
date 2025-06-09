@@ -1,8 +1,20 @@
+import SwiftUI
 #if os(iOS)
 import UIKit
 #elseif os(macOS)
 import AppKit
 #endif
+
+final class Application {
+  
+  static func openURL(_ url: URL) {
+#if os(iOS)
+    UIApplication.shared.open(url)
+#elseif os(macOS)
+    NSWorkspace.shared.open(url)
+#endif
+  }
+}
 
 final class Pasteboard {
   

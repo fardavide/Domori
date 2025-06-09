@@ -7,7 +7,7 @@ import UniformTypeIdentifiers
 struct PropertyListingExport: Codable {
     let title: String
     let location: String
-    let link: String?
+    let link: String
     let agentContact: String?
     let price: Double
     let size: Double

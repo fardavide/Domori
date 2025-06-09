@@ -30,15 +30,11 @@ struct PropertyDetailView: View {
                                 .foregroundStyle(.secondary)
                             
                             // Display link if available
-                            if let link = listing.link, !link.isEmpty {
+                            if !listing.link.isEmpty {
                                 Button(action: {
-                                    if let url = URL(string: link) {
-#if os(iOS)
-                                        UIApplication.shared.open(url)
-#else
-                                        NSWorkspace.shared.open(url)
-#endif
-                                    }
+                                  if let url = URL(string: listing.link) {
+                                    Application.openURL(url)
+                                  }
                                 }) {
                                     HStack(spacing: 4) {
                                         Image(systemName: "link")
@@ -125,7 +121,7 @@ struct PropertyDetailView: View {
                             selectedRating: Binding(
                                 get: { listing.propertyRating },
                                 set: { newRating in
-                                    listing.updateRating(newRating)
+                                    listing.propertyRating = newRating
                                     try? modelContext.save()
                                 }
                             )
@@ -311,9 +307,6 @@ struct PropertyDetailView: View {
             .padding()
         }
         .navigationTitle("Property Details")
-#if os(iOS)
-        .navigationBarTitleDisplayMode(.inline)
-#endif
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button("Edit") {
