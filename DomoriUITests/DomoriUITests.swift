@@ -2,25 +2,7 @@
 
 import XCTest
 
-// Extension to help with form filling
-extension XCUIElement {
-    func clearAndTypeText(_ text: String) {
-        // Tap the field to focus it
-        self.tap()
-        
-        // Wait a moment for the field to become focused
-        Thread.sleep(forTimeInterval: 0.1)
-        
-        // Double-tap to select all existing text (including placeholder)
-        self.doubleTap()
-        
-        // Wait a moment for selection to complete
-        Thread.sleep(forTimeInterval: 0.1)
-        
-        // Type the new text (this will replace any selected text)
-        self.typeText(text)
-    }
-}
+
 
 final class DomoriUITests: XCTestCase {
 

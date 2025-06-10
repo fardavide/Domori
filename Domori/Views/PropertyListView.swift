@@ -10,7 +10,6 @@ struct PropertyListView: View {
   @State private var showingCompareView = false
   @State private var selectedListings: Set<PropertyListing> = []
   @State private var showingShareSheet = false
-  @State private var sheetId = UUID() // Force fresh view instance
   
   var body: some View {
     NavigationStack {
@@ -109,7 +108,6 @@ struct PropertyListView: View {
           }
           
           Button {
-            sheetId = UUID() // Generate new ID for fresh view
             showingAddListing = true
           } label: {
             Image(systemName: "plus")
@@ -118,7 +116,6 @@ struct PropertyListView: View {
       }
       .sheet(isPresented: $showingAddListing) {
         AddPropertyView()
-          .id(sheetId) // Force fresh view instance
       }
       .sheet(isPresented: $showingCompareView) {
         ComparePropertiesView(listings: Array(selectedListings))

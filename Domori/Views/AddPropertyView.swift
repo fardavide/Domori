@@ -133,17 +133,13 @@ struct AddPropertyView: View {
   }
   
   private var bathroomsPicker: some View {
-    HStack {
-      Text("Bathrooms")
-      Spacer()
-      Picker("Bathrooms", selection: $bathrooms) {
-        ForEach([0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0], id: \.self) { count in
-          Text(formatBathroomCount(count))
-            .tag(count)
-        }
+    Picker("Bathrooms", selection: $bathrooms) {
+      ForEach([0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0], id: \.self) { count in
+        Text(formatBathroomCount(count))
+          .tag(count)
       }
-      .pickerStyle(.menu)
     }
+    .pickerStyle(.menu)
   }
   
   private func formatBathroomCount(_ count: Double) -> String {

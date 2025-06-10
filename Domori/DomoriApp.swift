@@ -4,6 +4,8 @@ import SwiftData
 @main
 struct DomoriApp: App {
   
+  private static let isTest = ProcessInfo.processInfo.arguments.contains("test")
+  
   static let schema = Schema([
     PropertyListing.self,
     PropertyTag.self
@@ -12,8 +14,8 @@ struct DomoriApp: App {
   var sharedModelContainer: ModelContainer = {
     let modelConfiguration = ModelConfiguration(
       schema: schema,
-      isStoredInMemoryOnly: false,
-      cloudKitDatabase: .automatic
+      isStoredInMemoryOnly: isTest,
+      cloudKitDatabase: isTest ? .none : .automatic
     )
     
     do {
