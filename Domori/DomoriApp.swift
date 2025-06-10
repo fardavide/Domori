@@ -6,10 +6,7 @@ struct DomoriApp: App {
   
   static let schema = Schema([
     PropertyListing.self,
-    PropertyTag.self,
-    User.self,
-    SharedWorkspace.self,
-    WorkspaceInvitation.self
+    PropertyTag.self
   ])
   
   var sharedModelContainer: ModelContainer = {

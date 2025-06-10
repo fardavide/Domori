@@ -14,7 +14,7 @@ final class PropertyExportServiceTests {
     init() throws {
         // Create in-memory container for testing
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        container = try ModelContainer(for: PropertyListing.self, SharedWorkspace.self, User.self, configurations: config)
+        container = try ModelContainer(for: PropertyListing.self, PropertyTag.self, configurations: config)
         context = container.mainContext
     }
     
@@ -97,18 +97,12 @@ final class PropertyExportServiceTests {
     func exportWithListings() throws {
         print("🧪 Testing export with listings")
         
-        // Create test user and workspace
-        let user = User(name: "Test User", email: "test@example.com")
-        context.insert(user)
-        let workspace = SharedWorkspace(name: "Test Workspace", owner: user)
-        context.insert(workspace)
-        
         // Create test property listing
         let property = PropertyListing(
             title: "Test Property",
             location: "Test Location",
-            link: nil,
-            agentContact: nil,
+            link: "https://example.com",
+            agentContact: "Test Agent",
             price: 100000,
             size: 50,
             bedrooms: 2,
@@ -116,7 +110,6 @@ final class PropertyExportServiceTests {
             propertyType: .apartment,
             propertyRating: .good
         )
-        property.workspace = workspace
         context.insert(property)
         
         try context.save()
@@ -137,12 +130,6 @@ final class PropertyExportServiceTests {
     func importEmptyData() throws {
         print("🧪 Testing import empty data")
         
-        // Create test user and workspace
-        let user = User(name: "Test User", email: "test@example.com")
-        context.insert(user)
-        let workspace = SharedWorkspace(name: "Test Workspace", owner: user)
-        context.insert(workspace)
-        
         // Create empty export data
         let emptyExport = PropertyListingsExport(listings: [])
         let encoder = JSONEncoder()
@@ -151,7 +138,6 @@ final class PropertyExportServiceTests {
         
         let result = exportService.importListings(
             from: data,
-            toWorkspace: workspace,
             context: context,
             replaceExisting: false
         )
@@ -166,17 +152,6 @@ final class PropertyExportServiceTests {
     func roundTripExportImport() throws {
         print("🧪 Testing round-trip export/import")
         
-        // Create test users and workspaces
-        let user1 = User(name: "User 1", email: "user1@example.com")
-        let user2 = User(name: "User 2", email: "user2@example.com")
-        context.insert(user1)
-        context.insert(user2)
-        
-        let workspace1 = SharedWorkspace(name: "Source Workspace", owner: user1)
-        let workspace2 = SharedWorkspace(name: "Target Workspace", owner: user2)
-        context.insert(workspace1)
-        context.insert(workspace2)
-        
         // Create test property
         let originalProperty = PropertyListing(
             title: "Round Trip Test",
@@ -190,92 +165,107 @@ final class PropertyExportServiceTests {
             propertyType: .house,
             propertyRating: .excellent
         )
-        originalProperty.workspace = workspace1
         context.insert(originalProperty)
         
         try context.save()
         
-        // Export from workspace1
-        let exportData = try exportService.exportWorkspaceListings(workspace: workspace1, context: context)
+        // Export all properties
+        let exportData = try exportService.exportAllListings(context: context)
         print("📋 Exported data size: \(exportData.count) bytes")
         
-        // Import to workspace2
+        // Clear the database
+        let allProperties = try context.fetch(FetchDescriptor<PropertyListing>())
+        for property in allProperties {
+            context.delete(property)
+        }
+        try context.save()
+        
+        // Verify database is empty
+        let emptyCheck = try context.fetch(FetchDescriptor<PropertyListing>())
+        #expect(emptyCheck.isEmpty, "Database should be empty after clearing")
+        
+        // Import the data back
         let importResult = exportService.importListings(
             from: exportData,
-            toWorkspace: workspace2,
             context: context,
             replaceExisting: false
         )
         
         print("📋 Import result: success=\(importResult.success), imported=\(importResult.importedCount)")
-        #expect(importResult.success, "Import should succeed: \(importResult.message)")
+        #expect(importResult.success, "Import should succeed")
         #expect(importResult.importedCount == 1, "Should import 1 property")
         
-        // Verify imported property using simpler fetch
-        let allListings = try context.fetch(FetchDescriptor<PropertyListing>())
-        let importedProperties = allListings.filter { $0.workspace?.id == workspace2.id }
-        
+        // Verify the imported property
+        let importedProperties = try context.fetch(FetchDescriptor<PropertyListing>())
         #expect(importedProperties.count == 1, "Should have 1 imported property")
         
         let importedProperty = importedProperties.first!
-        #expect(importedProperty.title == originalProperty.title)
-        #expect(importedProperty.location == originalProperty.location)
-        #expect(importedProperty.price == originalProperty.price)
-        #expect(importedProperty.propertyType == originalProperty.propertyType)
+        #expect(importedProperty.title == originalProperty.title, "Title should match")
+        #expect(importedProperty.location == originalProperty.location, "Location should match")
+        #expect(importedProperty.price == originalProperty.price, "Price should match")
+        #expect(importedProperty.propertyType == originalProperty.propertyType, "Property type should match")
+        #expect(importedProperty.propertyRating == originalProperty.propertyRating, "Rating should match")
         
         print("✅ Round-trip export/import passed")
     }
     
-    @Test("Validate backup JSON")
-    func validateBackupJson() throws {
-        // This is the exact JSON from your backup.json file
-        let jsonString = """
-        {
-          "exportDate": "2025-06-08T15:43:53.293393Z",
-          "version": "1.0",
-          "listings": [
-            {
-              "title": "Arenella Meomartini",
-              "bedrooms": 3,
-              "bathrooms": 2,
-              "size": 115,
-              "price": 234000,
-              "tags": [
-                { "name": "Price", "rating": "good" },
-                { "name": "Sea distance", "rating": "good" },
-                { "name": "Size", "rating": "considering" }
-              ],
-              "agentContact": "123987",
-              "createdDate": "2025-06-08T05:33:04Z",
-              "updatedDate": "2025-06-08T15:43:53.293393Z",
-              "link": "C.it",
-              "location": "Arenella",
-              "propertyRating": "considering",
-              "propertyType": "Villa",
-              "rating": 3
-            }
-          ]
-        }
-        """
+    @Test("Import with replace existing")
+    func importWithReplaceExisting() throws {
+        print("🧪 Testing import with replace existing")
         
-        let jsonData = jsonString.data(using: .utf8)!
+        // Create initial property
+        let initialProperty = PropertyListing(
+            title: "Initial Property",
+            location: "Initial Location",
+            link: "https://initial.com",
+            agentContact: nil,
+            price: 150000,
+            size: 60,
+            bedrooms: 2,
+            bathrooms: 1,
+            propertyType: .apartment,
+            propertyRating: .good
+        )
+        context.insert(initialProperty)
+        try context.save()
         
-        // Test the validation directly
-        let validation = exportService.validateImportData(jsonData)
+        // Create import data with different property
+        let importProperty = PropertyListing(
+            title: "Import Property",
+            location: "Import Location",
+            link: "https://import.com",
+            agentContact: "Import Agent",
+            price: 250000,
+            size: 80,
+            bedrooms: 3,
+            bathrooms: 2,
+            propertyType: .house,
+            propertyRating: .excellent
+        )
         
-        // Use #expect with custom failure message
-        if !validation.isValid {
-            if let error = validation.error {
-                print("❌ VALIDATION ERROR: \(error)")
-                Issue.record("JSON validation failed with error: \(error)")
-            } else {
-                print("❌ VALIDATION FAILED: No error message provided")
-                Issue.record("JSON validation failed with no error message")
-            }
-        } else {
-            print("✅ Validation passed!")
-            #expect(validation.version == "1.0")
-            #expect(validation.listingCount == 1)
-        }
+        let exportData = PropertyListingsExport(listings: [importProperty])
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let data = try encoder.encode(exportData)
+        
+        // Import with replace existing
+        let result = exportService.importListings(
+            from: data,
+            context: context,
+            replaceExisting: true
+        )
+        
+        print("📋 Import result: success=\(result.success), imported=\(result.importedCount)")
+        #expect(result.success, "Import should succeed")
+        #expect(result.importedCount == 1, "Should import 1 property")
+        
+        // Verify only the imported property exists
+        let allProperties = try context.fetch(FetchDescriptor<PropertyListing>())
+        #expect(allProperties.count == 1, "Should have only 1 property after replace")
+        
+        let finalProperty = allProperties.first!
+        #expect(finalProperty.title == "Import Property", "Should have the imported property")
+        
+        print("✅ Import with replace existing passed")
     }
 }

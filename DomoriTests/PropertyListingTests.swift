@@ -39,6 +39,8 @@ struct PropertyListingTests {
         let listing = PropertyListing(
             title: "Legacy Property",
             location: "456 Legacy Avenue",
+            link: "https://example.com/legacy",
+            agentContact: nil,
             price: 750000,
             size: 150,
             bedrooms: 3,
@@ -49,7 +51,7 @@ struct PropertyListingTests {
         
         #expect(listing.title == "Legacy Property")
         #expect(listing.location == "456 Legacy Avenue")
-        #expect(listing.link == nil)
+        #expect(listing.link == "https://example.com/legacy")
         #expect(listing.agentContact == nil)
         #expect(listing.price == 750000)
         #expect(listing.size == 150)
@@ -64,6 +66,8 @@ struct PropertyListingTests {
         let listing = PropertyListing(
             title: "Default Property",
             location: "789 Default Road",
+            link: "https://example.com/default",
+            agentContact: nil,
             price: 300000,
             size: 80,
             bedrooms: 1,
@@ -81,6 +85,8 @@ struct PropertyListingTests {
         let listing = PropertyListing(
             title: "Format Test",
             location: "123 Format Street",
+            link: "https://example.com/format",
+            agentContact: nil,
             price: 1234567,
             size: 150.5,
             bedrooms: 3,
@@ -100,6 +106,8 @@ struct PropertyListingTests {
         let listing = PropertyListing(
             title: "Update Test",
             location: "123 Update Street",
+            link: "https://example.com/update",
+            agentContact: nil,
             price: 500000,
             size: 100,
             bedrooms: 2,
@@ -218,6 +226,7 @@ struct PropertyListingTests {
             title: "Property without Agent",
             location: "456 No Agent Street",
             link: "https://example.com/no-agent-property",
+            agentContact: nil,
             price: 500000,
             size: 100,
             bedrooms: 2,

@@ -42,14 +42,6 @@ struct PropertyListRowView: View {
                     
                     Spacer()
                     
-                    // Workspace sharing indicator
-                    if let workspace = listing.workspace,
-                       workspace.allParticipants.count > 1 {
-                        Image(systemName: "person.2.circle.fill")
-                            .foregroundColor(.green)
-                            .font(.caption)
-                    }
-                    
                     // Rating indicator as colored circle
                     if listing.propertyRating != .none {
                         Circle()

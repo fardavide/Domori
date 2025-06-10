@@ -6,16 +6,14 @@ struct ExportImportView: View {
   @Environment(\.dismiss) private var dismiss
   @Environment(\.modelContext) private var modelContext
   
-  @Query private var workspaces: [SharedWorkspace]
+  @Query private var allProperties: [PropertyListing]
   @State private var exportService = PropertyExportService.shared
-  @State private var userManager = UserManager.shared
   
   @State private var showingExportPicker = false
   @State private var showingImportPicker = false
   @State private var showingAlert = false
   @State private var alertTitle = ""
   @State private var alertMessage = ""
-  @State private var selectedWorkspace: SharedWorkspace?
   @State private var exportData: Data?
   @State private var replaceExistingOnImport = false
   @State private var isProcessing = false
@@ -25,43 +23,38 @@ struct ExportImportView: View {
       Form {
         Section("Export Properties") {
           VStack(alignment: .leading, spacing: 12) {
-            Text("Choose a workspace to export properties from:")
+            Text("Export all your property listings to a JSON file:")
               .font(.caption)
               .foregroundColor(.secondary)
             
-            ForEach(availableWorkspaces, id: \.id) { workspace in
-              Button(action: {
-                selectedWorkspace = workspace
-                exportProperties(from: workspace)
-              }) {
-                HStack {
-                  Image(systemName: "folder.fill")
-                    .foregroundColor(.blue)
-                  
-                  VStack(alignment: .leading, spacing: 2) {
-                    Text("Placeholder")
-                      .font(.headline)
-                      .foregroundColor(.primary)
-                    
-                    if let count = workspace.properties?.count {
-                      Text("\(count) properties")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    }
-                  }
-                  
-                  Spacer()
-                  
-                  Image(systemName: "square.and.arrow.up")
-                    .foregroundColor(.blue)
-                }
-                .padding(.vertical, 4)
+            HStack {
+              Image(systemName: "house.fill")
+                .foregroundColor(.blue)
+              
+              VStack(alignment: .leading, spacing: 2) {
+                Text("All Properties")
+                  .font(.headline)
+                  .foregroundColor(.primary)
+                
+                Text("\(allProperties.count) properties")
+                  .font(.caption)
+                  .foregroundColor(.secondary)
               }
-              .disabled(isProcessing)
+              
+              Spacer()
+              
+              Button(action: {
+                exportProperties()
+              }) {
+                Label("Export", systemImage: "square.and.arrow.up")
+              }
+              .buttonStyle(.borderedProminent)
+              .disabled(isProcessing || allProperties.isEmpty)
             }
+            .padding(.vertical, 4)
             
-            if availableWorkspaces.isEmpty {
-              Text("No workspaces available for export")
+            if allProperties.isEmpty {
+              Text("No properties available for export")
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .italic()
@@ -79,7 +72,7 @@ struct ExportImportView: View {
               .font(.subheadline)
             
             if replaceExistingOnImport {
-              Text("⚠️ This will delete all existing properties in the selected workspace")
+              Text("⚠️ This will delete all existing properties")
                 .font(.caption)
                 .foregroundColor(.orange)
             }
@@ -91,14 +84,7 @@ struct ExportImportView: View {
                 .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            .disabled(isProcessing || availableWorkspaces.isEmpty)
-            
-            if availableWorkspaces.isEmpty {
-              Text("No workspaces available for import")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .italic()
-            }
+            .disabled(isProcessing)
           }
         }
         
@@ -166,10 +152,6 @@ struct ExportImportView: View {
   
   // MARK: - Computed Properties
   
-  private var availableWorkspaces: [SharedWorkspace] {
-    return workspaces
-  }
-  
   private var defaultExportFilename: String {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd"
@@ -179,12 +161,12 @@ struct ExportImportView: View {
   
   // MARK: - Export Functions
   
-  private func exportProperties(from workspace: SharedWorkspace) {
+  private func exportProperties() {
     isProcessing = true
     
     Task {
       do {
-        let data = try exportService.exportWorkspaceListings(workspace: workspace, context: modelContext)
+        let data = try exportService.exportAllListings(context: modelContext)
         
         await MainActor.run {
           self.exportData = data
@@ -301,89 +283,19 @@ struct ExportImportView: View {
         Export date: \(exportDateString)
         Version: \(validation.version ?? "Unknown")
         
-        Choose a workspace to import to:
+        This will import the properties to your property list.
         """
     
-    // Show workspace selection for import
-    showWorkspaceSelectionForImport(data: data)
+    // Perform import directly
+    performImport(data: data)
   }
   
-  private func showWorkspaceSelectionForImport(data: Data) {
-    // Ensure current user has a workspace, then use it for import
-    let workspace: SharedWorkspace
-    
-    if let currentUser = userManager.getCurrentUser(context: modelContext) {
-      // Ensure user has a primary workspace
-      if currentUser.primaryWorkspace == nil {
-        print("🏠 Current user has no workspace, creating one...")
-        _ = currentUser.createPersonalWorkspace(context: modelContext)
-        do {
-          try modelContext.save()
-        } catch {
-          print("❌ Error saving workspace: \(error)")
-        }
-      }
-      
-      if let primaryWorkspace = currentUser.primaryWorkspace {
-        workspace = primaryWorkspace
-        print("📝 Using current user's primary workspace")
-      } else {
-        print("❌ Failed to create/find primary workspace, creating fallback...")
-        workspace = createFallbackWorkspace()
-      }
-    } else {
-      print("❌ No current user found, creating fallback workspace...")
-      workspace = createFallbackWorkspace()
-    }
-    
-    performImport(data: data, workspace: workspace)
-  }
-  
-  private func createFallbackWorkspace() -> SharedWorkspace {
-    // This should only be called as an absolute last resort
-    print("🆘 Creating emergency fallback workspace...")
-    
-    // Try to get or create the current user
-    let currentUser: User
-    
-    if let existingUser = userManager.getCurrentUser(context: modelContext) {
-      currentUser = existingUser
-    } else if let userManagerUser = userManager.currentUser {
-      // Create user in database if they don't exist
-      let newUser = User(name: userManagerUser.name, email: userManagerUser.email)
-      newUser.id = userManagerUser.id
-      modelContext.insert(newUser)
-      currentUser = newUser
-    } else {
-      // Ultimate fallback - this should never happen
-      let fallbackUser = User(name: "iCloud User", email: "user@icloud.com")
-      modelContext.insert(fallbackUser)
-      currentUser = fallbackUser
-    }
-    
-    // Create a simple workspace
-    let fallbackWorkspace = SharedWorkspace(
-      owner: currentUser
-    )
-    modelContext.insert(fallbackWorkspace)
-    
-    do {
-      try modelContext.save()
-      print("✅ Created fallback workspace for: \(currentUser.email)")
-    } catch {
-      print("❌ Failed to save fallback workspace: \(error)")
-    }
-    
-    return fallbackWorkspace
-  }
-  
-  private func performImport(data: Data, workspace: SharedWorkspace) {
+  private func performImport(data: Data) {
     isProcessing = true
     
     Task {
       let result = exportService.importListings(
         from: data,
-        toWorkspace: workspace,
         context: modelContext,
         replaceExisting: replaceExistingOnImport
       )
@@ -449,5 +361,5 @@ struct ExportDocument: FileDocument {
 
 #Preview {
   ExportImportView()
-    .modelContainer(for: [PropertyListing.self, SharedWorkspace.self, PropertyTag.self])
+    .modelContainer(for: [PropertyListing.self, PropertyTag.self])
 }

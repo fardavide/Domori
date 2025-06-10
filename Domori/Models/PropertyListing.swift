@@ -21,7 +21,6 @@ final class PropertyListing {
   
   // Relationships
   @Relationship(deleteRule: .nullify, inverse: \PropertyTag.properties) var tags: [PropertyTag]?
-  @Relationship(deleteRule: .nullify, inverse: \SharedWorkspace.properties) var workspace: SharedWorkspace?
   
   init(
     title: String,
@@ -100,6 +99,12 @@ final class PropertyListing {
     } else {
       return String(format: "%.1f", bathrooms)
     }
+  }
+  
+  // Method to update property rating and updated date
+  func updateRating(_ newRating: PropertyRating) {
+    self.propertyRating = newRating
+    self.updatedDate = Date()
   }
 }
 

@@ -20,12 +20,13 @@ struct DomoriTests {
             title: "Test Property",
             location: "123 Test Street",
             link: "https://example.com/test",
+            agentContact: nil,
             price: 500000,
             size: 100,
             bedrooms: 2,
             bathrooms: 1.5,
-            propertyType: .house,
-            propertyRating: .good
+            propertyType: PropertyType.house,
+            propertyRating: PropertyRating.good
         )
         
         context.insert(property)
@@ -39,8 +40,8 @@ struct DomoriTests {
         #expect(property.size == 100)
         #expect(property.bedrooms == 2)
         #expect(property.bathrooms == 1.5)
-        #expect(property.propertyType == .house)
-        #expect(property.propertyRating == .good)
+        #expect(property.propertyType == PropertyType.house)
+        #expect(property.propertyRating == PropertyRating.good)
     }
     
     @Test func testPropertyListingWithTags() async throws {
@@ -54,6 +55,7 @@ struct DomoriTests {
             title: "Test Property with Tags",
             location: "456 Tag Street",
             link: "https://example.com/tags",
+            agentContact: nil,
             price: 750000,
             size: 150,
             bedrooms: 3,
@@ -114,6 +116,8 @@ struct DomoriTests {
             let property = PropertyListing(
                 title: "Test \(rating.rawValue) Property",
                 location: "123 Rating Street",
+                link: "https://example.com/rating",
+                agentContact: nil,
                 price: 500000,
                 size: 100,
                 bedrooms: 2,
@@ -138,6 +142,8 @@ struct DomoriTests {
         let property = PropertyListing(
             title: "Test Formatting",
             location: "123 Format Street",
+            link: "https://example.com/format",
+            agentContact: nil,
             price: 1234567,
             size: 150.5,
             bedrooms: 3,
@@ -173,7 +179,8 @@ struct DomoriTests {
             #expect(property.size > 0)
             #expect(property.bedrooms >= 0)
             #expect(property.bathrooms > 0)
-            #expect(property.propertyRating != nil)
+            // PropertyRating is now non-optional enum
+            #expect(property.propertyRating != PropertyRating.none)
         }
     }
     
@@ -195,11 +202,13 @@ struct DomoriTests {
         let property = PropertyListing(
             title: "Test Update",
             location: "123 Update Street",
+            link: "https://example.com/update",
+            agentContact: nil,
             price: 500000,
             size: 100,
             bedrooms: 2,
             bathrooms: 1.5,
-            propertyType: .house,
+            propertyType: PropertyType.house,
             propertyRating: PropertyRating.none
         )
         
@@ -209,9 +218,9 @@ struct DomoriTests {
         try await Task.sleep(nanoseconds: 1_000_000) // 1ms
         
         // Update the rating
-        property.updateRating(.excellent)
+        property.updateRating(PropertyRating.excellent)
         
-        #expect(property.propertyRating == .excellent)
+        #expect(property.propertyRating == PropertyRating.excellent)
         #expect(property.updatedDate > originalDate)
     }
 }

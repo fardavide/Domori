@@ -4,13 +4,12 @@ import SwiftData
 struct PropertyListView: View {
   @Environment(\.modelContext) private var modelContext
   @Query private var allProperties: [PropertyListing]
-  @Query private var allWorkspaces: [SharedWorkspace]
-  @State private var userManager = UserManager.shared
   @State private var showingAddListing = false
   @State private var searchText = ""
   @State private var sortOption: SortOption = .dateAdded
   @State private var showingCompareView = false
   @State private var selectedListings: Set<PropertyListing> = []
+  @State private var showingShareSheet = false
   
   var body: some View {
     NavigationStack {
@@ -103,6 +102,12 @@ struct PropertyListView: View {
           }
           
           Button {
+            showingShareSheet = true
+          } label: {
+            Image(systemName: "square.and.arrow.up")
+          }
+          
+          Button {
             showingAddListing = true
           } label: {
             Image(systemName: "plus")
@@ -115,29 +120,16 @@ struct PropertyListView: View {
       .sheet(isPresented: $showingCompareView) {
         ComparePropertiesView(listings: Array(selectedListings))
       }
+      .sheet(isPresented: $showingShareSheet) {
+        SharingView()
+      }
       
     }
   }
   
   private var filteredAndSortedListings: [PropertyListing] {
-    // Try to ensure user exists in database
-    if userManager.isSignedIn, let userManagerUser = userManager.currentUser {
-      ensureUserInDatabase(userManagerUser)
-    }
-    
-    // Get current user and workspace
-    guard let currentUser = userManager.getCurrentUser(context: modelContext) else {
-      return []
-    }
-    
-    guard let workspace = currentUser.primaryWorkspace else {
-      return []
-    }
-    
-    let workspaceProperties = workspace.properties ?? []
-    
     // Filter by search text
-    let filtered = workspaceProperties.filter { listing in
+    let filtered = allProperties.filter { listing in
       if searchText.isEmpty {
         return true
       }
@@ -168,48 +160,6 @@ struct PropertyListView: View {
     modelContext.delete(listing)
     selectedListings.remove(listing)
   }
-  
-  
-  
-  private func getCurrentUserWorkspace() -> SharedWorkspace? {
-    guard let currentUser = userManager.getCurrentUser(context: modelContext) else {
-      return nil
-    }
-    return currentUser.primaryWorkspace
-  }
-  
-  private func ensureUserInDatabase(_ userManagerUser: User) {
-    // Check if user already exists in database
-    let userEmail = userManagerUser.email
-    let descriptor = FetchDescriptor<User>(
-      predicate: #Predicate<User> { user in
-        user.email == userEmail
-      }
-    )
-    
-    do {
-      let existingUsers = try modelContext.fetch(descriptor)
-      if existingUsers.isEmpty {
-        // Create user in database
-        let dbUser = User(name: userManagerUser.name, email: userManagerUser.email)
-        dbUser.id = userManagerUser.id // Keep the same ID
-        modelContext.insert(dbUser)
-        try modelContext.save()
-        
-        // Create personal workspace for user
-        dbUser.createPersonalWorkspace(context: modelContext)
-        try modelContext.save()
-      } else {
-        // Ensure user has a personal workspace
-        if let existingUser = existingUsers.first {
-          existingUser.createPersonalWorkspace(context: modelContext)
-          try modelContext.save()
-        }
-      }
-    } catch {
-      print("Error ensuring user in database: \(error.localizedDescription)")
-    }
-  }
 }
 
 enum SortOption: String, CaseIterable {
@@ -220,21 +170,11 @@ enum SortOption: String, CaseIterable {
   case rating = "Rating"
   
   var displayName: String {
-    switch self {
-    case .dateAdded: return "Date Added"
-    case .price: return "Price (Low to High)"
-    case .size: return "Size (Large to Small)"
-    case .title: return "Title (A-Z)"
-    case .rating: return "Rating"
-    }
+    return self.rawValue
   }
 }
 
 #Preview {
-  let container = PreviewContainer.with(
-    properties: PropertyListing.sampleData,
-    for: User.sampleData.first!
-  )
   PropertyListView()
-    .modelContainer(container)
+    .modelContainer(for: [PropertyListing.self], inMemory: true)
 }

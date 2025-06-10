@@ -4,6 +4,20 @@
 
 ---
 
+## [1.2.0] - 2025-06-10
+
+### 🎉 New Features
+- **CloudKit Database Sharing**: Share your property listings directly through CloudKit! Send invitations to family members or partners and they can view and edit all your shared properties in real-time.
+- **Real-time Collaboration**: All changes sync automatically between shared users - add, edit, or delete properties and see updates instantly across all devices.
+- **Secure Sharing**: Uses Apple's CloudKit sharing for secure, private database sharing between invited users only.
+- **Simple Sharing UI**: Easy-to-use sharing interface - create shares, send invitations, and manage sharing permissions with just a few taps.
+
+### ✨ Improvements
+- **Enhanced Property Management**: Better integration with CloudKit for improved data synchronization
+- **Streamlined Data Flow**: Improved data handling for more reliable property sync across devices
+
+---
+
 ## [1.1.1] - 2025-06-08
 
 ### 🐛 Bug Fixes

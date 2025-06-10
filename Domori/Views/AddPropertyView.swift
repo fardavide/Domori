@@ -3,7 +3,6 @@ import SwiftUI
 struct AddPropertyView: View {
   @Environment(\.modelContext) private var modelContext
   @Environment(\.dismiss) private var dismiss
-  @State private var userManager = UserManager.shared
   
   // Edit mode
   var listing: PropertyListing?
@@ -267,17 +266,6 @@ struct AddPropertyView: View {
         propertyType: propertyType,
         propertyRating: rating
       )
-      
-      // Add to user's workspace
-      if let currentUser = userManager.getCurrentUser(context: modelContext),
-         let workspace = currentUser.primaryWorkspace {
-        newListing.workspace = workspace
-        if workspace.properties == nil {
-          workspace.properties = []
-        }
-        workspace.properties!.append(newListing)
-        workspace.updatedDate = Date()
-      }
       
       modelContext.insert(newListing)
     }

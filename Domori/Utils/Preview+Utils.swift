@@ -4,8 +4,7 @@ final class PreviewContainer {
   
   @MainActor
   static func with(
-    properties: [PropertyListing],
-    for user: User,
+    properties: [PropertyListing]
   ) -> ModelContainer {
     let config = ModelConfiguration(
       schema: DomoriApp.schema,
@@ -17,11 +16,8 @@ final class PreviewContainer {
     )
     let context = container.mainContext
     
-    context.insert(user)
-    let workspace = user.createPersonalWorkspace(context: context)
-    
     for property in properties {
-      workspace.addProperty(property, context: context)
+      context.insert(property)
     }
     
     try! context.save()

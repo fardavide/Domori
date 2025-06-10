@@ -113,42 +113,18 @@ final class PropertyExportService {
         return try encoder.encode(exportData)
     }
     
-    /// Exports property listings from a specific workspace to JSON format
-    /// - Parameters:
-    ///   - workspace: The workspace to export listings from
-    ///   - context: SwiftData ModelContext for fetching listings
-    /// - Returns: JSON data ready for export
-    /// - Throws: Encoding errors or fetch errors
-    func exportWorkspaceListings(workspace: SharedWorkspace, context: ModelContext) throws -> Data {
-        let workspaceId = workspace.id
-        let descriptor = FetchDescriptor<PropertyListing>(
-            predicate: #Predicate<PropertyListing> { listing in
-                listing.workspace?.id == workspaceId
-            }
-        )
-        let listings = try context.fetch(descriptor)
-        
-        let exportData = PropertyListingsExport(listings: listings)
-        
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        
-        return try encoder.encode(exportData)
-    }
+
     
     // MARK: - Import Functionality
     
     /// Imports property listings from JSON data
     /// - Parameters:
     ///   - data: JSON data containing property listings
-    ///   - workspace: Target workspace for imported listings
     ///   - context: SwiftData ModelContext for saving listings
     ///   - replaceExisting: Whether to replace existing listings or add to them
     /// - Returns: ImportResult containing success/failure information
     func importListings(
         from data: Data,
-        toWorkspace workspace: SharedWorkspace,
         context: ModelContext,
         replaceExisting: Bool = false
     ) -> ImportResult {
@@ -184,14 +160,9 @@ final class PropertyExportService {
             var skippedCount = 0
             var errors: [String] = []
             
-            // If replacing existing, delete current listings in workspace
+            // If replacing existing, delete all current listings
             if replaceExisting {
-                let workspaceId = workspace.id
-                let descriptor = FetchDescriptor<PropertyListing>(
-                    predicate: #Predicate<PropertyListing> { listing in
-                        listing.workspace?.id == workspaceId
-                    }
-                )
+                let descriptor = FetchDescriptor<PropertyListing>()
                 let existingListings = try context.fetch(descriptor)
                 for listing in existingListings {
                     context.delete(listing)
@@ -202,7 +173,6 @@ final class PropertyExportService {
             for exportListing in importData.listings {
                 do {
                     let newListing = exportListing.toPropertyListing()
-                    newListing.workspace = workspace
                     
                     context.insert(newListing)
                     
@@ -263,6 +233,8 @@ final class PropertyExportService {
             )
         }
     }
+    
+
     
     // MARK: - Utility Methods
     

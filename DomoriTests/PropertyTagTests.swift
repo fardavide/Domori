@@ -42,6 +42,8 @@ struct PropertyTagTests {
         let property = PropertyListing(
             title: "Test Property",
             location: "Test Location",
+            link: "https://example.com",
+            agentContact: "test@example.com",
             price: 100000,
             size: 100,
             bedrooms: 2,
