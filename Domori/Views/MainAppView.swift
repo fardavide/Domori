@@ -122,7 +122,7 @@ struct MainTabView: View {
     
     var body: some View {
         TabView(selection: $selectedTab) {
-            ContentView()
+            PropertyListView()
                 .tabItem {
                     Label("Properties", systemImage: "house")
                 }
@@ -138,6 +138,6 @@ struct MainTabView: View {
 }
 
 #Preview {
-    MainAppView()
-        .modelContainer(for: [PropertyListing.self, User.self, SharedWorkspace.self], inMemory: true)
-} 
+  MainAppView()
+    .modelContainer(for: [PropertyListing.self, User.self, SharedWorkspace.self], inMemory: true)
+}

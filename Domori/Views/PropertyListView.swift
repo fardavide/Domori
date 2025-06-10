@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftData
 
-struct ContentView: View {
+struct PropertyListView: View {
   @Environment(\.modelContext) private var modelContext
   @Query private var allProperties: [PropertyListing]
   @Query private var allWorkspaces: [SharedWorkspace]
@@ -11,12 +11,11 @@ struct ContentView: View {
   @State private var sortOption: SortOption = .dateAdded
   @State private var showingCompareView = false
   @State private var selectedListings: Set<PropertyListing> = []
-
   
   var body: some View {
     NavigationStack {
       VStack(spacing: 0) {
-
+        
         
         // Search and sort controls
         VStack(alignment: .leading, spacing: 12) {
@@ -116,7 +115,7 @@ struct ContentView: View {
       .sheet(isPresented: $showingCompareView) {
         ComparePropertiesView(listings: Array(selectedListings))
       }
-
+      
     }
   }
   
@@ -170,7 +169,7 @@ struct ContentView: View {
     selectedListings.remove(listing)
   }
   
-
+  
   
   private func getCurrentUserWorkspace() -> SharedWorkspace? {
     guard let currentUser = userManager.getCurrentUser(context: modelContext) else {
@@ -214,24 +213,28 @@ struct ContentView: View {
 }
 
 enum SortOption: String, CaseIterable {
-    case dateAdded = "Date Added"
-    case price = "Price"
-    case size = "Size"
-    case title = "Title"
-    case rating = "Rating"
-    
-    var displayName: String {
-        switch self {
-        case .dateAdded: return "Date Added"
-        case .price: return "Price (Low to High)"
-        case .size: return "Size (Large to Small)"
-        case .title: return "Title (A-Z)"
-        case .rating: return "Rating"
-        }
+  case dateAdded = "Date Added"
+  case price = "Price"
+  case size = "Size"
+  case title = "Title"
+  case rating = "Rating"
+  
+  var displayName: String {
+    switch self {
+    case .dateAdded: return "Date Added"
+    case .price: return "Price (Low to High)"
+    case .size: return "Size (Large to Small)"
+    case .title: return "Title (A-Z)"
+    case .rating: return "Rating"
     }
+  }
 }
 
 #Preview {
-    ContentView()
-        .modelContainer(for: PropertyListing.self, inMemory: true)
-} 
+  let container = PreviewContainer.with(
+    properties: PropertyListing.sampleData,
+    for: User.sampleData.first!
+  )
+  PropertyListView()
+    .modelContainer(container)
+}

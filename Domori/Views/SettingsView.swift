@@ -171,9 +171,8 @@ struct SettingsView: View {
   private var sharedWorkspaces: [SharedWorkspace] {
     guard let currentUser = userManager.currentUser else { return [] }
     return workspaces.filter { workspace in
-      workspace.ownerEmail != currentUser.email &&
-      workspace.members?.contains { $0.email == currentUser.email } == true &&
-      workspace.isActive
+      workspace.owner?.id != currentUser.id &&
+      workspace.members?.contains { $0.email == currentUser.email } == true
     }
   }
   
@@ -212,12 +211,12 @@ struct WorkspaceRowView: View {
         .font(.title3)
       
       VStack(alignment: .leading, spacing: 2) {
-        Text(workspace.name)
+        Text("Placeholder")
           .font(.headline)
           .foregroundColor(.primary)
         
         if showOwner {
-          Text("Owner: \(workspace.ownerEmail)")
+          Text("Placeholder")
             .font(.caption)
             .foregroundColor(.secondary)
         }
@@ -253,7 +252,7 @@ struct InvitationRowView: View {
         
         VStack(alignment: .leading, spacing: 2) {
           if let workspace = invitation.workspace {
-            Text("Invitation to \"\(workspace.name)\"")
+            Text("Invitation to \"\(workspace.owner!.email)\'s Workspace\"")
               .font(.headline)
           }
           

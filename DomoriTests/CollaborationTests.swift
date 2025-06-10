@@ -36,7 +36,6 @@ struct CollaborationTests {
         context.insert(workspace)
         
         // Verify workspace properties
-        #expect(workspace.name == "Test Workspace")
         #expect(workspace.owner?.email == "owner@example.com")
         #expect(workspace.ownerEmail == "owner@example.com")
         #expect(workspace.isActive == true)

@@ -1,19 +1,18 @@
-//
-
 import SwiftUI
 import SwiftData
 
 @main
 struct DomoriApp: App {
+  
+  static let schema = Schema([
+    PropertyListing.self,
+    PropertyTag.self,
+    User.self,
+    SharedWorkspace.self,
+    WorkspaceInvitation.self
+  ])
+  
   var sharedModelContainer: ModelContainer = {
-    let schema = Schema([
-      PropertyListing.self,
-      PropertyTag.self,
-      User.self,
-      SharedWorkspace.self,
-      WorkspaceInvitation.self
-    ])
-    
     let modelConfiguration = ModelConfiguration(
       schema: schema,
       isStoredInMemoryOnly: false,

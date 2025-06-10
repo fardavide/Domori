@@ -94,9 +94,8 @@ struct CollaborationView: View {
     private var sharedWorkspaces: [SharedWorkspace] {
         guard let currentUser = userManager.currentUser else { return [] }
         return workspaces.filter { workspace in
-            workspace.ownerEmail != currentUser.email && 
-            workspace.members?.contains { $0.email == currentUser.email } == true &&
-            workspace.isActive
+          workspace.owner?.id != currentUser.id && 
+            workspace.members?.contains { $0.email == currentUser.email } == true
         }
     }
     
