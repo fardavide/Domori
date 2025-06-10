@@ -144,7 +144,7 @@ struct ComparePropertiesView: View {
                             .frame(width: 120)
                             .padding()
                         
-                        ForEach(listings, id: \.title) { listing in
+                        ForEach(listings, id: \.id) { listing in
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(listing.title)
                                     .font(.subheadline)
@@ -185,7 +185,7 @@ struct ComparePropertiesView: View {
                                 .padding()
                                 .background(labelBackgroundColor)
                             
-                            ForEach(listings, id: \.title) { listing in
+                            ForEach(listings, id: \.id) { listing in
                                 ScrollView {
                                     LazyVGrid(columns: [GridItem(.flexible())], spacing: 4) {
                                         ForEach(listing.tags ?? [], id: \.name) { tag in

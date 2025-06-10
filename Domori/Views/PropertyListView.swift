@@ -62,7 +62,7 @@ struct PropertyListView: View {
         
         // Property list
         List {
-          ForEach(filteredAndSortedListings, id: \.title) { listing in
+          ForEach(filteredAndSortedListings, id: \.id) { listing in
             NavigationLink(destination: PropertyDetailView(listing: listing)) {
               PropertyListRowView(
                 listing: listing,

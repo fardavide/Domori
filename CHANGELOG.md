@@ -4,50 +4,11 @@
 
 ---
 
-## [1.2.0] - 2025-06-10
-
-### 🎉 New Features
-- **CloudKit Database Sharing**: Share your property listings directly through CloudKit! Send invitations to family members or partners and they can view and edit all your shared properties in real-time.
-- **Real-time Collaboration**: All changes sync automatically between shared users - add, edit, or delete properties and see updates instantly across all devices.
-- **Secure Sharing**: Uses Apple's CloudKit sharing for secure, private database sharing between invited users only.
-- **Simple Sharing UI**: Easy-to-use sharing interface - create shares, send invitations, and manage sharing permissions with just a few taps.
-
-### ✨ Improvements
-- **Enhanced Property Management**: Better integration with CloudKit for improved data synchronization
-- **Streamlined Data Flow**: Improved data handling for more reliable property sync across devices
-
----
-
-## [1.1.1] - 2025-06-08
+## [1.0.6] - 2025-01-06
 
 ### 🐛 Bug Fixes
-- **Workspace Management**: Fixed issue where "Leave workspace" was incorrectly shown instead of "Delete Workspace" for workspace owners. Workspace owners now properly see "Delete Workspace" option.
-
----
-
-## [1.1] - 2025-06-08
-
-### 🎉 New Features
-- **Collaboration**: Share your properties with others! Invite people to your workspace and collaborate on property listings together.
-- **Export & Import**: Backup and share your property data easily with JSON export/import functionality. Perfect for data backup or transferring properties between workspaces.
-
----
-
-## How to Update This Changelog
-
-### For New Releases:
-1. **Add new version section** at the top with format: `## [X.Y.Z] - YYYY-MM-DD`
-2. **Focus on user benefits** - what users can now do, see, or experience
-3. **Use action-oriented language** - "Create custom tags", "Compare properties", etc.
-4. **Group by impact** - New Features, Improvements, Bug Fixes
-5. **Keep technical details minimal** - users don't need implementation specifics
-6. **Make it App Store ready** - suitable for copy-paste to release notes
-
-### Categories to Use:
-- **🎉 New Features** - Completely new functionality
-- **✨ Improvements** - Enhanced existing features
-- **🐛 Bug Fixes** - Fixed issues and problems
-- **🎨 Visual Updates** - UI/design improvements
+- **Fixed Property Display Issues**: Resolved duplicate property display issues in property lists and comparison view
+- **Improved App Stability**: Enhanced data handling for better app performance
 
 ---
 
