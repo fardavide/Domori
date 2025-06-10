@@ -57,6 +57,9 @@ struct AddPropertyView: View {
     .onAppear {
       if let listing = listing {
         loadPropertyData(listing)
+      } else {
+        // Reset form when creating a new property
+        resetForm()
       }
     }
   }
@@ -278,6 +281,19 @@ struct AddPropertyView: View {
     }
     
     dismiss()
+  }
+  
+  private func resetForm() {
+    title = ""
+    location = ""
+    link = ""
+    agentContact = ""
+    price = 0
+    size = 0
+    bedrooms = 0
+    bathrooms = 1.0
+    propertyType = .house
+    rating = .none
   }
 }
 

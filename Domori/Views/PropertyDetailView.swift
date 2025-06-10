@@ -4,6 +4,7 @@ import SwiftData
 struct PropertyDetailView: View {
     @Bindable var listing: PropertyListing
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.openURL) private var openURL
     @State private var showingEditSheet = false
     @State private var showingAddTagSheet = false
     
@@ -32,9 +33,9 @@ struct PropertyDetailView: View {
                             // Display link if available
                             if !listing.link.isEmpty {
                                 Button(action: {
-                                  if let url = URL(string: listing.link) {
-                                    Application.openURL(url)
-                                  }
+                                    if let url = URL(string: listing.link) {
+                                        openURL(url)
+                                    }
                                 }) {
                                     HStack(spacing: 4) {
                                         Image(systemName: "link")
