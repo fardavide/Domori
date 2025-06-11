@@ -135,21 +135,21 @@ struct PropertyDetailBadge: View {
 
 // Compact flow layout for tags in property list rows
 struct TagFlowLayout: View {
-    let tags: [PropertyTag]
-    
-    var body: some View {
-        FlexibleWrapView(data: tags, spacing: 3) { tag in
-            Text(tag.name)
-                .font(.caption2)
-                .fontWeight(.medium)
-                .padding(.horizontal, 4)
-                .padding(.vertical, 2)
-                .background(tag.swiftUiColor.opacity(0.15))
-                .foregroundColor(tag.swiftUiColor)
-                .cornerRadius(3)
-                .lineLimit(1)
-        }
+  let tags: [PropertyTag]
+  
+  var body: some View {
+    FlexibleWrapView(data: tags, spacing: 3) { tag in
+      Text(tag.name)
+        .font(.caption2)
+        .fontWeight(.medium)
+        .padding(.horizontal, 4)
+        .padding(.vertical, 2)
+        .background(tag.swiftUiColor.opacity(0.15))
+        .foregroundColor(tag.swiftUiColor)
+        .cornerRadius(3)
+        .lineLimit(1)
     }
+  }
 }
 
 // Flexible wrap view that dynamically adjusts to available width

@@ -35,15 +35,8 @@ struct DomoriApp: App {
             await performDataMigration()
           }
         }
-        .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { userActivity in
-          guard let url = userActivity.webpageURL else { return }
-          handleCloudKitShareURL(url)
-        }
     }
     .modelContainer(sharedModelContainer)
-    .backgroundTask(.urlSession("CloudKitShare")) {
-      // Handle background CloudKit share processing
-    }
     
 #if os(macOS)
     Settings {
@@ -59,12 +52,5 @@ struct DomoriApp: App {
     // Check if property rating migration is needed
     print("DataMigration: Property rating migration needed - starting migration process...")
     await DataMigrationManager.migratePropertyListings(context: context)
-  }
-  
-  private func handleCloudKitShareURL(_ url: URL) {
-    // Handle CloudKit share URL by accepting the share
-    Task {
-      await SharingService.shared.acceptShare(from: url)
-    }
   }
 }

@@ -9,7 +9,6 @@ struct PropertyListView: View {
   @State private var sortOption: SortOption = .creationDate
   @State private var showingCompareView = false
   @State private var selectedListings: Set<PropertyListing> = []
-  @State private var showingShareSheet = false
   
   var body: some View {
     NavigationStack {
@@ -83,9 +82,9 @@ struct PropertyListView: View {
             .foregroundColor(.secondary)
           }
           
-          if FeatureFlags.isShareEnabled {
+          if FeatureFlags.shared.isShareEnabled {
             Button {
-              showingShareSheet = true
+              // TODO showingShareSheet = true
             } label: {
               Image(systemName: "square.and.arrow.up")
             }
@@ -104,10 +103,6 @@ struct PropertyListView: View {
       .sheet(isPresented: $showingCompareView) {
         ComparePropertiesView(listings: Array(selectedListings))
       }
-      .sheet(isPresented: $showingShareSheet) {
-        SharingView()
-      }
-      
     }
   }
   
