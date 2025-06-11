@@ -4,6 +4,16 @@
 
 ---
 
+## [1.1.0] - 2025-06-10
+
+### 🎉 New Features
+- **CloudKit Sharing**: Share your property listings with family and friends! Your wife can now view and edit your shared properties in real-time
+- **Collaborative Property Management**: Everyone with access can add new properties, update details, and make changes that sync automatically
+- **Smart Share Controls**: Easily create shares, manage permissions, and send invitations through Messages, Email, or AirDrop
+- **Seamless Sync**: All shared changes appear instantly across all devices for true collaborative house hunting
+
+---
+
 ## [1.0.6] - 2025-01-06
 
 ### 🐛 Bug Fixes

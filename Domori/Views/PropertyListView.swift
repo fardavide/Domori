@@ -6,7 +6,7 @@ struct PropertyListView: View {
   @Query private var allProperties: [PropertyListing]
   @State private var showingAddListing = false
   @State private var searchText = ""
-  @State private var sortOption: SortOption = .dateAdded
+  @State private var sortOption: SortOption = .creationDate
   @State private var showingCompareView = false
   @State private var selectedListings: Set<PropertyListing> = []
   @State private var showingShareSheet = false
@@ -15,36 +15,16 @@ struct PropertyListView: View {
     NavigationStack {
       VStack(spacing: 0) {
         
-        
-        // Search and sort controls
         VStack(alignment: .leading, spacing: 12) {
           HStack {
-            Image(systemName: "magnifyingglass")
-              .foregroundColor(.secondary)
-            TextField("Search properties...", text: $searchText)
-              .textFieldStyle(PlainTextFieldStyle())
-          }
-          .padding(.horizontal, 12)
-          .padding(.vertical, 8)
-#if os(iOS)
-          .background(Color(.systemGray5))
-#else
-          .background(Color(NSColor.controlBackgroundColor))
-#endif
-          .cornerRadius(8)
-          
-          HStack {
             Text("Sort by:")
-              .font(.subheadline)
-              .foregroundColor(.secondary)
             
             Picker("Sort", selection: $sortOption) {
               ForEach(SortOption.allCases, id: \.self) { option in
                 Text(option.displayName).tag(option)
               }
             }
-            .pickerStyle(MenuPickerStyle())
-            .accentColor(.primary)
+            .pickerStyle(.menu)
             
             Spacer()
             
@@ -83,7 +63,9 @@ struct PropertyListView: View {
             }
           }
         }
+        .animation(.default, value: filteredAndSortedListings)
         .listStyle(.plain)
+        .searchable(text: $searchText, prompt: "Search properties...")
       }
       .navigationTitle("Properties")
       .toolbar {
@@ -101,10 +83,12 @@ struct PropertyListView: View {
             .foregroundColor(.secondary)
           }
           
-          Button {
-            showingShareSheet = true
-          } label: {
-            Image(systemName: "square.and.arrow.up")
+          if FeatureFlags.isShareEnabled {
+            Button {
+              showingShareSheet = true
+            } label: {
+              Image(systemName: "square.and.arrow.up")
+            }
           }
           
           Button {
@@ -139,8 +123,10 @@ struct PropertyListView: View {
     
     return filtered.sorted { first, second in
       switch sortOption {
-      case .dateAdded:
+      case .creationDate:
         return first.createdDate > second.createdDate
+      case .editDate:
+        return first.updatedDate > second.updatedDate
       case .price:
         return first.price < second.price
       case .size:
@@ -148,10 +134,7 @@ struct PropertyListView: View {
       case .title:
         return first.title < second.title
       case .rating:
-        // Sort by propertyRating, handling nil values
-        let firstRating = first.propertyRating.rawValue
-        let secondRating = second.propertyRating.rawValue
-        return firstRating > secondRating
+        return first.propertyRating.rawValue > second.propertyRating.rawValue
       }
     }
   }
@@ -163,7 +146,8 @@ struct PropertyListView: View {
 }
 
 enum SortOption: String, CaseIterable {
-  case dateAdded = "Date Added"
+  case creationDate = "Date Added"
+  case editDate = "Last Modified"
   case price = "Price"
   case size = "Size"
   case title = "Title"

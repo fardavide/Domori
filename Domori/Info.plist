@@ -22,5 +22,7 @@
 	<string>Domori</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>CKSharingSupported</key>
+	<true/>
 </dict>
 </plist>

@@ -9,17 +9,19 @@ struct SettingsView: View {
   var body: some View {
     NavigationView {
       Form {
-        Section("Sharing") {
-          Button(action: {
-            showingShareSheet = true
-          }) {
-            Label("Share All Properties", systemImage: "square.and.arrow.up")
-              .foregroundColor(.blue)
+        if FeatureFlags.isShareEnabled {
+          Section("Sharing") {
+            Button(action: {
+              showingShareSheet = true
+            }) {
+              Label("Share All Properties", systemImage: "square.and.arrow.up")
+                .foregroundColor(.blue)
+            }
+            
+            Text("Share all your property listings with another person. They will be able to view and edit all properties.")
+              .font(.caption)
+              .foregroundColor(.secondary)
           }
-          
-          Text("Share all your property listings with another person. They will be able to view and edit all properties.")
-            .font(.caption)
-            .foregroundColor(.secondary)
         }
         
         Section("Data Management") {
@@ -43,14 +45,14 @@ struct SettingsView: View {
           HStack {
             Text("Version")
             Spacer()
-            Text("1.1")
+            Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as! String)
               .foregroundColor(.secondary)
           }
           
           HStack {
             Text("Build")
             Spacer()
-            Text("4")
+            Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as! String)
               .foregroundColor(.secondary)
           }
         }
