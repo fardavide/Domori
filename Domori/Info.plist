@@ -24,5 +24,37 @@
 	<false/>
 	<key>CKSharingSupported</key>
 	<true/>
+	<key>NSUbiquitousContainers</key>
+	<dict>
+		<key>iCloud.fardavide.Domori</key>
+		<dict>
+			<key>NSUbiquitousContainerIsDocumentScopePublic</key>
+			<true/>
+			<key>NSUbiquitousContainerName</key>
+			<string>Domori</string>
+			<key>NSUbiquitousContainerSupportedFolderLevels</key>
+			<string>Any</string>
+			<key>NSUbiquitousContainerIsDefault</key>
+			<true/>
+			<key>NSPersistentStoreUbiquitousContainerName</key>
+			<string>Domori</string>
+			<key>NSUbiquitousContainerSupportedFolderLevels</key>
+			<string>Any</string>
+		</dict>
+	</dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>fardavide.Domori</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>cloudkit-icloud.fardavide.Domori</string>
+				<string>domori</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

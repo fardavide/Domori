@@ -1,8 +1,10 @@
+import Foundation
+
 final class FeatureFlags {
   static let shared = FeatureFlags()
   
   var isShareEnabled: Bool {
-    isDebugBuild && isCloudKitAvailable
+    true
   }
   
   var isCloudKitAvailable: Bool {

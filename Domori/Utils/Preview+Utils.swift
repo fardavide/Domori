@@ -6,12 +6,13 @@ final class PreviewContainer {
   static func with(
     properties: [PropertyListing]
   ) -> ModelContainer {
+    let schema = Schema([PropertyListing.self, PropertyTag.self])
     let config = ModelConfiguration(
-      schema: DomoriApp.schema,
+      schema: schema,
       isStoredInMemoryOnly: true
     )
     let container = try! ModelContainer(
-      for: DomoriApp.schema,
+      for: schema,
       configurations: config
     )
     let context = container.mainContext
