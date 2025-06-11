@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import CloudKit
 
 struct PropertyListView: View {
   @Environment(\.modelContext) private var modelContext
@@ -9,6 +10,7 @@ struct PropertyListView: View {
   @State private var sortOption: SortOption = .creationDate
   @State private var showingCompareView = false
   @State private var selectedListings: Set<PropertyListing> = []
+  @State private var showingShareSheet = false
   
   var body: some View {
     NavigationStack {
@@ -84,7 +86,7 @@ struct PropertyListView: View {
           
           if FeatureFlags.shared.isShareEnabled {
             Button {
-              // TODO showingShareSheet = true
+              showingShareSheet = true
             } label: {
               Image(systemName: "square.and.arrow.up")
             }
@@ -102,6 +104,9 @@ struct PropertyListView: View {
       }
       .sheet(isPresented: $showingCompareView) {
         ComparePropertiesView(listings: Array(selectedListings))
+      }
+      .sheet(isPresented: $showingShareSheet) {
+        DatabaseSharingView()
       }
     }
   }
