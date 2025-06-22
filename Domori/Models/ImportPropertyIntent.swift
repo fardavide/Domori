@@ -12,6 +12,8 @@ struct ImportPropertyIntent: AppIntent {
   @Parameter(title: "Open Editor", description: "Open Add Property screen with prefilled data", default: false)
   var openEditor: Bool
   
+  static let openAppWhenRun: Bool = true
+
   func perform() async throws -> some IntentResult & OpensIntent & ReturnsValue<String> {
     let firestore = Firestore.firestore()
     let importService = PropertyImportService()
@@ -20,7 +22,8 @@ struct ImportPropertyIntent: AppIntent {
       if openEditor {
         let encodedData = try importService.encodePropertyDataForUrl(propertyData)
         let url = URL(string: "domori://import-property?data=\(encodedData)")!
-        return .result(value: "Opening Domori with imported property data", opensIntent: OpenURLIntent(url))
+        await UIApplication.shared.open(url)
+        return .result(value: "Opening Domori with imported property data")
       } else {
         _ = try importService.savePropertyToFirestore(propertyData, firestore: firestore)
         return .result(value: "Property imported successfully")
