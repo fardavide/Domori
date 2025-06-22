@@ -1,14 +1,19 @@
+import Foundation
 import SwiftUI
 import FirebaseFirestore
 
 struct PropertyListView: View {
   @Environment(\.firestore) private var firestore
-  @FirestoreQuery(collectionPath: FirestoreCollection.properties.rawValue) private var allProperties: [Property]
+  @State private var sortOption: SortOption = .editDate
   @State private var searchText = ""
-  @State private var sortOption: SortOption = .creationDate
   @State private var showingAddListing = false
   @State private var showingCompareView = false
   @State private var selectedListings: Set<Property> = []
+  
+  @FirestoreQuery(
+    collectionPath: FirestoreCollection.properties.rawValue,
+    animation: .default,
+  ) private var allProperties: [Property]
   
   var body: some View {
     NavigationStack {
@@ -108,24 +113,22 @@ struct PropertyListView: View {
       listing.location.localizedCaseInsensitiveContains(searchText)
     }
     
-    return filtered
-    // TODO:
-//    return filtered.sorted { first, second in
-//      switch sortOption {
-//      case .creationDate:
-//        return first.createdDate > second.createdDate
-//      case .editDate:
-//        return first.updatedDate > second.updatedDate
-//      case .price:
-//        return first.price < second.price
-//      case .size:
-//        return first.size > second.size
-//      case .title:
-//        return first.title < second.title
-//      case .rating:
-//        return first.rating.rawValue > second.rating.rawValue
-//      }
-//    }
+    return filtered.sorted { first, second in
+      switch sortOption {
+      case .creationDate:
+        return first.createdDate?.dateValue() ?? Date.distantPast > second.createdDate?.dateValue() ?? Date.distantPast
+      case .editDate:
+        return first.updatedDate?.dateValue() ?? Date.distantPast > second.updatedDate?.dateValue() ?? Date.distantPast
+      case .price:
+        return first.price < second.price
+      case .size:
+        return first.size > second.size
+      case .title:
+        return first.title < second.title
+      case .rating:
+        return first.rating.rawValue > second.rating.rawValue
+      }
+    }
   }
   
   private func deleteProperty(_ listing: Property) {
