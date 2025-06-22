@@ -136,9 +136,9 @@ struct AddTagView: View {
     
     let newTag = PropertyTag(name: trimmedName, rating: selectedRating)
     var updatedProperty = property
-    updatedProperty.tagIds.append(newTag.id!)
     do {
-      try firestore.collection(.tags).addDocument(from: newTag)
+      let newTagRef = try firestore.collection(.tags).addDocument(from: newTag)
+      updatedProperty.tagIds.append(newTagRef.documentID)
       try firestore.collection(.properties)
         .document(property.id!)
         .setData(from: updatedProperty)
