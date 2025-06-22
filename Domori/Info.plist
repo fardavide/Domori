@@ -8,12 +8,11 @@
 	<array>
 		<dict>
 			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
+			<string>Viewer</string>
 			<key>CFBundleURLName</key>
 			<string>fardavide.Domori</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>cloudkit-icloud.fardavide.Domori</string>
 				<string>domori</string>
 			</array>
 		</dict>

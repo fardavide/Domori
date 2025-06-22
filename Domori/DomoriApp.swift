@@ -96,7 +96,7 @@ extension EnvironmentValues {
 // MARK: - App Intents Configuration
 
 extension DomoriApp {
-  static var appIntents: [AppIntent] {
+  static var appIntents: [any AppIntent] {
     [ImportPropertyIntent()]
   }
 }
