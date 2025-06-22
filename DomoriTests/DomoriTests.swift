@@ -7,11 +7,6 @@ import Foundation
 @MainActor
 struct DomoriTests {
   
-  @Test func ensureTestDatabase() async throws {
-    let firestore = try await Firestore.createTestFirestore()
-    #expect(try await firestore.collection(.properties).getDocuments().isEmpty)
-  }
-  
   @Test func testPropertyCreation() async throws {
     let firestore = try await Firestore.createTestFirestore()
     

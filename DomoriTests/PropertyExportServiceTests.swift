@@ -7,7 +7,7 @@ import UniformTypeIdentifiers
 @MainActor
 final class PropertyExportServiceTests {
   
-  private let exportService = PropertyExportService.shared
+  private let exportService = PropertyImportService.shared
   private let firestore = Firestore.createTestFirestore()
   
   // MARK: - Basic Functionality Tests
@@ -15,7 +15,7 @@ final class PropertyExportServiceTests {
   @Test("Supported file types")
   func supportedFileTypes() {
     print("🔍 Testing supported file types")
-    let supportedTypes = PropertyExportService.supportedFileTypes
+    let supportedTypes = PropertyImportService.supportedFileTypes
     print("📋 Supported types: \(supportedTypes)")
     
     #expect(supportedTypes.contains(UTType.json), "Should support JSON files")
@@ -53,75 +53,127 @@ final class PropertyExportServiceTests {
     print("✅ Invalid data validation failed as expected")
   }
   
-  // MARK: - Export Tests
-  
-  @Test("Export empty listings")
-  func exportEmptyListings() async throws {
-    print("🧪 Testing export empty listings")
-    
-    let data = try await exportService.exportAllListings(firestore: firestore)
-    print("📋 Export data size: \(data.count) bytes")
-    
-    #expect(data.count > 0, "Export data should not be empty")
-    
-    // Validate the exported data
-    let result = exportService.validateImportData(data)
-    #expect(result.isValid, "Exported data should be valid")
-    #expect(result.listingCount == 0, "Should export 0 properties when database is empty")
-    print("✅ Empty listings export passed")
-  }
-  
-  @Test("Export with listings")
-  func exportWithListings() async throws {
-    print("🧪 Testing export with listings")
-    
-    // Create test property
-    let property = Property(
-      title: "Test Property",
-      location: "Test Location",
-      link: "https://example.com",
-      agentContact: "Test Agent",
-      price: 100000,
-      size: 50,
-      bedrooms: 2,
-      bathrooms: 1,
-      type: .apartment,
-      rating: .good
-    )
-    
-    // Add to Firestore
-    try firestore.collection(.properties).addDocument(from: property)
-    
-    let data = try await exportService.exportAllListings(firestore: firestore)
-    print("📋 Export data size with 1 property: \(data.count) bytes")
-    
-    // Validate the exported data
-    let result = exportService.validateImportData(data)
-    #expect(result.isValid, "Exported data should be valid")
-    #expect(result.listingCount == 1, "Should export 1 property")
-    print("✅ Export with listings passed")
-  }
-  
   // MARK: - Import Tests
   
-  @Test("Import empty data")
-  func importEmptyData() async throws {
-    print("🧪 Testing import empty data")
+  @Test("Import data")
+  func importData() async throws {
+    print("🧪 Testing import data")
     
-    // Create empty export data
-    let emptyExport = ExportData(properties: [], tags: [])
-    let encoder = JSONEncoder()
-    encoder.dateEncodingStrategy = .iso8601
-    let data = try encoder.encode(emptyExport)
+    let data = """
+      {
+        "properties": [
+          {
+            "title": "Arenella huge garden",
+            "location": "Arenella",
+            "link": "C.it",
+            "agentContact": "123987",
+            "price": 248000,
+            "size": 170,
+            "bedrooms": 4,
+            "bathrooms": 2.5,
+            "type": "villa",
+            "rating": "excluded",
+            "tagIds": []
+          },
+          {
+            "title": "FBA Swimming Pool",
+            "location": "Fontane Bianche",
+            "link": "https://www.immobiliare.it/en/annunci/120347622/",
+            "agentContact": "+39 339 4933299",
+            "price": 250000,
+            "size": 205,
+            "bedrooms": 5,
+            "bathrooms": 2,
+            "type": "villa",
+            "rating": "excluded",
+            "tagIds": []
+          },
+          {
+            "title": "Meomartini 2020",
+            "location": "Arenella, Isole della Sonda 43",
+            "link": "https://www.immobiliare.it/en/annunci/120121380/",
+            "agentContact": "",
+            "price": 249000,
+            "size": 107,
+            "bedrooms": 2,
+            "bathrooms": 2,
+            "type": "villa",
+            "rating": "good",
+            "tagIds": []
+          },
+          {
+            "title": "Plemmirio Yellow",
+            "location": "Plemmirio, via Mallia",
+            "link": "https://www.immobiliare.it/en/annunci/120291050/",
+            "agentContact": "Marco Millecase 320 6332111",
+            "price": 258000,
+            "size": 165,
+            "bedrooms": 4,
+            "bathrooms": 2,
+            "type": "villa",
+            "rating": "good",
+            "tagIds": []
+          }
+        ],
+        "tags": [
+          {
+            "name": "Status",
+            "rating": "considering"
+          },
+          {
+            "name": "Price",
+            "rating": "good"
+          },
+          {
+            "name": "Electric system",
+            "rating": "considering"
+          },
+          {
+            "name": "1st floor not regular",
+            "rating": "excluded"
+          },
+          {
+            "name": "From 70'",
+            "rating": "considering"
+          },
+          {
+            "name": "Sea distance",
+            "rating": "good"
+          },
+          {
+            "name": "Outdoor stairs",
+            "rating": "considering"
+          },
+          {
+            "name": "Garden",
+            "rating": "good"
+          },
+          {
+            "name": "State",
+            "rating": "excluded"
+          },
+          {
+            "name": "Size",
+            "rating": "considering"
+          },
+          {
+            "name": "New",
+            "rating": "excellent"
+          }
+        ]
+      } 
+
+      """
+      .data(using: .utf8)!
     
-    let result = exportService.importListings(
+    let result = try exportService.importListings(
       from: data,
       firestore: firestore
     )
     
     print("📋 Import result: success=\(result.success), imported=\(result.importedCount)")
-    #expect(result.success, "Import of empty data should succeed")
-    #expect(result.importedCount == 0, "Should import 0 properties from empty data")
-    print("✅ Import empty data passed")
+    #expect(result.success, "Import of data should succeed")
+    #expect(result.importedCount == 4, "Should import 4 properties from data")
+    print("✅ Import data passed")
   }
 }
