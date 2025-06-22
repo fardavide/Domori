@@ -34,7 +34,7 @@ final class AddEditPropertiesTest: XCTestCase {
   override func setUpWithError() throws {
     continueAfterFailure = false
     app = XCUIApplication()
-    app.launchArguments += ["test"]
+    app.launchArguments += ["uitest"]
     app.launch()
   }
   

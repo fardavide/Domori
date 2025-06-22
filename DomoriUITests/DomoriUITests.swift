@@ -22,8 +22,7 @@ final class DomoriUITests: XCTestCase {
     @MainActor
     func testAppLaunches() throws {
         // UI tests must launch the application that they test.
-        let app = XCUIApplication()
-        app.launch()
+        let app = launchAppInTestMode()
         
         // Verify the app launches successfully
         XCTAssertTrue(app.state == .runningForeground, "App should be running in foreground")
@@ -43,8 +42,7 @@ final class DomoriUITests: XCTestCase {
 
     @MainActor
     func testPropertyListExistence() throws {
-        let app = XCUIApplication()
-        app.launch()
+        let app = launchAppInTestMode()
         
         // Wait for the main view to load
         XCTAssertTrue(app.navigationBars["Properties"].waitForExistence(timeout: 5.0), "Properties navigation should exist")
@@ -63,8 +61,7 @@ final class DomoriUITests: XCTestCase {
 
     @MainActor
     func testAddPropertyFormAccess() throws {
-        let app = XCUIApplication()
-        app.launch()
+        let app = launchAppInTestMode()
         
         // Wait for main view
         XCTAssertTrue(app.navigationBars["Properties"].waitForExistence(timeout: 5.0))
@@ -104,8 +101,7 @@ final class DomoriUITests: XCTestCase {
 
     @MainActor
     func testSortAndSearchFunctionality() throws {
-        let app = XCUIApplication()
-        app.launch()
+        let app = launchAppInTestMode()
         
         // Wait for main view
         XCTAssertTrue(app.navigationBars["Properties"].waitForExistence(timeout: 5.0))
@@ -159,8 +155,7 @@ final class DomoriUITests: XCTestCase {
 
     func testExample() throws {
         // UI tests must launch the application that they test.
-        let app = XCUIApplication()
-        app.launch()
+        let app = launchAppInTestMode()
 
         // Use XCTAssert and related functions to verify your tests produce the correct results.
     }
@@ -169,7 +164,9 @@ final class DomoriUITests: XCTestCase {
         if #available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 7.0, *) {
             // This measures how long it takes to launch your application.
             measure(metrics: [XCTApplicationLaunchMetric()]) {
-                XCUIApplication().launch()
+                let app = XCUIApplication()
+                app.launchArguments = ["uitest"]
+                app.launch()
             }
         }
     }
@@ -835,6 +832,13 @@ final class DomoriUITests: XCTestCase {
                 print("❌ Could not find rating control")
             }
         }
+    }
+    
+    private func launchAppInTestMode() -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments = ["uitest"]
+        app.launch()
+        return app
     }
 }
 

@@ -1,5 +1,5 @@
 import Testing
-import SwiftData
+import FirebaseFirestore
 import Foundation
 @testable import Domori
 
@@ -17,8 +17,8 @@ struct PropertyTests {
             size: 100,
             bedrooms: 2,
             bathrooms: 1.5,
-            propertyType: PropertyType.house,
-            propertyRating: PropertyRating.good
+            type: .house,
+            rating: .good
         )
         
         #expect(listing.title == "Test Property")
@@ -29,9 +29,9 @@ struct PropertyTests {
         #expect(listing.size == 100)
         #expect(listing.bedrooms == 2)
         #expect(listing.bathrooms == 1.5)
-        #expect(listing.propertyType == PropertyType.house)
-        #expect(listing.propertyRating == PropertyRating.good)
-        #expect(listing.tags?.isEmpty ?? true)
+        #expect(listing.type == .house)
+        #expect(listing.rating == .good)
+        #expect(listing.tagIds.isEmpty)
     }
     
     @Test("Property creation with legacy parameters")
@@ -45,8 +45,8 @@ struct PropertyTests {
             size: 150,
             bedrooms: 3,
             bathrooms: 2.0,
-            propertyType: PropertyType.condo,
-            propertyRating: PropertyRating.considering
+            type: .condo,
+            rating: .considering
         )
         
         #expect(listing.title == "Legacy Property")
@@ -57,8 +57,8 @@ struct PropertyTests {
         #expect(listing.size == 150)
         #expect(listing.bedrooms == 3)
         #expect(listing.bathrooms == 2.0)
-        #expect(listing.propertyType == PropertyType.condo)
-        #expect(listing.propertyRating == PropertyRating.considering)
+        #expect(listing.type == .condo)
+        #expect(listing.rating == .considering)
     }
     
     @Test("Property default values")
@@ -72,12 +72,12 @@ struct PropertyTests {
             size: 80,
             bedrooms: 1,
             bathrooms: 1.0,
-            propertyType: PropertyType.apartment,
-            propertyRating: .none
+            type: .apartment,
+            rating: .none
         )
         
-        #expect(listing.propertyRating == PropertyRating.none)
-        #expect(listing.tags?.isEmpty ?? true)
+        #expect(listing.rating == .none)
+        #expect(listing.tagIds.isEmpty)
     }
     
     @Test("Property formatted values")
@@ -91,8 +91,8 @@ struct PropertyTests {
             size: 150.5,
             bedrooms: 3,
             bathrooms: 2.5,
-            propertyType: PropertyType.house,
-            propertyRating: .none
+            type: .house,
+            rating: .none
         )
         
         #expect(listing.formattedPrice.contains("1,234,567") || listing.formattedPrice.contains("1.234.567"))
@@ -112,18 +112,19 @@ struct PropertyTests {
             size: 100,
             bedrooms: 2,
             bathrooms: 1.5,
-            propertyType: PropertyType.house,
-            propertyRating: .none
+            type: .house,
+            rating: .none
         )
         
         let originalDate = listing.updatedDate
         
-        // Update the rating
-        listing.updateRating(PropertyRating.excellent)
+        // Note: In Firestore, updates are done through Firestore operations
+        // This test verifies the rating assignment works
+        var updatedListing = listing
+        updatedListing.rating = .excellent
         
-        #expect(listing.propertyRating == PropertyRating.excellent)
-
-        #expect(listing.updatedDate >= originalDate)
+        #expect(updatedListing.rating == .excellent)
+        #expect(updatedListing.rating != listing.rating)
     }
     
     @Test("PropertyType enum values")
@@ -215,8 +216,8 @@ struct PropertyTests {
             size: 120,
             bedrooms: 3,
             bathrooms: 2.0,
-            propertyType: PropertyType.house,
-            propertyRating: PropertyRating.good
+            type: .house,
+            rating: .good
         )
         
         #expect(listingWithContact.agentContact == "+1 (555) 987-6543")
@@ -231,8 +232,8 @@ struct PropertyTests {
             size: 100,
             bedrooms: 2,
             bathrooms: 1.5,
-            propertyType: PropertyType.apartment,
-            propertyRating: PropertyRating.considering
+            type: .apartment,
+            rating: .considering
         )
         
         #expect(listingWithoutContact.agentContact == nil)
@@ -247,8 +248,8 @@ struct PropertyTests {
             size: 90,
             bedrooms: 2,
             bathrooms: 1.0,
-            propertyType: PropertyType.condo,
-            propertyRating: PropertyRating.none
+            type: .condo,
+            rating: .none
         )
         
         #expect(listingWithEmptyContact.agentContact == "")

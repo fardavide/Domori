@@ -7,6 +7,7 @@ final class TagDisplayUITests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
+        app.launchArguments = ["uitest"]
         app.launch()
     }
     

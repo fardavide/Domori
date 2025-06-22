@@ -164,7 +164,7 @@ final class PropertyExportService {
       
       print("✅ Validation successful: \(importData.properties.count) properties")
       
-      return .valid
+      return .validWithCount(propertyCount: importData.properties.count)
     } catch {
       print("❌ Validation failed: \(error)")
       return .invalid(error: error)
@@ -195,4 +195,27 @@ struct ImportResult {
 enum ValidationResult {
   case valid
   case invalid(error: Error)
+  case validWithCount(propertyCount: Int)
+  
+  var isValid: Bool {
+    switch self {
+    case .valid, .validWithCount: return true
+    case .invalid: return false
+    }
+  }
+  
+  var listingCount: Int {
+    switch self {
+    case .valid: return 0
+    case .validWithCount(let count): return count
+    case .invalid: return 0
+    }
+  }
+  
+  var error: Error? {
+    switch self {
+    case .valid, .validWithCount: return nil
+    case .invalid(let error): return error
+    }
+  }
 }

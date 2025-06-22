@@ -5,16 +5,13 @@ import FirebaseFirestore
 @main
 struct DomoriApp: App {
   @UIApplicationDelegateAdaptor(AppDelegate.self) private var delegate
-  private static let isTest = ProcessInfo.processInfo.arguments.contains("test")
+  static let isTest = ProcessInfo.processInfo.arguments.contains("test")
+  static let isUiTest = ProcessInfo.processInfo.arguments.contains("uitest")
   
   var body: some Scene {
     WindowGroup {
-      if DomoriApp.isTest {
-        Text("Running unit tests")
-      } else {
-        ContentView()
-          .environment(\.firestore, Firestore.firestore())
-      }
+      ContentView()
+        .environment(\.firestore, createFirestoreInstance())
     }
     
 #if os(macOS)
@@ -23,6 +20,14 @@ struct DomoriApp: App {
     }
 #endif
   }
+  
+  private func createFirestoreInstance() -> Firestore {
+    if DomoriApp.isUiTest {
+      Firestore.createTestFirestore()
+    } else {
+      Firestore.firestore()
+    }
+  }
 }
 
 private final class AppDelegate: NSObject, UIApplicationDelegate {
@@ -30,7 +35,10 @@ private final class AppDelegate: NSObject, UIApplicationDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
-    FirebaseApp.configure()
+    // Only configure Firebase if not in test mode
+    if !DomoriApp.isTest && !DomoriApp.isUiTest {
+      FirebaseApp.configure()
+    }
     return true
   }
 }

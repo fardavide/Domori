@@ -251,7 +251,7 @@ struct ExportImportView: View {
         
         await MainActor.run {
           switch validation {
-          case .valid: self.performImport(data: data)
+          case .valid, .validWithCount(_): self.performImport(data: data)
           case .invalid(error: let error): self.showImportValidationError(error)
           }
           self.isProcessing = false
