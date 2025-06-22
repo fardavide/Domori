@@ -8,8 +8,7 @@ struct PropertyDetailView: View {
   @State private var showingEditSheet = false
   @State private var showingAddTagSheet = false
   
-  // Force reload listing data to ensure relationships are loaded
-  @FirestoreQuery(collectionPath: FirestoreCollection.properties.rawValue) private var allListings: [Property]
+  @FirestoreQuery(collectionPath: FirestoreCollection.properties.rawValue) private var allProperties: [Property]
   @FirestoreQuery(collectionPath: FirestoreCollection.tags.rawValue) private var allTags: [PropertyTag]
   
   private var propertyTags: [PropertyTag] {
@@ -302,6 +301,11 @@ struct PropertyDetailView: View {
     }
     .sheet(isPresented: $showingAddTagSheet) {
       AddTagView(property: property)
+    }
+    .onChange(of: allProperties) {
+      if let updatedProperty = $1.first(where: { $0.id == property.id }) {
+        property = updatedProperty
+      }
     }
   }
   
