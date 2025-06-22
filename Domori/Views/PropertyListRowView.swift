@@ -1,9 +1,18 @@
 import SwiftUI
+import FirebaseFirestore
 
 struct PropertyListRowView: View {
     let listing: Property
     let isSelected: Bool
     let onSelectionChanged: (Bool) -> Void
+    
+    @FirestoreQuery(collectionPath: FirestoreCollection.tags.rawValue) private var allTags: [PropertyTag]
+    
+    init(listing: Property, isSelected: Bool, onSelectionChanged: @escaping (Bool) -> Void) {
+        self.listing = listing
+        self.isSelected = isSelected
+        self.onSelectionChanged = onSelectionChanged
+    }
     
     var body: some View {
         HStack(spacing: 12) {
@@ -88,14 +97,21 @@ struct PropertyListRowView: View {
                 }
                 
                 // Tags flow layout - show all tags below price
-                if let tags = listing.tags, !tags.isEmpty {
-                    TagFlowLayout(tags: tags.sorted(by: { $0.name < $1.name }))
+                if !tagsForProperty.isEmpty {
+                    TagFlowLayout(tags: tagsForProperty.sorted(by: { $0.name < $1.name }))
                         .padding(.top, 4)
                 }
             }
         }
         .padding(.vertical, 8)
         .contentShape(Rectangle())
+    }
+    
+    private var tagsForProperty: [PropertyTag] {
+        allTags.filter { tag in
+            guard let tagId = tag.id else { return false }
+            return listing.tagIds.contains(tagId)
+        }
     }
     
     // Helper function to convert rating to proper SwiftUI Color
@@ -233,5 +249,4 @@ struct ViewHeightKey: PreferenceKey {
             onSelectionChanged: { _ in }
         )
     }
-    .modelContainer(for: Property.self, inMemory: true)
 } 

@@ -6,7 +6,7 @@ struct ExportImportView: View {
   @Environment(\.dismiss) private var dismiss
   @Environment(\.firestore) private var firestore
   
-  @FirestoreQuery private var allProperties: [Property]
+  @FirestoreQuery(collectionPath: FirestoreCollection.properties.rawValue) private var allProperties: [Property]
   @State private var exportService = PropertyExportService.shared
   
   @State private var showingExportPicker = false
@@ -330,4 +330,8 @@ struct ExportDocument: FileDocument {
   func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
     return FileWrapper(regularFileWithContents: data)
   }
+}
+
+#Preview {
+  ExportImportView()
 }

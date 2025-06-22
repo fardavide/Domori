@@ -1,13 +1,12 @@
 import SwiftUI
-import SwiftData
-import CloudKit
+import FirebaseFirestore
 
 struct PropertyListView: View {
-  @Environment(\.modelContext) private var modelContext
-  @Query private var allProperties: [Property]
-  @State private var showingAddListing = false
+  @Environment(\.firestore) private var firestore
+  @FirestoreQuery(collectionPath: FirestoreCollection.properties.rawValue) private var allProperties: [Property]
   @State private var searchText = ""
   @State private var sortOption: SortOption = .creationDate
+  @State private var showingAddListing = false
   @State private var showingCompareView = false
   @State private var selectedListings: Set<Property> = []
   
@@ -43,7 +42,7 @@ struct PropertyListView: View {
         // Property list
         List {
           ForEach(filteredAndSortedListings, id: \.id) { listing in
-            NavigationLink(destination: PropertyDetailView(listing: listing)) {
+            NavigationLink(destination: PropertyDetailView(property: listing)) {
               PropertyListRowView(
                 listing: listing,
                 isSelected: selectedListings.contains(listing),
@@ -109,27 +108,29 @@ struct PropertyListView: View {
       listing.location.localizedCaseInsensitiveContains(searchText)
     }
     
-    return filtered.sorted { first, second in
-      switch sortOption {
-      case .creationDate:
-        return first.createdDate > second.createdDate
-      case .editDate:
-        return first.updatedDate > second.updatedDate
-      case .price:
-        return first.price < second.price
-      case .size:
-        return first.size > second.size
-      case .title:
-        return first.title < second.title
-      case .rating:
-        return first.rating.rawValue > second.rating.rawValue
-      }
-    }
+    return filtered
+    // TODO:
+//    return filtered.sorted { first, second in
+//      switch sortOption {
+//      case .creationDate:
+//        return first.createdDate > second.createdDate
+//      case .editDate:
+//        return first.updatedDate > second.updatedDate
+//      case .price:
+//        return first.price < second.price
+//      case .size:
+//        return first.size > second.size
+//      case .title:
+//        return first.title < second.title
+//      case .rating:
+//        return first.rating.rawValue > second.rating.rawValue
+//      }
+//    }
   }
   
   private func deleteProperty(_ listing: Property) {
-    modelContext.delete(listing)
-    selectedListings.remove(listing)
+    guard let id = listing.id else { return }
+    firestore.collection(.properties).document(id).delete()
   }
 }
 
@@ -148,5 +149,4 @@ enum SortOption: String, CaseIterable {
 
 #Preview {
   PropertyListView()
-    .modelContainer(for: [Property.self], inMemory: true)
 }

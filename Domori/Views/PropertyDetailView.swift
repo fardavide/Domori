@@ -1,18 +1,22 @@
 import SwiftUI
-import SwiftData
+import FirebaseFirestore
 
 struct PropertyDetailView: View {
-  @Bindable var listing: Property
-  @Environment(\.modelContext) private var modelContext
+  @State var property: Property
+  @Environment(\.firestore) private var firestore
   @Environment(\.openURL) private var openURL
   @State private var showingEditSheet = false
   @State private var showingAddTagSheet = false
   
   // Force reload listing data to ensure relationships are loaded
-  @Query private var allListings: [Property]
+  @FirestoreQuery(collectionPath: FirestoreCollection.properties.rawValue) private var allListings: [Property]
+  @FirestoreQuery(collectionPath: FirestoreCollection.tags.rawValue) private var allTags: [PropertyTag]
   
-  private var currentListing: Property? {
-    allListings.first { $0.id == listing.id }
+  private var propertyTags: [PropertyTag] {
+    allTags.filter { tag in
+      guard let tagId = tag.id else { return false }
+      return property.tagIds.contains(tagId)
+    }
   }
   
   var body: some View {
@@ -22,18 +26,18 @@ struct PropertyDetailView: View {
         VStack(alignment: .leading, spacing: 12) {
           HStack {
             VStack(alignment: .leading, spacing: 4) {
-              Text(listing.title)
+              Text(property.title)
                 .font(.title2)
                 .fontWeight(.semibold)
               
-              Text(listing.location)
+              Text(property.location)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
               
               // Display link if available
-              if !listing.link.isEmpty {
+              if !property.link.isEmpty {
                 Button(action: {
-                  if let url = URL(string: listing.link) {
+                  if let url = URL(string: property.link) {
                     openURL(url)
                   }
                 }) {
@@ -50,7 +54,7 @@ struct PropertyDetailView: View {
             Spacer()
             
             VStack(alignment: .trailing) {
-              Text(listing.formattedPrice)
+              Text(property.formattedPrice)
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.primary)
@@ -65,7 +69,7 @@ struct PropertyDetailView: View {
               Text("Size")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-              Text(listing.formattedSize)
+              Text(property.formattedSize)
                 .font(.title3)
                 .fontWeight(.medium)
             }
@@ -74,7 +78,7 @@ struct PropertyDetailView: View {
               Text("Type")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-              Label(listing.type.rawValue, systemImage: listing.type.systemImage)
+              Label(property.type.rawValue, systemImage: property.type.systemImage)
                 .font(.title3)
                 .fontWeight(.medium)
             }
@@ -82,14 +86,14 @@ struct PropertyDetailView: View {
           
           // Bed/Bath info and price per unit
           HStack(spacing: 24) {
-            if listing.bedrooms > 0 {
+            if property.bedrooms > 0 {
               Label(
-                "\(listing.bedrooms) \(listing.bedrooms == 1 ? "bed" : "beds")",
+                "\(property.bedrooms) \(property.bedrooms == 1 ? "bed" : "beds")",
                 systemImage: "bed.double"
               )
             }
             Label(
-              "\(listing.bathroomText) \(Double(listing.bathroomText) == 1.0 ? "bath" : "baths")",
+              "\(property.bathroomText) \(Double(property.bathroomText) == 1.0 ? "bath" : "baths")",
               systemImage: "shower"
             )
             
@@ -99,7 +103,7 @@ struct PropertyDetailView: View {
               Text("Price per unit")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-              Text(listing.formattedPricePerUnit)
+              Text(property.formattedPricePerUnit)
                 .font(.subheadline)
                 .fontWeight(.medium)
             }
@@ -126,10 +130,9 @@ struct PropertyDetailView: View {
             
             InlineRatingPicker(
               selectedRating: Binding(
-                get: { listing.rating },
+                get: { property.rating },
                 set: { newRating in
-                  listing.rating = newRating
-                  try? modelContext.save()
+                  updateRating(newRating)
                 }
               )
             )
@@ -141,7 +144,7 @@ struct PropertyDetailView: View {
         .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
         
         // Agent Contact Section
-        if let agentContact = listing.agentContact, !agentContact.isEmpty {
+        if let agentContact = property.agentContact, !agentContact.isEmpty {
           Button(action: {
             // Format phone number for dialing
             let phoneNumber = agentContact.replacingOccurrences(of: " ", with: "")
@@ -234,56 +237,29 @@ struct PropertyDetailView: View {
           }
           
           // Debug info
-          if let current = currentListing {
-            if let tags = current.tags, !tags.isEmpty {
-              // Full width flow layout for tags
-              VStack(alignment: .leading, spacing: 8) {
-                FlowLayout(spacing: 8, data: tags.sorted(by: { $0.name < $1.name })) { tag in
-                  TagChipView(tag: tag) {
-                    // Remove tag when tapped
-                    removeTag(tag)
-                  }
+          if !propertyTags.isEmpty {
+            // Full width flow layout for tags
+            VStack(alignment: .leading, spacing: 8) {
+              FlowLayout(spacing: 8, data: propertyTags.sorted(by: { $0.name < $1.name })) { tag in
+                TagChipView(tag: tag) {
+                  // Remove tag when tapped
+                  removeTag(tag)
                 }
               }
-              .frame(maxWidth: .infinity, alignment: .leading)
-            } else {
-              VStack(alignment: .leading, spacing: 8) {
-                Text("No tags added")
-                  .font(.subheadline)
-                  .foregroundStyle(.secondary)
-                
-                Text("Tap 'Add Tag' to organize this property")
-                  .font(.caption)
-                  .foregroundStyle(.tertiary)
-              }
-              .padding(.vertical, 8)
-              .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
           } else {
-            // Fallback to original listing
-            if let tags = listing.tags, !tags.isEmpty {
-              VStack(alignment: .leading, spacing: 8) {
-                FlowLayout(spacing: 8, data: tags.sorted(by: { $0.name < $1.name })) { tag in
-                  TagChipView(tag: tag) {
-                    // Remove tag when tapped
-                    removeTag(tag)
-                  }
-                }
-              }
-              .frame(maxWidth: .infinity, alignment: .leading)
-            } else {
-              VStack(alignment: .leading, spacing: 8) {
-                Text("No tags added")
-                  .font(.subheadline)
-                  .foregroundStyle(.secondary)
-                
-                Text("Tap 'Add Tag' to organize this property")
-                  .font(.caption)
-                  .foregroundStyle(.tertiary)
-              }
-              .padding(.vertical, 8)
-              .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading, spacing: 8) {
+              Text("No tags added")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+              
+              Text("Tap 'Add Tag' to organize this property")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
             }
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
           }
         }
         .padding()
@@ -298,12 +274,12 @@ struct PropertyDetailView: View {
             .fontWeight(.semibold)
           
           VStack(spacing: 8) {
-            detailRow("Created", value: listing.createdDate.formatted(date: .abbreviated, time: .omitted))
-            detailRow("Updated", value: listing.updatedDate.formatted(date: .abbreviated, time: .omitted))
-            detailRow("Property Type", value: listing.type.rawValue)
-            detailRow("Bedrooms", value: "\(listing.bedrooms)")
-            detailRow("Bathrooms", value: listing.bathroomText)
-            detailRow("Size", value: listing.formattedSize)
+            detailRow("Created", value: property.createdDate?.dateValue().formatted(date: .abbreviated, time: .shortened) ?? "Unknown")
+            detailRow("Updated", value: property.updatedDate?.dateValue().formatted(date: .abbreviated, time: .shortened) ?? "Unknown")
+            detailRow("Property Type", value: property.type.rawValue)
+            detailRow("Bedrooms", value: "\(property.bedrooms)")
+            detailRow("Bathrooms", value: property.bathroomText)
+            detailRow("Size", value: property.formattedSize)
           }
         }
         .padding()
@@ -322,13 +298,10 @@ struct PropertyDetailView: View {
       }
     }
     .sheet(isPresented: $showingEditSheet) {
-      AddPropertyView(listing: listing)
+      AddPropertyView(listing: property)
     }
     .sheet(isPresented: $showingAddTagSheet) {
-      AddTagView(listing: listing)
-    }
-    .onAppear {
-      // Tags should load automatically with SwiftData relationships
+      AddTagView(property: property)
     }
   }
   
@@ -351,11 +324,31 @@ struct PropertyDetailView: View {
 #endif
   }
   
+  private func updateRating(_ newRating: PropertyRating) {
+    guard let id = property.id else { return }
+    var updatedListing = property
+    updatedListing.rating = newRating
+    updatedListing.updatedDate = Timestamp()
+    
+    do {
+      try firestore.collection(.properties).document(id).setData(from: updatedListing)
+      property = updatedListing
+    } catch {
+      print("Error updating rating: \(error)")
+    }
+  }
+  
   private func removeTag(_ tag: PropertyTag) {
-    if var tags = listing.tags, let index = tags.firstIndex(where: { $0.id == tag.id }) {
-      tags.remove(at: index)
-      listing.tags = tags
-      try? modelContext.save()
+    guard let id = property.id, let tagId = tag.id else { return }
+    var updatedListing = property
+    updatedListing.tagIds.removeAll { $0 == tagId }
+    updatedListing.updatedDate = Timestamp()
+    
+    do {
+      try firestore.collection(.properties).document(id).setData(from: updatedListing)
+      property = updatedListing
+    } catch {
+      print("Error removing tag: \(error)")
     }
   }
 }
@@ -423,7 +416,6 @@ struct InlineRatingPicker: View {
 
 #Preview {
   NavigationView {
-    PropertyDetailView(listing: Property.sampleData[0])
+    PropertyDetailView(property: Property.sampleData[0])
   }
-  .modelContainer(for: Property.self, inMemory: true)
 }

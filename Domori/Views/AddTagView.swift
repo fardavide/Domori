@@ -4,7 +4,7 @@ import FirebaseFirestore
 struct AddTagView: View {
   @Environment(\.dismiss) private var dismiss
   @Environment(\.firestore) private var firestore
-  @FirestoreQuery private var allTags: [PropertyTag]
+  @FirestoreQuery(collectionPath: FirestoreCollection.tags.rawValue) private var allTags: [PropertyTag]
   
   let property: Property
   

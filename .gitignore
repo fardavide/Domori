@@ -19,3 +19,6 @@ build/
 
 # Test artifacts
 *.xcresult
+
+# Firebase configuration
+GoogleService-Info.plist
