@@ -82,6 +82,23 @@ enum PropertyType: String, CaseIterable, Codable {
   case loft = "Loft"
   case other = "Other"
   
+  init(from decoder: Decoder) throws {
+    let container = try decoder.singleValueContainer()
+    let rawValue = try container.decode(String.self)
+    
+    // Try to find a case-insensitive match
+    if let matchedCase = PropertyType.allCases.first(where: { 
+      $0.rawValue.lowercased() == rawValue.lowercased() 
+    }) {
+      self = matchedCase
+    } else {
+      throw DecodingError.dataCorruptedError(
+        in: container,
+        debugDescription: "Cannot initialize PropertyType from invalid String value \(rawValue)"
+      )
+    }
+  }
+  
   var systemImage: String {
     switch self {
     case .house: return "house"

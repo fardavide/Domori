@@ -8,6 +8,9 @@ struct AddPropertyView: View {
   // Edit mode
   var listing: Property?
   
+  // Import mode - prefilled data from intent
+  var importData: PropertyImportData?
+  
   // Form fields
   @State private var title = ""
   @State private var location = ""
@@ -22,6 +25,10 @@ struct AddPropertyView: View {
   
   private var isEditing: Bool {
     listing != nil
+  }
+  
+  private var isImportMode: Bool {
+    importData != nil
   }
   
   // Validation computed properties
@@ -50,7 +57,7 @@ struct AddPropertyView: View {
         detailsSection
         ratingSection
       }
-      .navigationTitle(isEditing ? "Edit Property" : "Add Property")
+      .navigationTitle(isEditing ? "Edit Property" : (isImportMode ? "Import Property" : "Add Property"))
       .toolbar {
         toolbarContent
       }
@@ -58,6 +65,8 @@ struct AddPropertyView: View {
     .onAppear {
       if let listing = listing {
         loadPropertyData(listing)
+      } else if let importData = importData {
+        loadImportData(importData)
       } else {
         // Reset form when creating a new property
         resetForm()
@@ -217,7 +226,7 @@ struct AddPropertyView: View {
       }
     }
     ToolbarItem(placement: .primaryAction) {
-      Button(isEditing ? "Update" : "Save") {
+      Button(isEditing ? "Update" : (isImportMode ? "Import" : "Save")) {
         saveProperty()
       }
       .disabled(!isValidForSaving)
@@ -235,6 +244,19 @@ struct AddPropertyView: View {
     bathrooms = listing.bathrooms
     type = listing.type
     rating = listing.rating
+  }
+  
+  private func loadImportData(_ importData: PropertyImportData) {
+    title = importData.title
+    location = importData.location
+    link = importData.link
+    agentContact = importData.agentContact ?? ""
+    price = importData.price
+    size = importData.size
+    bedrooms = importData.bedrooms
+    bathrooms = importData.bathrooms
+    type = importData.type
+    rating = .none // Default rating for imported properties
   }
   
   private func saveProperty() {

@@ -1,146 +1,51 @@
 import Foundation
-import FirebaseCore
-import UniformTypeIdentifiers
-import FirebaseFirestore
+@preconcurrency import FirebaseFirestore
 
-@Observable
 final class PropertyImportService {
-  static let shared = PropertyImportService()
-  
-  private init() {}
-  
-  // MARK: - Import Functionality
-  
-  /// Imports property listings from JSON data
-  /// - Parameters:
-  ///   - data: JSON data containing property listings
-  /// - Returns: ImportResult containing success/failure information
-  func importListings(
-    from data: Data,
-    firestore: Firestore
-  ) throws -> ImportResult {
-    let importData = try JSONSerialization.jsonObject(
-      with: data,
-      options: []
-    ) as! [String: Any]
-    
-    let batchWrite = firestore.batch()
-    
-    // Import properties
-    let properties = importData["properties"] as! [[String: Any]]
-    for property in properties {
-      let documentReference = firestore.collection(.properties).document()
-      batchWrite.setData(property, forDocument: documentReference)
+  /// Parses and validates the JSON payload, returning a PropertyImportData object or throwing a descriptive error.
+  func parseAndValidate(_ jsonString: String) throws -> PropertyImportData {
+    guard let jsonData = jsonString.data(using: .utf8) else {
+      throw ImportError.invalidJsonEncoding
     }
-    
-    // Import tags
-    let tags = importData["tags"] as! [[String: Any]]
-    for tag in tags {
-      let documentReference = firestore.collection(.tags).document()
-      batchWrite.setData(tag, forDocument: documentReference)
-    }
-    
-    batchWrite.commit()
-    
-    return ImportResult(
-      success: true,
-      importedCount: properties.count,
-      message: "Successfully imported \(properties.count) properties"
-    )
-  }
-  
-  // MARK: - Utility Methods
-  
-  /// Validates JSON data format before import
-  /// - Parameter data: JSON data to validate
-  /// - Returns: ValidationResult with details about the data
-  func validateImportData(_ data: Data) -> ValidationResult {
     do {
       let decoder = JSONDecoder()
-      // Use flexible date decoding that handles ISO8601 with microseconds
-      decoder.dateDecodingStrategy = .custom { decoder in
-        let container = try decoder.singleValueContainer()
-        let dateString = try container.decode(String.self)
-        
-        // Try ISO8601 with microseconds first
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = formatter.date(from: dateString) {
-          return date
-        }
-        
-        // Fallback to standard ISO8601
-        formatter.formatOptions = [.withInternetDateTime]
-        if let date = formatter.date(from: dateString) {
-          return date
-        }
-        
-        throw DecodingError.dataCorrupted(
-          DecodingError.Context(codingPath: decoder.codingPath,
-                                debugDescription: "Invalid date format: \(dateString)")
-        )
+      let importData = try decoder.decode(PropertyImportData.self, from: jsonData)
+      return importData
+    } catch let decodingError as DecodingError {
+      // Handle missing required fields specifically
+      switch decodingError {
+      default:
+        throw ImportError.jsonDecodingFailed(String(describing: decodingError))
       }
-      
-      // Debug: Print the JSON string for debugging
-      if let jsonString = String(data: data, encoding: .utf8) {
-        print("🔍 JSON to validate:")
-        print(jsonString.prefix(500)) // Print first 500 characters
-      }
-      
-      let importData = try decoder.decode(ExportData.self, from: data)
-      
-      print("✅ Validation successful: \(importData.properties.count) properties")
-      
-      return .validWithCount(propertyCount: importData.properties.count)
     } catch {
-      print("❌ Validation failed: \(error)")
-      return .invalid(error: error)
+      throw ImportError.parsingFailed(error.localizedDescription)
     }
   }
   
-  /// Gets supported file types for import/export
-  static var supportedFileTypes: [UTType] {
-    return [UTType.json]
-  }
-}
-
-struct ExportData: Codable {
-  let properties: [Property]
-  let tags: [PropertyTag]
-}
-
-// MARK: - Result Types
-
-struct ImportResult {
-  let success: Bool
-  let importedCount: Int
-  let message: String
-}
-
-enum ValidationResult {
-  case valid
-  case invalid(error: Error)
-  case validWithCount(propertyCount: Int)
-  
-  var isValid: Bool {
-    switch self {
-    case .valid, .validWithCount: return true
-    case .invalid: return false
-    }
+  /// Encodes PropertyImportData for use in a URL (base64-encoded JSON)
+  func encodePropertyDataForUrl(_ propertyData: PropertyImportData) throws -> String {
+    let encoder = JSONEncoder()
+    let data = try encoder.encode(propertyData)
+    return data.base64EncodedString()
   }
   
-  var listingCount: Int {
-    switch self {
-    case .valid: return 0
-    case .validWithCount(let count): return count
-    case .invalid: return 0
-    }
-  }
-  
-  var error: Error? {
-    switch self {
-    case .valid, .validWithCount: return nil
-    case .invalid(let error): return error
-    }
+  /// Saves the property to Firestore using the provided instance
+  func savePropertyToFirestore(
+    _ importData: PropertyImportData,
+    firestore: Firestore
+  ) throws -> DocumentReference {
+    let property = Property(
+      title: importData.title,
+      location: importData.location,
+      link: importData.link,
+      agentContact: importData.agentContact,
+      price: importData.price,
+      size: importData.size,
+      bedrooms: importData.bedrooms,
+      bathrooms: importData.bathrooms,
+      type: importData.type,
+      rating: .none // Default rating for imported properties
+    )
+    return try firestore.setProperty(property)
   }
 }
