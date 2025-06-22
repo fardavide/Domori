@@ -1,53 +1,21 @@
 import Foundation
-import SwiftData
+import FirebaseFirestore
 
-@Model
-final class PropertyListing {
-  var title: String = ""
-  var location: String = ""
-  var link: String = ""
-  var agentContact: String? = nil
-  var price: Double = 0.0
-  var size: Double = 0.0 // in square meters or square feet based on locale
+struct Property: Codable, Hashable {
+  @DocumentID var id: String?
+  @ServerTimestamp var createdDate: Timestamp?
+  var title: String
+  var location: String
+  var link: String
+  var agentContact: String?
+  var price: Double = 0
+  var size: Double = 0 // in square meters or square feet based on locale
   var bedrooms: Int = 0
   var bathrooms: Double = 0.0
-  var propertyType: PropertyType = PropertyType.apartment
-  
-  // New property rating system (added for migration)
-  var propertyRating: PropertyRating = PropertyRating.none
-  
-  var createdDate: Date = Date()
-  var updatedDate: Date = Date()
-  
-  // Relationships
-  @Relationship(deleteRule: .nullify, inverse: \PropertyTag.properties) var tags: [PropertyTag]?
-  
-  init(
-    title: String,
-    location: String,
-    link: String,
-    agentContact: String?,
-    price: Double,
-    size: Double,
-    bedrooms: Int,
-    bathrooms: Double,
-    propertyType: PropertyType,
-    propertyRating: PropertyRating
-  ) {
-    self.title = title
-    self.location = location
-    self.link = link
-    self.agentContact = agentContact
-    self.price = price
-    self.size = size
-    self.bedrooms = bedrooms
-    self.bathrooms = bathrooms
-    self.propertyType = propertyType
-    self.createdDate = Date()
-    self.updatedDate = Date()
-    self.tags = []
-    self.propertyRating = propertyRating
-  }
+  var type: PropertyType = .apartment
+  var rating: PropertyRating = .none
+  @ServerTimestamp var updatedDate: Timestamp?
+  var tagIds: [String] = []
   
   // Computed properties with locale-aware formatting
   var formattedPrice: String {
@@ -99,12 +67,6 @@ final class PropertyListing {
     } else {
       return String(format: "%.1f", bathrooms)
     }
-  }
-  
-  // Method to update property rating and updated date
-  func updateRating(_ newRating: PropertyRating) {
-    self.propertyRating = newRating
-    self.updatedDate = Date()
   }
 }
 

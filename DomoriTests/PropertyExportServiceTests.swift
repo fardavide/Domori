@@ -14,7 +14,7 @@ final class PropertyExportServiceTests {
     init() throws {
         // Create in-memory container for testing
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        container = try ModelContainer(for: PropertyListing.self, PropertyTag.self, configurations: config)
+        container = try ModelContainer(for: Property.self, PropertyTag.self, configurations: config)
         context = container.mainContext
     }
     
@@ -46,8 +46,8 @@ final class PropertyExportServiceTests {
     func validateValidData() throws {
         print("🧪 Testing validate valid data")
         
-        // Create test data that matches PropertyListingsExport format
-        let testExport = PropertyListingsExport(listings: [])
+        // Create test data that matches PropertiesExport format
+        let testExport = PropertiesExport(listings: [])
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         let testData = try encoder.encode(testExport)
@@ -98,7 +98,7 @@ final class PropertyExportServiceTests {
         print("🧪 Testing export with listings")
         
         // Create test property listing
-        let property = PropertyListing(
+        let property = Property(
             title: "Test Property",
             location: "Test Location",
             link: "https://example.com",
@@ -107,8 +107,8 @@ final class PropertyExportServiceTests {
             size: 50,
             bedrooms: 2,
             bathrooms: 1,
-            propertyType: .apartment,
-            propertyRating: .good
+            type: .apartment,
+            rating: .good
         )
         context.insert(property)
         
@@ -131,7 +131,7 @@ final class PropertyExportServiceTests {
         print("🧪 Testing import empty data")
         
         // Create empty export data
-        let emptyExport = PropertyListingsExport(listings: [])
+        let emptyExport = PropertiesExport(listings: [])
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         let data = try encoder.encode(emptyExport)
@@ -153,7 +153,7 @@ final class PropertyExportServiceTests {
         print("🧪 Testing round-trip export/import")
         
         // Create test property
-        let originalProperty = PropertyListing(
+        let originalProperty = Property(
             title: "Round Trip Test",
             location: "Test Location",
             link: "https://example.com",
@@ -162,8 +162,8 @@ final class PropertyExportServiceTests {
             size: 75,
             bedrooms: 3,
             bathrooms: 2,
-            propertyType: .house,
-            propertyRating: .excellent
+            type: .house,
+            rating: .excellent
         )
         context.insert(originalProperty)
         
@@ -174,14 +174,14 @@ final class PropertyExportServiceTests {
         print("📋 Exported data size: \(exportData.count) bytes")
         
         // Clear the database
-        let allProperties = try context.fetch(FetchDescriptor<PropertyListing>())
+        let allProperties = try context.fetch(FetchDescriptor<Property>())
         for property in allProperties {
             context.delete(property)
         }
         try context.save()
         
         // Verify database is empty
-        let emptyCheck = try context.fetch(FetchDescriptor<PropertyListing>())
+        let emptyCheck = try context.fetch(FetchDescriptor<Property>())
         #expect(emptyCheck.isEmpty, "Database should be empty after clearing")
         
         // Import the data back
@@ -196,15 +196,15 @@ final class PropertyExportServiceTests {
         #expect(importResult.importedCount == 1, "Should import 1 property")
         
         // Verify the imported property
-        let importedProperties = try context.fetch(FetchDescriptor<PropertyListing>())
+        let importedProperties = try context.fetch(FetchDescriptor<Property>())
         #expect(importedProperties.count == 1, "Should have 1 imported property")
         
         let importedProperty = importedProperties.first!
         #expect(importedProperty.title == originalProperty.title, "Title should match")
         #expect(importedProperty.location == originalProperty.location, "Location should match")
         #expect(importedProperty.price == originalProperty.price, "Price should match")
-        #expect(importedProperty.propertyType == originalProperty.propertyType, "Property type should match")
-        #expect(importedProperty.propertyRating == originalProperty.propertyRating, "Rating should match")
+        #expect(importedProperty.type == originalProperty.type, "Property type should match")
+        #expect(importedProperty.rating == originalProperty.rating, "Rating should match")
         
         print("✅ Round-trip export/import passed")
     }
@@ -214,7 +214,7 @@ final class PropertyExportServiceTests {
         print("🧪 Testing import with replace existing")
         
         // Create initial property
-        let initialProperty = PropertyListing(
+        let initialProperty = Property(
             title: "Initial Property",
             location: "Initial Location",
             link: "https://initial.com",
@@ -223,14 +223,14 @@ final class PropertyExportServiceTests {
             size: 60,
             bedrooms: 2,
             bathrooms: 1,
-            propertyType: .apartment,
-            propertyRating: .good
+            type: .apartment,
+            rating: .good
         )
         context.insert(initialProperty)
         try context.save()
         
         // Create import data with different property
-        let importProperty = PropertyListing(
+        let importProperty = Property(
             title: "Import Property",
             location: "Import Location",
             link: "https://import.com",
@@ -239,11 +239,11 @@ final class PropertyExportServiceTests {
             size: 80,
             bedrooms: 3,
             bathrooms: 2,
-            propertyType: .house,
-            propertyRating: .excellent
+            type: .house,
+            rating: .excellent
         )
         
-        let exportData = PropertyListingsExport(listings: [importProperty])
+        let exportData = PropertiesExport(listings: [importProperty])
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         let data = try encoder.encode(exportData)
@@ -260,7 +260,7 @@ final class PropertyExportServiceTests {
         #expect(result.importedCount == 1, "Should import 1 property")
         
         // Verify only the imported property exists
-        let allProperties = try context.fetch(FetchDescriptor<PropertyListing>())
+        let allProperties = try context.fetch(FetchDescriptor<Property>())
         #expect(allProperties.count == 1, "Should have only 1 property after replace")
         
         let finalProperty = allProperties.first!

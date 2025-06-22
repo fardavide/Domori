@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 
 struct SettingsView: View {
   var body: some View {
@@ -54,5 +53,4 @@ struct SettingsView: View {
 
 #Preview {
   SettingsView()
-    .modelContainer(for: [PropertyListing.self], inMemory: true)
 }

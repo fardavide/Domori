@@ -31,15 +31,15 @@ struct PropertyTagTests {
         #expect(noneTag.swiftUiColor == .gray)
     }
     
-    @Test("PropertyTag relationship with PropertyListing")
+    @Test("PropertyTag relationship with Property")
     func testPropertyTagRelationship() async throws {
         // Create in-memory model container for testing
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: PropertyListing.self, PropertyTag.self, configurations: config)
+        let container = try ModelContainer(for: Property.self, PropertyTag.self, configurations: config)
         let context = await container.mainContext
         
         // Create a property and tag
-        let property = PropertyListing(
+        let property = Property(
             title: "Test Property",
             location: "Test Location",
             link: "https://example.com",
@@ -48,8 +48,8 @@ struct PropertyTagTests {
             size: 100,
             bedrooms: 2,
             bathrooms: 1,
-            propertyType: .apartment,
-            propertyRating: .none
+            type: .apartment,
+            rating: .none
         )
         
         let tag = PropertyTag(name: "Test Tag", rating: .good)

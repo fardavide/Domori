@@ -4,13 +4,12 @@ import CloudKit
 
 struct PropertyListView: View {
   @Environment(\.modelContext) private var modelContext
-  @Query private var allProperties: [PropertyListing]
+  @Query private var allProperties: [Property]
   @State private var showingAddListing = false
   @State private var searchText = ""
   @State private var sortOption: SortOption = .creationDate
   @State private var showingCompareView = false
-  @State private var selectedListings: Set<PropertyListing> = []
-  @State private var showingShareSheet = false
+  @State private var selectedListings: Set<Property> = []
   
   var body: some View {
     NavigationStack {
@@ -84,14 +83,6 @@ struct PropertyListView: View {
             .foregroundColor(.secondary)
           }
           
-          if FeatureFlags.shared.isShareEnabled {
-            Button {
-              showingShareSheet = true
-            } label: {
-              Image(systemName: "square.and.arrow.up")
-            }
-          }
-          
           Button {
             showingAddListing = true
           } label: {
@@ -105,13 +96,10 @@ struct PropertyListView: View {
       .sheet(isPresented: $showingCompareView) {
         ComparePropertiesView(listings: Array(selectedListings))
       }
-      .sheet(isPresented: $showingShareSheet) {
-        DatabaseSharingView()
-      }
     }
   }
   
-  private var filteredAndSortedListings: [PropertyListing] {
+  private var filteredAndSortedListings: [Property] {
     // Filter by search text
     let filtered = allProperties.filter { listing in
       if searchText.isEmpty {
@@ -134,12 +122,12 @@ struct PropertyListView: View {
       case .title:
         return first.title < second.title
       case .rating:
-        return first.propertyRating.rawValue > second.propertyRating.rawValue
+        return first.rating.rawValue > second.rating.rawValue
       }
     }
   }
   
-  private func deleteProperty(_ listing: PropertyListing) {
+  private func deleteProperty(_ listing: Property) {
     modelContext.delete(listing)
     selectedListings.remove(listing)
   }
@@ -160,5 +148,5 @@ enum SortOption: String, CaseIterable {
 
 #Preview {
   PropertyListView()
-    .modelContainer(for: [PropertyListing.self], inMemory: true)
+    .modelContainer(for: [Property.self], inMemory: true)
 }

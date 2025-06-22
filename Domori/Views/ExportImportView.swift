@@ -1,12 +1,12 @@
 import SwiftUI
-import SwiftData
 import UniformTypeIdentifiers
+import FirebaseFirestore
 
 struct ExportImportView: View {
   @Environment(\.dismiss) private var dismiss
-  @Environment(\.modelContext) private var modelContext
+  @Environment(\.firestore) private var firestore
   
-  @Query private var allProperties: [PropertyListing]
+  @FirestoreQuery private var allProperties: [Property]
   @State private var exportService = PropertyExportService.shared
   
   @State private var showingExportPicker = false
@@ -166,7 +166,7 @@ struct ExportImportView: View {
     
     Task {
       do {
-        let data = try exportService.exportAllListings(context: modelContext)
+        let data = try await exportService.exportAllListings(firestore: firestore)
         
         await MainActor.run {
           self.exportData = data
@@ -248,15 +248,11 @@ struct ExportImportView: View {
         // Validate the data first
         print("🔍 Starting validation...")
         let validation = exportService.validateImportData(data)
-        print("📋 Validation result: isValid=\(validation.isValid), error=\(validation.error ?? "none")")
         
         await MainActor.run {
-          if validation.isValid {
-            print("✅ Validation passed, showing confirmation")
-            self.showImportConfirmation(data: data, validation: validation)
-          } else {
-            print("❌ Validation failed: \(validation.error ?? "Invalid file format")")
-            self.showImportValidationError(validation.error ?? "Invalid file format")
+          switch validation {
+          case .valid: self.performImport(data: data)
+          case .invalid(error: let error): self.showImportValidationError(error)
           }
           self.isProcessing = false
         }
@@ -270,34 +266,13 @@ struct ExportImportView: View {
     }
   }
   
-  private func showImportConfirmation(data: Data, validation: ValidationResult) {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .medium
-    formatter.timeStyle = .short
-    
-    let exportDateString = validation.exportDate.map { formatter.string(from: $0) } ?? "Unknown"
-    
-    alertTitle = "Confirm Import"
-    alertMessage = """
-        Found \(validation.listingCount) properties
-        Export date: \(exportDateString)
-        Version: \(validation.version ?? "Unknown")
-        
-        This will import the properties to your property list.
-        """
-    
-    // Perform import directly
-    performImport(data: data)
-  }
-  
   private func performImport(data: Data) {
     isProcessing = true
     
     Task {
       let result = exportService.importListings(
         from: data,
-        context: modelContext,
-        replaceExisting: replaceExistingOnImport
+        firestore: firestore
       )
       
       await MainActor.run {
@@ -327,9 +302,9 @@ struct ExportImportView: View {
     showingAlert = true
   }
   
-  private func showImportValidationError(_ error: String) {
+  private func showImportValidationError(_ error: Error) {
     alertTitle = "Invalid File"
-    alertMessage = "The selected file is not a valid property export: \(error)"
+    alertMessage = "The selected file is not a valid property export: \(error.localizedDescription)"
     showingAlert = true
   }
 }
@@ -355,11 +330,4 @@ struct ExportDocument: FileDocument {
   func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
     return FileWrapper(regularFileWithContents: data)
   }
-}
-
-// MARK: - Preview
-
-#Preview {
-  ExportImportView()
-    .modelContainer(for: [PropertyListing.self, PropertyTag.self])
 }

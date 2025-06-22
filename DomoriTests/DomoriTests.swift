@@ -9,14 +9,14 @@ import Foundation
 @MainActor
 struct DomoriTests {
     
-    @Test func testPropertyListingCreation() async throws {
+    @Test func testPropertyCreation() async throws {
         // Create in-memory container for testing
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: PropertyListing.self, PropertyTag.self, configurations: config)
+        let container = try ModelContainer(for: Property.self, PropertyTag.self, configurations: config)
         let context = container.mainContext
         
         // Create a test property
-        let property = PropertyListing(
+        let property = Property(
             title: "Test Property",
             location: "123 Test Street",
             link: "https://example.com/test",
@@ -44,14 +44,14 @@ struct DomoriTests {
         #expect(property.propertyRating == PropertyRating.good)
     }
     
-    @Test func testPropertyListingWithTags() async throws {
+    @Test func testPropertyWithTags() async throws {
         // Create in-memory container for testing
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: PropertyListing.self, PropertyTag.self, configurations: config)
+        let container = try ModelContainer(for: Property.self, PropertyTag.self, configurations: config)
         let context = container.mainContext
         
         // Create a test property
-        let property = PropertyListing(
+        let property = Property(
             title: "Test Property with Tags",
             location: "456 Tag Street",
             link: "https://example.com/tags",
@@ -113,7 +113,7 @@ struct DomoriTests {
         let ratings = PropertyRating.allCases
         
         for rating in ratings {
-            let property = PropertyListing(
+            let property = Property(
                 title: "Test \(rating.rawValue) Property",
                 location: "123 Rating Street",
                 link: "https://example.com/rating",
@@ -139,7 +139,7 @@ struct DomoriTests {
     }
     
     @Test func testPropertyFormattedValues() async throws {
-        let property = PropertyListing(
+        let property = Property(
             title: "Test Formatting",
             location: "123 Format Street",
             link: "https://example.com/format",
@@ -166,7 +166,7 @@ struct DomoriTests {
     }
     
     @Test func testSampleData() async throws {
-        let sampleProperties = PropertyListing.sampleData
+        let sampleProperties = Property.sampleData
         
         // Verify we have sample data
         #expect(sampleProperties.count > 0)
@@ -199,7 +199,7 @@ struct DomoriTests {
     }
     
     @Test func testPropertyUpdateRating() async throws {
-        let property = PropertyListing(
+        let property = Property(
             title: "Test Update",
             location: "123 Update Street",
             link: "https://example.com/update",

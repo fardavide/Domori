@@ -4,11 +4,11 @@ import Foundation
 @testable import Domori
 
 @MainActor
-struct PropertyListingTests {
+struct PropertyTests {
     
-    @Test("PropertyListing creation with all parameters")
-    func propertyListingCreation() {
-        let listing = PropertyListing(
+    @Test("Property creation with all parameters")
+    func propertyCreation() {
+        let listing = Property(
             title: "Test Property",
             location: "123 Test Street",
             link: "https://example.com/test",
@@ -34,9 +34,9 @@ struct PropertyListingTests {
         #expect(listing.tags?.isEmpty ?? true)
     }
     
-    @Test("PropertyListing creation with legacy parameters")
-    func propertyListingLegacyCreation() {
-        let listing = PropertyListing(
+    @Test("Property creation with legacy parameters")
+    func propertyLegacyCreation() {
+        let listing = Property(
             title: "Legacy Property",
             location: "456 Legacy Avenue",
             link: "https://example.com/legacy",
@@ -61,9 +61,9 @@ struct PropertyListingTests {
         #expect(listing.propertyRating == PropertyRating.considering)
     }
     
-    @Test("PropertyListing default values")
-    func propertyListingDefaults() {
-        let listing = PropertyListing(
+    @Test("Property default values")
+    func propertyDefaults() {
+        let listing = Property(
             title: "Default Property",
             location: "789 Default Road",
             link: "https://example.com/default",
@@ -80,9 +80,9 @@ struct PropertyListingTests {
         #expect(listing.tags?.isEmpty ?? true)
     }
     
-    @Test("PropertyListing formatted values")
-    func propertyListingFormattedValues() {
-        let listing = PropertyListing(
+    @Test("Property formatted values")
+    func propertyFormattedValues() {
+        let listing = Property(
             title: "Format Test",
             location: "123 Format Street",
             link: "https://example.com/format",
@@ -101,9 +101,9 @@ struct PropertyListingTests {
         #expect(!listing.formattedPricePerUnit.isEmpty)
     }
     
-    @Test("PropertyListing update rating")
-    func propertyListingUpdateRating() {
-        let listing = PropertyListing(
+    @Test("Property update rating")
+    func propertyUpdateRating() {
+        let listing = Property(
             title: "Update Test",
             location: "123 Update Street",
             link: "https://example.com/update",
@@ -192,7 +192,7 @@ struct PropertyListingTests {
     
     @Test("Sample data creation")
     func sampleDataCreation() {
-        let sampleData = PropertyListing.sampleData
+        let sampleData = Property.sampleData
         
         #expect(sampleData.count > 0)
         #expect(sampleData.allSatisfy { !$0.title.isEmpty })
@@ -203,10 +203,10 @@ struct PropertyListingTests {
         #expect(sampleData.allSatisfy { $0.bathrooms > 0 })
     }
     
-    @Test("PropertyListing agent contact functionality")
-    func propertyListingAgentContact() {
+    @Test("Property agent contact functionality")
+    func propertyAgentContact() {
         // Test with agent contact
-        let listingWithContact = PropertyListing(
+        let listingWithContact = Property(
             title: "Property with Agent",
             location: "123 Agent Street",
             link: "https://example.com/agent-property",
@@ -222,7 +222,7 @@ struct PropertyListingTests {
         #expect(listingWithContact.agentContact == "+1 (555) 987-6543")
         
         // Test without agent contact
-        let listingWithoutContact = PropertyListing(
+        let listingWithoutContact = Property(
             title: "Property without Agent",
             location: "456 No Agent Street",
             link: "https://example.com/no-agent-property",
@@ -237,8 +237,8 @@ struct PropertyListingTests {
         
         #expect(listingWithoutContact.agentContact == nil)
         
-        // Test with empty string (should be stored as nil)
-        let listingWithEmptyContact = PropertyListing(
+        // Test with empty agent contact
+        let listingWithEmptyContact = Property(
             title: "Property with Empty Contact",
             location: "789 Empty Contact Street",
             link: "https://example.com/empty-contact",

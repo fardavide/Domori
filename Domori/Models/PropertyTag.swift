@@ -1,33 +1,22 @@
 import Foundation
-import SwiftData
 import SwiftUI
+import FirebaseFirestore
 
-@Model
-final class PropertyTag: Identifiable {
-    var id: UUID = UUID()
-    var name: String = ""
-    var rating: PropertyRating = PropertyRating.none
-    
-    @Relationship(deleteRule: .nullify)
-    var properties: [PropertyListing]?
-    
-    init(name: String, rating: PropertyRating) {
-        self.id = UUID()
-        self.name = name
-        self.rating = rating
-        self.properties = []
+struct PropertyTag: Codable, Identifiable {
+  @DocumentID var id: String?
+  var name: String
+  var rating: PropertyRating = .none
+  
+  // Computed property to get SwiftUI Color from rating
+  var swiftUiColor: Color {
+    switch rating {
+    case .none: return .gray
+    case .excluded: return .red
+    case .considering: return .orange
+    case .good: return .green
+    case .excellent: return .blue
     }
-    
-    // Computed property to get SwiftUI Color from rating
-    var swiftUiColor: Color {
-        switch rating {
-        case .none: return .gray
-        case .excluded: return .red
-        case .considering: return .orange
-        case .good: return .green
-        case .excellent: return .blue
-        }
-    }
+  }
 }
 
 // Extension to handle hex color conversion

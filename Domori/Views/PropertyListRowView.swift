@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct PropertyListRowView: View {
-    let listing: PropertyListing
+    let listing: Property
     let isSelected: Bool
     let onSelectionChanged: (Bool) -> Void
     
@@ -19,7 +19,7 @@ struct PropertyListRowView: View {
             .buttonStyle(PlainButtonStyle())
             
             // Property type icon (small, no color) - fixed alignment
-            Image(systemName: listing.propertyType.systemImage)
+            Image(systemName: listing.type.systemImage)
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .frame(width: 16, height: 16)
@@ -43,9 +43,9 @@ struct PropertyListRowView: View {
                     Spacer()
                     
                     // Rating indicator as colored circle
-                    if listing.propertyRating != .none {
+                    if listing.rating != .none {
                         Circle()
-                        .fill(getColorForRating(listing.propertyRating))
+                        .fill(getColorForRating(listing.rating))
                             .frame(width: 12, height: 12)
                     }
                 }
@@ -223,15 +223,15 @@ struct ViewHeightKey: PreferenceKey {
 #Preview {
     List {
         PropertyListRowView(
-            listing: PropertyListing.sampleData[0],
+            listing: Property.sampleData[0],
             isSelected: false,
             onSelectionChanged: { _ in }
         )
         PropertyListRowView(
-            listing: PropertyListing.sampleData[1],
+            listing: Property.sampleData[1],
             isSelected: true,
             onSelectionChanged: { _ in }
         )
     }
-    .modelContainer(for: PropertyListing.self, inMemory: true)
+    .modelContainer(for: Property.self, inMemory: true)
 } 

@@ -2,16 +2,16 @@ import SwiftUI
 import SwiftData
 
 struct PropertyDetailView: View {
-  @Bindable var listing: PropertyListing
+  @Bindable var listing: Property
   @Environment(\.modelContext) private var modelContext
   @Environment(\.openURL) private var openURL
   @State private var showingEditSheet = false
   @State private var showingAddTagSheet = false
   
   // Force reload listing data to ensure relationships are loaded
-  @Query private var allListings: [PropertyListing]
+  @Query private var allListings: [Property]
   
-  private var currentListing: PropertyListing? {
+  private var currentListing: Property? {
     allListings.first { $0.id == listing.id }
   }
   
@@ -74,7 +74,7 @@ struct PropertyDetailView: View {
               Text("Type")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-              Label(listing.propertyType.rawValue, systemImage: listing.propertyType.systemImage)
+              Label(listing.type.rawValue, systemImage: listing.type.systemImage)
                 .font(.title3)
                 .fontWeight(.medium)
             }
@@ -126,9 +126,9 @@ struct PropertyDetailView: View {
             
             InlineRatingPicker(
               selectedRating: Binding(
-                get: { listing.propertyRating },
+                get: { listing.rating },
                 set: { newRating in
-                  listing.propertyRating = newRating
+                  listing.rating = newRating
                   try? modelContext.save()
                 }
               )
@@ -300,7 +300,7 @@ struct PropertyDetailView: View {
           VStack(spacing: 8) {
             detailRow("Created", value: listing.createdDate.formatted(date: .abbreviated, time: .omitted))
             detailRow("Updated", value: listing.updatedDate.formatted(date: .abbreviated, time: .omitted))
-            detailRow("Property Type", value: listing.propertyType.rawValue)
+            detailRow("Property Type", value: listing.type.rawValue)
             detailRow("Bedrooms", value: "\(listing.bedrooms)")
             detailRow("Bathrooms", value: listing.bathroomText)
             detailRow("Size", value: listing.formattedSize)
@@ -423,7 +423,7 @@ struct InlineRatingPicker: View {
 
 #Preview {
   NavigationView {
-    PropertyDetailView(listing: PropertyListing.sampleData[0])
+    PropertyDetailView(listing: Property.sampleData[0])
   }
-  .modelContainer(for: PropertyListing.self, inMemory: true)
+  .modelContainer(for: Property.self, inMemory: true)
 }

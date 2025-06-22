@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ComparePropertiesView: View {
-    let listings: [PropertyListing]
+    let listings: [Property]
     @Environment(\.dismiss) private var dismiss
     
     private var headerBackgroundColor: Color {
@@ -67,7 +67,7 @@ struct ComparePropertiesView: View {
     private var typeComparisonRow: some View {
         ComparisonRow(
             label: "Type",
-            values: listings.map { $0.propertyType.rawValue }
+            values: listings.map { $0.type.rawValue }
         )
     }
     
@@ -75,7 +75,7 @@ struct ComparePropertiesView: View {
         ComparisonRow(
             label: "Rating",
             values: listings.map { listing in
-                listing.propertyRating.displayName
+                listing.rating.displayName
             },
             highlightBest: true,
             bestComparison: ratingComparison
@@ -123,7 +123,7 @@ struct ComparePropertiesView: View {
     }
     
     private func ratingComparison(_ values: [String]) -> [Bool] {
-        let ratingValues = listings.map { $0.propertyRating.rawValue }
+        let ratingValues = listings.map { $0.rating.rawValue }
         let bestRating = ratingValues.max() ?? "none"
         return ratingValues.map { $0 == bestRating && $0 != "none" }
     }
@@ -280,5 +280,5 @@ struct ComparisonRow: View {
 }
 
 #Preview {
-    ComparePropertiesView(listings: Array(PropertyListing.sampleData.prefix(3)))
+    ComparePropertiesView(listings: Array(Property.sampleData.prefix(3)))
 } 

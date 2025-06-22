@@ -1,11 +1,12 @@
 import SwiftUI
+import FirebaseCore
 
 struct AddPropertyView: View {
-  @Environment(\.modelContext) private var modelContext
+  @Environment(\.firestore) private var firestore
   @Environment(\.dismiss) private var dismiss
   
   // Edit mode
-  var listing: PropertyListing?
+  var listing: Property?
   
   // Form fields
   @State private var title = ""
@@ -16,7 +17,7 @@ struct AddPropertyView: View {
   @State private var size: Double = 0
   @State private var bedrooms = 0
   @State private var bathrooms: Double = 1.0
-  @State private var propertyType: PropertyType = .house
+  @State private var type: PropertyType = .house
   @State private var rating: PropertyRating = .none
   
   private var isEditing: Bool {
@@ -120,10 +121,9 @@ struct AddPropertyView: View {
   }
   
   private var propertyTypePicker: some View {
-    Picker("Property Type", selection: $propertyType) {
+    Picker("Property Type", selection: $type) {
       ForEach(PropertyType.allCases, id: \.self) { type in
-        Label(type.rawValue, systemImage: type.systemImage)
-          .tag(type)
+        Text(type.rawValue).tag(type)
       }
     }
   }
@@ -224,7 +224,7 @@ struct AddPropertyView: View {
     }
   }
   
-  private func loadPropertyData(_ listing: PropertyListing) {
+  private func loadPropertyData(_ listing: Property) {
     title = listing.title
     location = listing.location
     link = listing.link
@@ -233,27 +233,35 @@ struct AddPropertyView: View {
     size = listing.size
     bedrooms = listing.bedrooms
     bathrooms = listing.bathrooms
-    propertyType = listing.propertyType
-    rating = listing.propertyRating
+    type = listing.type
+    rating = listing.rating
   }
   
   private func saveProperty() {
-    if let listing = listing {
+    if var property = listing {
       // Update existing listing
-      listing.title = title
-      listing.location = location
-      listing.link = link
-      listing.agentContact = agentContact.isEmpty ? nil : agentContact
-      listing.price = price
-      listing.size = size
-      listing.bedrooms = bedrooms
-      listing.bathrooms = bathrooms
-      listing.propertyType = propertyType
-      listing.propertyRating = rating
-      listing.updatedDate = Date()
+      property.title = title
+      property.location = location
+      property.link = link
+      property.agentContact = agentContact.isEmpty ? nil : agentContact
+      property.price = price
+      property.size = size
+      property.bedrooms = bedrooms
+      property.bathrooms = bathrooms
+      property.type = type
+      property.rating = rating
+      property.updatedDate = Timestamp()
+      
+      do {
+        try firestore.collection(.properties)
+          .document(property.id!)
+          .setData(from: property)
+      } catch {
+        print("Error updating property: \(error)")
+      }
+      
     } else {
-      // Create new listing and add to user's workspace
-      let newListing = PropertyListing(
+      let newProperty = Property(
         title: title,
         location: location,
         link: link,
@@ -262,18 +270,16 @@ struct AddPropertyView: View {
         size: size,
         bedrooms: bedrooms,
         bathrooms: bathrooms,
-        propertyType: propertyType,
-        propertyRating: rating
+        type: type,
+        rating: rating
       )
       
-      modelContext.insert(newListing)
-    }
-    
-    // Save changes to persist immediately
-    do {
-      try modelContext.save()
-    } catch {
-      print("Error saving property: \(error)")
+      do {
+        try firestore.collection(.properties)
+          .addDocument(from: newProperty)
+      } catch {
+        print("Error creating property: \(error)")
+      }
     }
     
     dismiss()
@@ -288,17 +294,15 @@ struct AddPropertyView: View {
     size = 0
     bedrooms = 0
     bathrooms = 1.0
-    propertyType = .house
+    type = .house
     rating = .none
   }
 }
 
 #Preview {
   AddPropertyView()
-    .modelContainer(for: PropertyListing.self, inMemory: true)
 }
 
 #Preview("Edit Mode") {
-  AddPropertyView(listing: PropertyListing.sampleData[0])
-    .modelContainer(for: PropertyListing.self, inMemory: true)
+  AddPropertyView(listing: Property.sampleData[0])
 }

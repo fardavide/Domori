@@ -11,7 +11,7 @@ final class MigrationTests: XCTestCase {
     override func setUp() async throws {
         // Create in-memory container for testing
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        container = try ModelContainer(for: PropertyListing.self, PropertyTag.self, configurations: config)
+        container = try ModelContainer(for: Property.self, PropertyTag.self, configurations: config)
         context = container.mainContext
     }
     

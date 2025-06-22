@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 
 struct MainTabView: View {
   @State private var selectedTab = 0
@@ -23,5 +22,4 @@ struct MainTabView: View {
 
 #Preview {
   MainTabView()
-    .modelContainer(for: [PropertyListing.self], inMemory: true)
 }

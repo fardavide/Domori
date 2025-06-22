@@ -1,7 +1,7 @@
 import Foundation
 
-extension PropertyListing {
-  static var sampleData: [PropertyListing] {
+extension Property {
+  static var sampleData: [Property] {
     // Determine if we should use metric or imperial measurements
     let isMetric = Locale.current.measurementSystem == .metric
     
@@ -82,7 +82,7 @@ extension PropertyListing {
     ]
     
     return properties.map { property in
-      PropertyListing(
+      Property(
         title: property.title,
         location: property.location,
         link: property.link,
@@ -91,8 +91,8 @@ extension PropertyListing {
         size: property.size,
         bedrooms: property.bedrooms,
         bathrooms: property.bathrooms,
-        propertyType: property.type,
-        propertyRating: property.rating
+        type: property.type,
+        rating: property.rating
       )
     }
   }

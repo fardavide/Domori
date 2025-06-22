@@ -9,13 +9,13 @@ final class DatabaseSharingTests: XCTestCase {
     
     @MainActor override func setUpWithError() throws {
         // Set up in-memory SwiftData container for testing
-        let schema = Schema([PropertyListing.self, PropertyTag.self])
+        let schema = Schema([Property.self, PropertyTag.self])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         modelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
         modelContext = modelContainer.mainContext
         
         // Add some sample data
-        let sampleProperty = PropertyListing(
+        let sampleProperty = Property(
             title: "Test Property",
             location: "Test Location",
             link: "https://example.com",
@@ -24,8 +24,8 @@ final class DatabaseSharingTests: XCTestCase {
             size: 120,
             bedrooms: 3,
             bathrooms: 2,
-            propertyType: .house,
-            propertyRating: .good
+            type: .house,
+            rating: .good
         )
         
         modelContext.insert(sampleProperty)
@@ -48,7 +48,7 @@ final class DatabaseSharingTests: XCTestCase {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         
-        let exportedListings = try decoder.decode(PropertyListingsExport.self, from: exportData)
+        let exportedListings = try decoder.decode(PropertiesExport.self, from: exportData)
         XCTAssertEqual(exportedListings.listings.count, 1)
         XCTAssertEqual(exportedListings.listings.first?.title, "Test Property")
     }
@@ -59,7 +59,7 @@ final class DatabaseSharingTests: XCTestCase {
         let exportData = try PropertyExportService.shared.exportAllListings(context: modelContext)
         
         // Create a new context for import testing
-        let importSchema = Schema([PropertyListing.self, PropertyTag.self])
+        let importSchema = Schema([Property.self, PropertyTag.self])
         let importConfig = ModelConfiguration(schema: importSchema, isStoredInMemoryOnly: true)
         let importContainer = try ModelContainer(for: importSchema, configurations: [importConfig])
         let importContext = importContainer.mainContext
@@ -77,7 +77,7 @@ final class DatabaseSharingTests: XCTestCase {
         XCTAssertEqual(importResult.skippedCount, 0)
         
         // Fetch the imported property
-        let descriptor = FetchDescriptor<PropertyListing>()
+        let descriptor = FetchDescriptor<Property>()
         let importedProperties = try importContext.fetch(descriptor)
         
         XCTAssertEqual(importedProperties.count, 1)
