@@ -137,11 +137,9 @@ struct AddTagView: View {
     let newTag = PropertyTag(name: trimmedName, rating: selectedRating)
     var updatedProperty = property
     do {
-      let newTagRef = try firestore.collection(.tags).addDocument(from: newTag)
+      let newTagRef = try firestore.setTag(newTag)
       updatedProperty.tagIds.append(newTagRef.documentID)
-      try firestore.collection(.properties)
-        .document(property.id!)
-        .setData(from: updatedProperty)
+      _ = try firestore.setProperty(updatedProperty)
     } catch {
       print("Error creating tag: \(error)")
     }
@@ -155,9 +153,7 @@ struct AddTagView: View {
     var updatedProperty = property
     updatedProperty.tagIds.append(tag.id!)
     do {
-      try firestore.collection(.properties)
-        .document(property.id!)
-        .setData(from: updatedProperty)
+      _ = try firestore.setProperty(updatedProperty)
     } catch {
       print("Error adding tag: \(error)")
     }

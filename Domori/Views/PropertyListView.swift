@@ -133,9 +133,11 @@ struct PropertyListView: View {
     }
   }
   
-  private func deleteProperty(_ listing: Property) {
-    guard let id = listing.id else { return }
-    firestore.collection(.properties).document(id).delete()
+  private func deleteProperty(_ property: Property) {
+    guard let id = property.id else { return }
+    Task {
+      _ = try await firestore.deleteProperty(withId: id)
+    }
   }
 }
 

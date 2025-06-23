@@ -6,9 +6,6 @@ enum FirestoreCollection: String {
 }
 
 extension Firestore {
-  func collection(_ collection: FirestoreCollection) -> CollectionReference {
-    self.collection(collection.rawValue)
-  }
   
   func getProperty(withId id: String) async throws -> Property {
     try await collection(.properties).document(id).getDocument(as: Property.self)
@@ -46,6 +43,14 @@ extension Firestore {
   
   func deleteTag(withId id: String) async throws {
     try await collection(.tags).document(id).delete()
+  }
+  
+  private func collection(_ collection: FirestoreCollection) -> CollectionReference {
+#if DEBUG
+    self.collection("test-\(collection.rawValue)")
+#else
+    self.collection(collection.rawValue)
+#endif
   }
 }
 

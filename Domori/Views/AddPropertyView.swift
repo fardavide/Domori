@@ -275,9 +275,7 @@ struct AddPropertyView: View {
       property.updatedDate = Timestamp()
       
       do {
-        try firestore.collection(.properties)
-          .document(property.id!)
-          .setData(from: property)
+        _ = try firestore.setProperty(property)
       } catch {
         print("Error updating property: \(error)")
       }
@@ -297,8 +295,7 @@ struct AddPropertyView: View {
       )
       
       do {
-        try firestore.collection(.properties)
-          .addDocument(from: newProperty)
+        _ = try firestore.setProperty(newProperty)
       } catch {
         print("Error creating property: \(error)")
       }
