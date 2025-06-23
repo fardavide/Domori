@@ -48,3 +48,9 @@ extension Firestore {
     try await collection(.tags).document(id).delete()
   }
 }
+
+extension Timestamp {  
+  func formatted(date: Date.FormatStyle.DateStyle, time: Date.FormatStyle.TimeStyle) -> String {
+    dateValue().formatted(date: date, time: time)
+  }
+}

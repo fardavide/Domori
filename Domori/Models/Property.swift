@@ -16,6 +16,7 @@ struct Property: Codable, Hashable {
   var rating: PropertyRating = .none
   @ServerTimestamp var updatedDate: Timestamp?
   var tagIds: [String] = []
+  var notes: [PropertyNote]? = []
   
   // Computed properties with locale-aware formatting
   var formattedPrice: String {
@@ -68,6 +69,10 @@ struct Property: Codable, Hashable {
       return String(format: "%.1f", bathrooms)
     }
   }
+  
+  var latestNote: PropertyNote? {
+    notes?.sorted { $0.date > $1.date }.first
+  }
 }
 
 enum PropertyType: String, CaseIterable, Codable {
@@ -113,4 +118,10 @@ enum PropertyType: String, CaseIterable, Codable {
     case .other: return "questionmark.square"
     }
   }
+}
+
+struct PropertyNote: Codable, Hashable, Identifiable {
+  @DocumentID var id: String?
+  var text: String
+  var date = Date()
 }

@@ -17,7 +17,7 @@ extension Property {
         bedrooms: 3,
         bathrooms: 2.0,
         type: .house,
-        rating: .excellent
+        rating: .excellent,
       ),
       (
         title: "Modern Downtown Condo",
