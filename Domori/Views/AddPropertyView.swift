@@ -15,7 +15,7 @@ struct AddPropertyView: View {
   @State private var title = ""
   @State private var location = ""
   @State private var link = ""
-  @State private var agentContact = ""
+  @State private var agency = ""
   @State private var price: Double = 0
   @State private var size: Double = 0
   @State private var bedrooms = 0
@@ -86,8 +86,8 @@ struct AddPropertyView: View {
       
       TextField("Link (Required)", text: $link)
       
-      TextField("Agent Contact (Phone)", text: $agentContact)
-        .textContentType(.telephoneNumber)
+      TextField("Agency", text: $agency)
+        .textContentType(.organizationName)
       #if os(iOS)
         .keyboardType(.namePhonePad)
       #endif
@@ -237,7 +237,7 @@ struct AddPropertyView: View {
     title = listing.title
     location = listing.location
     link = listing.link
-    agentContact = listing.agentContact ?? ""
+    agency = listing.agency ?? ""
     price = listing.price
     size = listing.size
     bedrooms = listing.bedrooms
@@ -250,7 +250,7 @@ struct AddPropertyView: View {
     title = importData.title
     location = importData.location
     link = importData.link
-    agentContact = importData.agentContact ?? ""
+    agency = importData.agency
     price = importData.price
     size = importData.size
     bedrooms = importData.bedrooms
@@ -265,7 +265,7 @@ struct AddPropertyView: View {
       property.title = title
       property.location = location
       property.link = link
-      property.agentContact = agentContact.isEmpty ? nil : agentContact
+      property.agency = agency.isEmpty ? nil : agency
       property.price = price
       property.size = size
       property.bedrooms = bedrooms
@@ -287,7 +287,7 @@ struct AddPropertyView: View {
         title: title,
         location: location,
         link: link,
-        agentContact: agentContact.isEmpty ? nil : agentContact,
+        agency: agency.isEmpty ? nil : agency,
         price: price,
         size: size,
         bedrooms: bedrooms,
@@ -311,7 +311,7 @@ struct AddPropertyView: View {
     title = ""
     location = ""
     link = ""
-    agentContact = ""
+    agency = ""
     price = 0
     size = 0
     bedrooms = 0

@@ -40,7 +40,7 @@ struct PropertyImportData: Codable {
   let title: String
   let location: String
   let link: String
-  let agentContact: String
+  let agency: String
   let price: Double
   let size: Double
   let bedrooms: Int
@@ -55,7 +55,7 @@ extension PropertyImportData {
     self.title = try container.decodeIfPresent(String.self, forKey: .title) ?? "Untitled Property"
     self.location = try container.decodeIfPresent(String.self, forKey: .location) ?? "Unknown Location"
     self.link = try container.decodeIfPresent(String.self, forKey: .link) ?? "Missing link"
-    self.agentContact = try container.decodeIfPresent(String.self, forKey: .agentContact) ?? ""
+    self.agency = try container.decodeIfPresent(String.self, forKey: .agency) ?? ""
     self.price = try container.decodeIfPresent(Double.self, forKey: .price) ?? 0
     self.size = try container.decodeIfPresent(Double.self, forKey: .size) ?? 0
     self.bedrooms = try container.decodeIfPresent(Int.self, forKey: .bedrooms) ?? 0
@@ -67,7 +67,7 @@ extension PropertyImportData {
     case title
     case location
     case link
-    case agentContact
+    case agency
     case price
     case size
     case bedrooms

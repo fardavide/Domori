@@ -105,12 +105,14 @@ struct PropertyListView: View {
   
   private var filteredAndSortedListings: [Property] {
     // Filter by search text
-    let filtered = allProperties.filter { listing in
+    let filtered = allProperties.filter { property in
       if searchText.isEmpty {
         return true
       }
-      return listing.title.localizedCaseInsensitiveContains(searchText) ||
-      listing.location.localizedCaseInsensitiveContains(searchText)
+      let agency = property.agency ?? ""
+      return property.title.localizedCaseInsensitiveContains(searchText) ||
+      property.location.localizedCaseInsensitiveContains(searchText) ||
+      agency.localizedCaseInsensitiveContains(searchText)
     }
     
     return filtered.sorted { first, second in

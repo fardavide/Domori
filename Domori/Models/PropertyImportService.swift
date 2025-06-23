@@ -38,7 +38,7 @@ final class PropertyImportService {
       title: importData.title,
       location: importData.location,
       link: importData.link,
-      agentContact: importData.agentContact,
+      agency: importData.agency,
       price: importData.price,
       size: importData.size,
       bedrooms: importData.bedrooms,

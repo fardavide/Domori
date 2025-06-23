@@ -24,7 +24,7 @@ struct PropertyTests {
     #expect(listing.title == "Test Property")
     #expect(listing.location == "123 Test Street")
     #expect(listing.link == "https://example.com/test")
-    #expect(listing.agentContact == "+1 (555) 123-4567")
+    #expect(listing.contact == "+1 (555) 123-4567")
     #expect(listing.price == 500000)
     #expect(listing.size == 100)
     #expect(listing.bedrooms == 2)
@@ -52,7 +52,7 @@ struct PropertyTests {
     #expect(listing.title == "Legacy Property")
     #expect(listing.location == "456 Legacy Avenue")
     #expect(listing.link == "https://example.com/legacy")
-    #expect(listing.agentContact == nil)
+    #expect(listing.contact == nil)
     #expect(listing.price == 750000)
     #expect(listing.size == 150)
     #expect(listing.bedrooms == 3)
@@ -218,7 +218,7 @@ struct PropertyTests {
       rating: .good
     )
     
-    #expect(listingWithContact.agentContact == "+1 (555) 987-6543")
+    #expect(listingWithContact.contact == "+1 (555) 987-6543")
     
     // Test without agent contact
     let listingWithoutContact = Property(
@@ -234,7 +234,7 @@ struct PropertyTests {
       rating: .considering
     )
     
-    #expect(listingWithoutContact.agentContact == nil)
+    #expect(listingWithoutContact.contact == nil)
     
     // Test with empty agent contact
     let listingWithEmptyContact = Property(
@@ -250,6 +250,6 @@ struct PropertyTests {
       rating: .none
     )
     
-    #expect(listingWithEmptyContact.agentContact == "")
+    #expect(listingWithEmptyContact.contact == "")
   }
 }

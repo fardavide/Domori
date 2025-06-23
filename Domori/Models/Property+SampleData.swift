@@ -86,7 +86,7 @@ extension Property {
         title: property.title,
         location: property.location,
         link: property.link,
-        agentContact: property.agentContact,
+        agency: property.agentContact,
         price: property.price,
         size: property.size,
         bedrooms: property.bedrooms,

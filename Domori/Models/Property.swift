@@ -7,7 +7,7 @@ struct Property: Codable, Hashable {
   var title: String
   var location: String
   var link: String
-  var agentContact: String?
+  var agency: String?
   var price: Double = 0
   var size: Double = 0 // in square meters or square feet based on locale
   var bedrooms: Int = 0

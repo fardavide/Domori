@@ -113,73 +113,23 @@ struct PropertyDetailView: View {
     }
   }
   
-  func contactSection(agentContact: String) -> some View {
-    Section("Agent Contact") {
-      Button(action: {
-        // Format phone number for dialing
-        let phoneNumber = agentContact.replacingOccurrences(of: " ", with: "")
-          .replacingOccurrences(of: "-", with: "")
-          .replacingOccurrences(of: "(", with: "")
-          .replacingOccurrences(of: ")", with: "")
+  func contactSection(agency: String) -> some View {
+    Section("Agency") {
+
+      VStack(alignment: .leading) {
         
-        if let url = URL(string: "tel:\(phoneNumber)") {
-#if os(iOS)
-          UIApplication.shared.open(url)
-#endif
-        }
-      }) {
-        VStack(alignment: .leading) {
-          
-          HStack(spacing: 12) {
-            Image(systemName: "phone.fill")
-              .foregroundColor(.green)
-              .font(.title2)
+        HStack(spacing: 12) {
+          Image(systemName: "person.text.rectangle")
+            .font(.title2)
             
-            VStack(alignment: .leading, spacing: 2) {
-              Text("Phone Number")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-              
-              Text(agentContact)
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(.blue)
-            }
-            
+            Text(agency)
+              .font(.subheadline)
+              .fontWeight(.medium)
+              .foregroundColor(.blue)
           }
+          
         }
       }
-    }
-    .buttonStyle(PlainButtonStyle())
-    .contextMenu {
-      Button(action: {
-        // Copy to clipboard
-#if os(iOS)
-        UIPasteboard.general.string = agentContact
-#else
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(agentContact, forType: .string)
-#endif
-      }) {
-        Label("Copy Phone Number", systemImage: "doc.on.doc")
-      }
-      
-      Button(action: {
-        // Format phone number for dialing
-        let phoneNumber = agentContact.replacingOccurrences(of: " ", with: "")
-          .replacingOccurrences(of: "-", with: "")
-          .replacingOccurrences(of: "(", with: "")
-          .replacingOccurrences(of: ")", with: "")
-        
-        if let url = URL(string: "tel:\(phoneNumber)") {
-#if os(iOS)
-          UIApplication.shared.open(url)
-#endif
-        }
-      }) {
-        Label("Call", systemImage: "phone")
-      }
-    }
   }
   
   var moreInfoSection: some View {
@@ -300,6 +250,11 @@ struct PropertyDetailView: View {
         basicInfoSection
         sectionSeparator
         
+        if let agency = property.agency, !agency.isEmpty {
+          contactSection(agency: agency)
+          sectionSeparator
+        }
+        
         notesSection
         sectionSeparator
         
@@ -308,11 +263,6 @@ struct PropertyDetailView: View {
         
         ratingSection
         sectionSeparator
-       
-        if let agentContact = property.agentContact, !agentContact.isEmpty {
-          contactSection(agentContact: agentContact)
-          sectionSeparator
-        }
         
         moreInfoSection
       }
