@@ -121,7 +121,7 @@ enum PropertyType: String, CaseIterable, Codable {
 }
 
 struct PropertyNote: Codable, Hashable, Identifiable {
-  @DocumentID var id: String?
+  var id = UUID()
   var text: String
   var date = Date()
 }

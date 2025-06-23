@@ -27,35 +27,46 @@ struct PropertyListRowView: View {
       }
       .buttonStyle(PlainButtonStyle())
       
-      // Property type icon (small, no color) - fixed alignment
-      Image(systemName: listing.type.systemImage)
-        .font(.caption)
-        .foregroundColor(.secondary)
-        .frame(width: 16, height: 16)
-      
       // Main content
       VStack(alignment: .leading, spacing: 6) {
         // Title row
         HStack(alignment: .top, spacing: 8) {
           VStack(alignment: .leading, spacing: 2) {
-            Text(listing.title)
-              .font(.headline)
-              .fontWeight(.semibold)
-              .lineLimit(1)
+            HStack {
+              
+              // Icon
+              Image(systemName: listing.type.systemImage)
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .frame(width: 16, height: 16)
+              
+              // Title
+              Text(listing.title)
+                .font(.headline)
+                .fontWeight(.semibold)
+                .lineLimit(1)
+              
+              Spacer()
+              
+              // Rating indicator as colored circle
+              if listing.rating != .none {
+                Circle()
+                  .fill(getColorForRating(listing.rating))
+                  .frame(width: 12, height: 12)
+              }
+            }
+            
+            if let agency = listing.agency {
+              Text("\(agency)")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .lineLimit(1)
+            }
             
             Text(listing.location)
               .font(.subheadline)
               .foregroundColor(.secondary)
               .lineLimit(1)
-          }
-          
-          Spacer()
-          
-          // Rating indicator as colored circle
-          if listing.rating != .none {
-            Circle()
-              .fill(getColorForRating(listing.rating))
-              .frame(width: 12, height: 12)
           }
         }
         

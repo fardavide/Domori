@@ -110,9 +110,9 @@ struct PropertyListView: View {
         return true
       }
       let agency = property.agency ?? ""
-      return property.title.localizedCaseInsensitiveContains(searchText) ||
-      property.location.localizedCaseInsensitiveContains(searchText) ||
-      agency.localizedCaseInsensitiveContains(searchText)
+      let notes = String(property.notes?.map(\.text).joined(separator: " ") ?? "")
+      let text = "\(property.title) \(property.location) \(agency) \(notes)"
+      return text.localizedCaseInsensitiveContains(searchText)
     }
     
     return filtered.sorted { first, second in
