@@ -8,14 +8,14 @@ import Foundation
 struct DomoriTests {
   
   @Test func testPropertyCreation() async throws {
-    let firestore = try await Firestore.createTestFirestore()
+    let firestore = Firestore.firestore()
     
     // Create a test property
     var property = Property(
       title: "Test Property",
       location: "123 Test Street",
       link: "https://example.com/test",
-      agentContact: nil,
+      agency: nil,
       price: 500000,
       size: 100,
       bedrooms: 2,
@@ -39,7 +39,7 @@ struct DomoriTests {
   }
   
   @Test func testPropertyWithTags() async throws {
-    let firestore = try await Firestore.createTestFirestore()
+    let firestore = Firestore.firestore()
     
     // Create tags first
     let tag1 = PropertyTag(name: "Great Location", rating: .good)
@@ -53,7 +53,7 @@ struct DomoriTests {
       title: "Test Property with Tags",
       location: "456 Tag Street",
       link: "https://example.com/tags",
-      agentContact: nil,
+      agency: nil,
       price: 750000,
       size: 150,
       bedrooms: 3,
@@ -81,7 +81,7 @@ struct DomoriTests {
       title: "Test Formatting",
       location: "123 Format Street",
       link: "https://example.com/format",
-      agentContact: nil,
+      agency: nil,
       price: 1234567,
       size: 150.5,
       bedrooms: 3,

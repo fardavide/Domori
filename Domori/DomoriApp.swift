@@ -13,7 +13,7 @@ struct DomoriApp: App {
   var body: some Scene {
     WindowGroup {
       ContentView()
-        .environment(\.firestore, createFirestoreInstance())
+        .environment(\.firestore, Firestore.firestore())
         .environmentObject(urlHandler)
         .onOpenURL { url in
           urlHandler.handleUrl(url)
@@ -25,14 +25,6 @@ struct DomoriApp: App {
       SettingsView()
     }
 #endif
-  }
-  
-  private func createFirestoreInstance() -> Firestore {
-    if DomoriApp.isUiTest {
-      Firestore.createTestFirestore()
-    } else {
-      Firestore.firestore()
-    }
   }
 }
 

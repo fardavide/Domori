@@ -1,8 +1,13 @@
 import FirebaseFirestore
 
 enum FirestoreCollection: String {
+#if DEBUG
+  case properties = "test-properties"
+  case tags = "test-tags"
+#else
   case properties
   case tags
+#endif
 }
 
 extension Firestore {
@@ -46,11 +51,7 @@ extension Firestore {
   }
   
   private func collection(_ collection: FirestoreCollection) -> CollectionReference {
-#if DEBUG
-    self.collection("test-\(collection.rawValue)")
-#else
     self.collection(collection.rawValue)
-#endif
   }
 }
 

@@ -15,7 +15,7 @@ final class PropertyImportServiceTests {
           "title": "Test Property",
           "location": "123 Test Street",
           "link": "https://example.com/test",
-          "agentContact": "test@example.com",
+          "agency": "Casecase",
           "price": 500000,
           "size": 100,
           "bedrooms": 2,
@@ -27,7 +27,7 @@ final class PropertyImportServiceTests {
     #expect(data.title == "Test Property")
     #expect(data.location == "123 Test Street")
     #expect(data.link == "https://example.com/test")
-    #expect(data.agency == "test@example.com")
+    #expect(data.agency == "Casecase")
     #expect(data.price == 500000)
     #expect(data.size == 100)
     #expect(data.bedrooms == 2)
@@ -112,7 +112,7 @@ final class PropertyImportServiceTests {
       title: "Test Property",
       location: "123 Test Street",
       link: "https://example.com/test",
-      agentContact: "test@example.com",
+      agency: "test@example.com",
       price: 500000,
       size: 100,
       bedrooms: 2,
@@ -135,12 +135,12 @@ final class PropertyImportServiceTests {
   
   @Test("Save property to Firestore")
   func testSavePropertyToFirestore() async throws {
-    let firestore = try await Firestore.createTestFirestore()
+    let firestore = Firestore.firestore()
     let importData = PropertyImportData(
       title: "Firestore Test",
       location: "Test Location",
       link: "https://example.com/firestore",
-      agentContact: "",
+      agency: "",
       price: 123456,
       size: 42,
       bedrooms: 1,
@@ -152,14 +152,16 @@ final class PropertyImportServiceTests {
       title: "Firestore Test",
       location: "Test Location",
       link: "https://example.com/firestore",
-      agentContact: "",
+      agency: "",
       price: 123456,
       size: 42,
       bedrooms: 1,
       bathrooms: 1.0,
       type: .apartment
     )
-    #expect(try await ref.getDocument(as: Property.self) == property)
+    var savedProperty = try await ref.getDocument(as: Property.self)
+    savedProperty.id = nil 
+    #expect(savedProperty == property)
   }
 }
 

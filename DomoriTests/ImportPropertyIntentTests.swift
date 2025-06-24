@@ -63,7 +63,7 @@ final class ImportPropertyIntentTests {
       _ = try await intent.perform()
       #expect(Bool(false), "Should have thrown an error")
     } catch {
-      #expect(error.localizedDescription.contains("parsing failed"))
+      #expect(error.localizedDescription.contains("Parsing failed"))
     }
   }
   
@@ -79,7 +79,7 @@ final class ImportPropertyIntentTests {
     intent.openEditor = false
     
     let result = try await intent.perform()
-    let value = try result.value
+    let value = result.value
     #expect(value == "Property imported successfully")
   }
 } 
