@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseAuth
 import FirebaseFirestore
 
 struct PropertyListRowView: View {
@@ -6,12 +7,19 @@ struct PropertyListRowView: View {
   let isSelected: Bool
   let onSelectionChanged: (Bool) -> Void
   
-  @FirestoreQuery(collectionPath: FirestoreCollection.tags.rawValue) private var allTags: [PropertyTag]
+  @FirestoreQuery private var allTags: [PropertyTag]
   
   init(listing: Property, isSelected: Bool, onSelectionChanged: @escaping (Bool) -> Void) {
     self.listing = listing
     self.isSelected = isSelected
     self.onSelectionChanged = onSelectionChanged
+    
+    let uid = Auth.auth().currentUser?.uid ?? ""
+    _allTags = FirestoreQuery(
+      collectionPath: FirestoreCollection.tags.rawValue,
+      predicates: [.whereField("userIds", arrayContains: uid)],
+      animation: .default
+    )
   }
   
   var body: some View {

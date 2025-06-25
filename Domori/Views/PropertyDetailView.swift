@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseAuth
 import FirebaseFirestore
 
 struct PropertyDetailView: View {
@@ -10,8 +11,23 @@ struct PropertyDetailView: View {
   @State private var showingNewNoteSheet = false
   @State private var newNote: String?
   
-  @FirestoreQuery(collectionPath: FirestoreCollection.properties.rawValue) private var allProperties: [Property]
-  @FirestoreQuery(collectionPath: FirestoreCollection.tags.rawValue) private var allTags: [PropertyTag]
+  @FirestoreQuery private var allProperties: [Property]
+  @FirestoreQuery private var allTags: [PropertyTag]
+  
+  init(property: Property) {
+    self.property = property
+    let uid = Auth.auth().currentUser?.uid ?? ""
+    _allProperties = FirestoreQuery(
+      collectionPath: FirestoreCollection.properties.rawValue,
+      predicates: [.whereField("userIds", arrayContains: uid)],
+      animation: .default
+    )
+    _allTags = FirestoreQuery(
+      collectionPath: FirestoreCollection.tags.rawValue,
+      predicates: [.whereField("userIds", arrayContains: uid)],
+      animation: .default
+    )
+  }
   
   private var propertyTags: [PropertyTag] {
     allTags.filter { tag in

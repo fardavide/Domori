@@ -1,13 +1,20 @@
 import SwiftUI
+import FirebaseAuth
 import FirebaseFirestore
 
 struct ComparePropertiesView: View {
   let listings: [Property]
-  @FirestoreQuery(collectionPath: FirestoreCollection.tags.rawValue) private var allTags: [PropertyTag]
+  @FirestoreQuery private var allTags: [PropertyTag]
   @Environment(\.dismiss) private var dismiss
   
   init(listings: [Property]) {
     self.listings = listings
+    let uid = Auth.auth().currentUser?.uid ?? ""
+    _allTags = FirestoreQuery(
+      collectionPath: FirestoreCollection.tags.rawValue,
+      predicates: [.whereField("userIds", arrayContains: uid)],
+      animation: .default
+    )
   }
   
   private func tagsForProperty(_ property: Property) -> [PropertyTag] {

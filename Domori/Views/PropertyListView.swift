@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import FirebaseAuth
 import FirebaseFirestore
 
 struct PropertyListView: View {
@@ -10,10 +11,16 @@ struct PropertyListView: View {
   @State private var showingCompareView = false
   @State private var selectedListings: Set<Property> = []
   
-  @FirestoreQuery(
-    collectionPath: FirestoreCollection.properties.rawValue,
-    animation: .default,
-  ) private var allProperties: [Property]
+  @FirestoreQuery private var allProperties: [Property]
+  
+  init() {
+    let uid = Auth.auth().currentUser?.uid ?? ""
+    _allProperties = FirestoreQuery(
+      collectionPath: FirestoreCollection.properties.rawValue,
+      predicates: [.whereField("userIds", arrayContains: uid)],
+      animation: .default
+    )
+  }
   
   var body: some View {
     NavigationStack {

@@ -1,3 +1,4 @@
+import FirebaseAuth
 import FirebaseFirestore
 import SwiftUI
 
@@ -6,11 +7,7 @@ struct SettingsView: View {
   @EnvironmentObject private var authService: AuthService
   @State private var showingShareSheet = false
   
-  @FirestoreQuery(
-    collectionPath: FirestoreCollection.workspaces.rawValue,
-    animation: .default
-  )
-  private var allWorkspaces: [Workspace]
+  @FirestoreQuery private var allWorkspaces: [Workspace]
   private var workspace: Workspace? {
     allWorkspaces.first
   }
@@ -20,6 +17,22 @@ struct SettingsView: View {
     animation: .default
   )
   private var allJoinRequests: [WorkspaceJoinRequest]
+  private var joinRequests: [WorkspaceJoinRequest] {
+    allJoinRequests.filter { $0.workspaceId == workspace?.id }
+  }
+  
+  init() {
+    let uid = Auth.auth().currentUser?.uid ?? ""
+    _allWorkspaces = FirestoreQuery(
+      collectionPath: FirestoreCollection.workspaces.rawValue,
+      predicates: [.whereField("userIds", arrayContains: uid)],
+      animation: .default
+    )
+    _allJoinRequests = FirestoreQuery(
+      collectionPath: FirestoreCollection.workspaceJoinRequests.rawValue,
+      animation: .default
+    )
+  }
   
   var currentUserSection: some View {
     Section("Current user") {
@@ -76,7 +89,7 @@ struct SettingsView: View {
           Text("There are \(workspace.userIds.count) users in this workspace.")
         }
         
-        if let requestId = allJoinRequests.first?.id {
+        if let requestId = joinRequests.first?.id {
           Text("An user requested to join this workspace.")
           Button("Accept") {
             Task {

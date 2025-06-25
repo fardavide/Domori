@@ -1,16 +1,27 @@
 import SwiftUI
+import FirebaseAuth
 import FirebaseFirestore
 
 struct AddTagView: View {
   @Environment(\.dismiss) private var dismiss
   @Environment(\.firestore) private var firestore
-  @FirestoreQuery(collectionPath: FirestoreCollection.tags.rawValue) private var allTags: [PropertyTag]
+  @FirestoreQuery private var allTags: [PropertyTag]
   
   let property: Property
   
   @State private var showingCreateTag = false
   @State private var newTagName = ""
   @State private var selectedRating: PropertyRating = .good
+  
+  init(property: Property) {
+    self.property = property
+    let uid = Auth.auth().currentUser?.uid ?? ""
+    _allTags = FirestoreQuery(
+      collectionPath: FirestoreCollection.tags.rawValue,
+      predicates: [.whereField("userIds", arrayContains: uid)],
+      animation: .default
+    )
+  }
   
   var body: some View {
     NavigationStack {
