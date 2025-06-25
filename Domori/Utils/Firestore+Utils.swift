@@ -21,7 +21,7 @@ extension Firestore {
       var property = property
       property.updatedDate = Timestamp()
       let ref = collection(.properties).document(id)
-      try ref.setData(from: property)
+      try ref.setData(from: property, merge: true)
       return ref
     } else {
       return try collection(.properties).addDocument(from: property)
@@ -39,7 +39,7 @@ extension Firestore {
   func setTag(_ tag: PropertyTag) throws -> DocumentReference {
     if let id = tag.id {
       let ref = collection(.tags).document(id)
-      try ref.setData(from: tag)
+      try ref.setData(from: tag, merge: true)
       return ref
     } else {
       return try collection(.tags).addDocument(from: tag)
