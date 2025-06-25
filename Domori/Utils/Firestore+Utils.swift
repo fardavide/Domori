@@ -49,7 +49,7 @@ extension Firestore {
   
   func setTag(_ tag: PropertyTag) async throws -> DocumentReference {
     var tag = tag
-    tag.userIds = try await getCurrentWorkspace()!.userIds
+    tag.userIds = try await getCurrentWorkspace().userIds
     if let id = tag.id {
       let ref = collection(.tags).document(id)
       try ref.setData(from: tag, merge: true)
@@ -104,7 +104,7 @@ extension Firestore {
   
   func approveWorkspaceJoinRequest(requestId: String) async throws {
     guard let userId = currentUserId else {
-      return
+      throw NSError(domain: "Not logged in", code: 0, userInfo: nil)
     }
     
     let currentWorkspace = try await getCurrentWorkspace()

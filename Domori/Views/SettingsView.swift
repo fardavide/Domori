@@ -4,12 +4,16 @@ import SwiftUI
 struct SettingsView: View {
   @Environment(\.firestore) private var firestore
   @EnvironmentObject private var authService: AuthService
+  @State private var showingShareSheet = false
   
   @FirestoreQuery(
     collectionPath: FirestoreCollection.workspaces.rawValue,
     animation: .default
   )
   private var allWorkspaces: [Workspace]
+  private var workspace: Workspace? {
+    allWorkspaces.first
+  }
   
   @FirestoreQuery(
     collectionPath: FirestoreCollection.workspaceJoinRequests.rawValue,
@@ -64,31 +68,35 @@ struct SettingsView: View {
   
   var workspaceSection: some View {
     Section("Workspaces") {
-      let workspace = allWorkspaces.first ?? Workspace(userIds: [])
-      
-      if workspace.userIds.count == 1 {
-        Text("You're the only one in this workspace.")
-      } else {
-        Text("There are \(workspace.userIds.count) users in this workspace.")
-      }
-      
-      if let requestId = allJoinRequests.first?.id {
-        Text("An user requested to join this workspace.")
-        Button("Accept") {
-          Task {
-            do {
-               try await firestore.approveWorkspaceJoinRequest(requestId: requestId)
-            } catch {
-              print("Could not approve join request: \(error)")
+      if let workspace = workspace {
+        
+        if workspace.userIds.count == 1 {
+          Text("You're the only one in this workspace.")
+        } else {
+          Text("There are \(workspace.userIds.count) users in this workspace.")
+        }
+        
+        if let requestId = allJoinRequests.first?.id {
+          Text("An user requested to join this workspace.")
+          Button("Accept") {
+            Task {
+              do {
+                try await firestore.approveWorkspaceJoinRequest(requestId: requestId)
+              } catch {
+                print("Could not approve join request: \(error)")
+              }
             }
           }
         }
-      }
-      Button("Invite users") {
-        Task {
-          // TODO create invite to be shared
-          // "Join my workspace on Domori! domori://join-workspace?id=\(workspace.id)"
+        Button("Invite users") {
+          showingShareSheet = true
         }
+      }
+    }
+    .onAppear {
+      Task {
+        // Create workspace if none
+        try await firestore.getCurrentWorkspace()
       }
     }
   }
@@ -120,8 +128,24 @@ struct SettingsView: View {
         appInformationSection
       }
       .navigationTitle("Settings")
+      .sheet(isPresented: $showingShareSheet) {
+        if let workspaceId = workspace?.id {
+          let url = "domori://join-workspace?id=\(workspaceId)"
+          ShareSheet(activityItems: [ "Join my workspace on Domori! \(url)" ])
+        }
+      }
     }
   }
+}
+
+struct ShareSheet: UIViewControllerRepresentable {
+  let activityItems: [Any]
+  
+  func makeUIViewController(context: Context) -> UIActivityViewController {
+    UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+  }
+  
+  func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 #Preview {

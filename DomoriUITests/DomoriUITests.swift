@@ -840,5 +840,38 @@ final class DomoriUITests: XCTestCase {
         app.launch()
         return app
     }
+
+    func testWorkspaceInviteFunctionality() throws {
+        let app = XCUIApplication()
+        app.launch()
+        
+        // Navigate to settings
+        app.tabBars.buttons["Settings"].tap()
+        
+        // Wait for settings to load
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
+        
+        // Wait for workspace data to load
+        let inviteButton = app.buttons["Invite users"]
+        XCTAssertTrue(inviteButton.waitForExistence(timeout: 5), "Invite button should be visible")
+        inviteButton.tap()
+        
+        // Verify that the share sheet appears
+        // The share sheet is a system UI element, so we check for its presence
+        let shareSheet = app.otherElements["ActivityListView"]
+        XCTAssertTrue(shareSheet.waitForExistence(timeout: 3), "Share sheet should appear when invite button is tapped")
+        
+        // Dismiss the share sheet by tapping the cancel button or outside
+        let cancelButton = app.buttons["Cancel"]
+        if cancelButton.exists {
+            cancelButton.tap()
+        } else {
+            // If no cancel button, tap outside the sheet
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1)).tap()
+        }
+        
+        // Verify we're back to settings
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 3))
+    }
 }
 

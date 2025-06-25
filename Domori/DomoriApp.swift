@@ -1,5 +1,6 @@
 import SwiftUI
 import FirebaseCore
+import FirebaseAuth
 import FirebaseFirestore
 import AppIntents
 
@@ -15,8 +16,8 @@ struct DomoriApp: App {
     WindowGroup {
       ContentView()
         .environment(\.firestore, Firestore.firestore())
-        .environmentObject(urlHandler)
         .environmentObject(authService)
+        .environmentObject(urlHandler)
         .onOpenURL { url in
           urlHandler.handleUrl(url)
         }
@@ -34,8 +35,9 @@ struct DomoriApp: App {
 // MARK: - URL Handler
 
 class UrlHandler: ObservableObject {
-  @Environment(\.firestore) private var firestore
-  @EnvironmentObject private var authService: AuthService
+  private let firestore = Firestore.firestore()
+  private let auth = Auth.auth()
+  
   @Published var importData: PropertyImportData?
   @Published var shouldShowImportView = false
   
@@ -78,7 +80,7 @@ class UrlHandler: ObservableObject {
     Task {
       do {
         try await firestore.createWorkspaceJoinRequest(
-          fromUserId: authService.currentUser!.uid,
+          fromUserId: auth.currentUser!.uid,
           forWorkspaceId: workspaceId
         )
       } catch {
