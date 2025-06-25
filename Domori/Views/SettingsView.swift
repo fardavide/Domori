@@ -1,10 +1,24 @@
+import FirebaseFirestore
 import SwiftUI
 
 struct SettingsView: View {
-  @EnvironmentObject var authService: AuthService
+  @Environment(\.firestore) private var firestore
+  @EnvironmentObject private var authService: AuthService
   
-  var authenticationSection: some View {
-    Section("Authentication") {
+  @FirestoreQuery(
+    collectionPath: FirestoreCollection.workspaces.rawValue,
+    animation: .default
+  )
+  private var allWorkspaces: [Workspace]
+  
+  @FirestoreQuery(
+    collectionPath: FirestoreCollection.workspaceJoinRequests.rawValue,
+    animation: .default
+  )
+  private var allJoinRequests: [WorkspaceJoinRequest]
+  
+  var currentUserSection: some View {
+    Section("Current user") {
       if authService.isSignedIn {
         HStack {
           Text("Signed in as")
@@ -48,6 +62,37 @@ struct SettingsView: View {
     }
   }
   
+  var workspaceSection: some View {
+    Section("Workspaces") {
+      let workspace = allWorkspaces.first ?? Workspace(userIds: [])
+      
+      if workspace.userIds.count == 1 {
+        Text("You're the only one in this workspace.")
+      } else {
+        Text("There are \(workspace.userIds.count) users in this workspace.")
+      }
+      
+      if let requestId = allJoinRequests.first?.id {
+        Text("An user requested to join this workspace.")
+        Button("Accept") {
+          Task {
+            do {
+               try await firestore.approveWorkspaceJoinRequest(requestId: requestId)
+            } catch {
+              print("Could not approve join request: \(error)")
+            }
+          }
+        }
+      }
+      Button("Invite users") {
+        Task {
+          // TODO create invite to be shared
+          // "Join my workspace on Domori! domori://join-workspace?id=\(workspace.id)"
+        }
+      }
+    }
+  }
+  
   var appInformationSection: some View {
     Section("App Information") {
       
@@ -70,7 +115,8 @@ struct SettingsView: View {
   var body: some View {
     NavigationView {
       Form {
-        authenticationSection
+        currentUserSection
+        workspaceSection
         appInformationSection
       }
       .navigationTitle("Settings")
@@ -80,4 +126,5 @@ struct SettingsView: View {
 
 #Preview {
   SettingsView()
+    .environmentObject(AuthService())
 }

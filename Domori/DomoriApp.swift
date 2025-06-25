@@ -34,14 +34,19 @@ struct DomoriApp: App {
 // MARK: - URL Handler
 
 class UrlHandler: ObservableObject {
+  @Environment(\.firestore) private var firestore
+  @EnvironmentObject private var authService: AuthService
   @Published var importData: PropertyImportData?
   @Published var shouldShowImportView = false
   
   func handleUrl(_ url: URL) {
     guard url.scheme == "domori" else { return }
     
-    if url.host == "import-property" {
-      handleImportPropertyUrl(url)
+    switch url.host {
+    case "import-property": handleImportPropertyUrl(url)
+    case "join-workspace": handleJoinWorkspaceUrl(url)
+    default:
+      print("Unsupported URL host: \(url.host ?? "(unknown)")")
     }
   }
   
@@ -60,6 +65,25 @@ class UrlHandler: ObservableObject {
       self.shouldShowImportView = true
     } catch {
       print("Failed to decode import data: \(error)")
+    }
+  }
+  
+  private func handleJoinWorkspaceUrl(_ url: URL) {
+    guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+          let workspaceId = components.queryItems?.first(where: { $0.name == "id" })?.value else {
+      print("Invalid join workspace URL format")
+      return
+    }
+    
+    Task {
+      do {
+        try await firestore.createWorkspaceJoinRequest(
+          fromUserId: authService.currentUser!.uid,
+          forWorkspaceId: workspaceId
+        )
+      } catch {
+        print("Failed to join workspace: \(error)")
+      }
     }
   }
 }

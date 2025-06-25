@@ -6,14 +6,20 @@ enum FirestoreCollection: String {
   case properties = "test-properties"
   case tags = "test-tags"
   case workspaces = "test-workspaces"
+  case workspaceJoinRequests = "test-workspace-join-requests"
 #else
   case properties
   case tags
   case workspaces
+  case workspaceJoinRequests
 #endif
 }
 
 extension Firestore {
+  
+  private var currentUserId: String? {
+    Auth.auth().currentUser?.uid
+  }
   
   func getProperty(withId id: String) async throws -> Property {
     try await collection(.properties).document(id).getDocument(as: Property.self)
@@ -21,7 +27,7 @@ extension Firestore {
   
   func setProperty(_ property: Property) async throws -> DocumentReference {
     var property = property
-    property.userIds = try await getCurrentWorkspace()!.userIds
+    property.userIds = try await getCurrentWorkspace().userIds
     if let id = property.id {
       var property = property
       property.updatedDate = Timestamp()
@@ -57,9 +63,9 @@ extension Firestore {
     try await collection(.tags).document(id).delete()
   }
   
-  func getCurrentWorkspace() async throws -> Workspace? {
-    guard let userId = Auth.auth().currentUser?.uid else {
-      return nil
+  func getCurrentWorkspace() async throws -> Workspace {
+    guard let userId = currentUserId else {
+      throw NSError(domain: "Not logged in", code: 0, userInfo: nil)
     }
     let savedWorkspace = try? await collection(.workspaces)
       .whereField("userIds", arrayContains: userId)
@@ -67,7 +73,63 @@ extension Firestore {
       .documents
       .first?.data(as: Workspace.self)
     
-    return savedWorkspace ?? Workspace(userIds: [userId])
+    if let workspace = savedWorkspace {
+      return workspace
+    } else {
+      var newWorkspace = Workspace(userIds: [userId])
+      let ref = try collection(.workspaces).addDocument(from: newWorkspace)
+      newWorkspace.id = ref.documentID
+      return newWorkspace
+    }
+  }
+  
+  func createWorkspaceJoinRequest(
+    fromUserId userId: String,
+    forWorkspaceId workspaceId: String
+  ) async throws {
+    let request = WorkspaceJoinRequest(workspaceId: workspaceId, userId: userId)
+    try collection(.workspaceJoinRequests).addDocument(from: request)
+    
+    let currentWorkspace = try await getCurrentWorkspace()
+    if let currentWorkspaceId = currentWorkspace.id {
+      if currentWorkspace.userIds.count == 1 {
+        try await collection(.workspaces).document(currentWorkspaceId).delete()
+      } else {
+        try await collection(.workspaces).document(currentWorkspaceId).updateData(
+          ["userIds": FieldValue.arrayRemove([userId])]
+        )
+      }
+    }
+  }
+  
+  func approveWorkspaceJoinRequest(requestId: String) async throws {
+    guard let userId = currentUserId else {
+      return
+    }
+    
+    let currentWorkspace = try await getCurrentWorkspace()
+    let requestRef = collection(.workspaceJoinRequests).document(requestId)
+    let request = try await requestRef.getDocument(as: WorkspaceJoinRequest.self)
+    if currentWorkspace.id != request.workspaceId {
+      print("Not authorized to approve this request.")
+      return
+    }
+    
+    let writeBatch = batch()
+    for propertyRef in try await collection(.properties).whereField("userIds", arrayContains: userId).getDocuments().documents {
+      writeBatch.updateData(
+        [ "userIds": FieldValue.arrayUnion([userId]) ],
+        forDocument: propertyRef.reference
+      )
+    }
+    for tagRef in try await collection(.tags).whereField("userIds", arrayContains: userId).getDocuments().documents {
+      writeBatch.updateData(
+        [ "userIds": FieldValue.arrayUnion([userId]) ],
+        forDocument: tagRef.reference
+      )
+    }
+    writeBatch.deleteDocument(requestRef)
+    try await writeBatch.commit()
   }
   
   private func collection(_ collection: FirestoreCollection) -> CollectionReference {
