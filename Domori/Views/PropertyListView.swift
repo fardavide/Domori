@@ -17,62 +17,53 @@ struct PropertyListView: View {
   
   var body: some View {
     NavigationStack {
-      VStack(spacing: 0) {
-        
-        VStack(alignment: .leading, spacing: 12) {
-          HStack {
-            Text("Sort by:")
-            
-            Picker("Sort", selection: $sortOption) {
-              ForEach(SortOption.allCases, id: \.self) { option in
-                Text(option.displayName).tag(option)
-              }
-            }
-            .pickerStyle(.menu)
-            
-            Spacer()
-            
-            if selectedListings.count >= 2 {
-              Button("Compare (\(selectedListings.count))") {
-                showingCompareView = true
-              }
-              .font(.caption)
-              .foregroundColor(.blue)
-            }
-          }
-        }
-        .padding(.horizontal)
-        .padding(.bottom, 8)
-        
-        // Property list
-        List {
-          ForEach(filteredAndSortedListings, id: \.id) { listing in
-            NavigationLink(destination: PropertyDetailView(property: listing)) {
-              PropertyListRowView(
-                listing: listing,
-                isSelected: selectedListings.contains(listing),
-                onSelectionChanged: { isSelected in
-                  if isSelected {
-                    selectedListings.insert(listing)
-                  } else {
-                    selectedListings.remove(listing)
-                  }
+      List {
+        ForEach(filteredAndSortedListings, id: \.id) { listing in
+          NavigationLink(destination: PropertyDetailView(property: listing)) {
+            PropertyListRowView(
+              listing: listing,
+              isSelected: selectedListings.contains(listing),
+              onSelectionChanged: { isSelected in
+                if isSelected {
+                  selectedListings.insert(listing)
+                } else {
+                  selectedListings.remove(listing)
                 }
-              )
-            }
-            .swipeActions(edge: .trailing) {
-              Button("Delete", role: .destructive) {
-                deleteProperty(listing)
               }
+            )
+          }
+          .swipeActions(edge: .trailing) {
+            Button("Delete", role: .destructive) {
+              deleteProperty(listing)
             }
           }
         }
-        .animation(.default, value: filteredAndSortedListings)
-        .listStyle(.plain)
-        .searchable(text: $searchText, prompt: "Search properties...")
       }
+      .animation(.default, value: filteredAndSortedListings)
+      .searchable(text: $searchText, prompt: "Search properties...")
       .navigationTitle("Properties")
       .toolbar {
+        ToolbarItemGroup(placement: .principal) {
+          
+          if selectedListings.count >= 2 {
+            Button("Compare (\(selectedListings.count))") {
+              showingCompareView = true
+            }
+            .font(.caption)
+            .foregroundColor(.blue)
+          } else {
+            HStack {
+              Text("Sort by:")
+              
+              Picker("Sort", selection: $sortOption) {
+                ForEach(SortOption.allCases, id: \.self) { option in
+                  Text(option.displayName).tag(option)
+                }
+              }
+              .pickerStyle(.menu)
+            }
+          }
+        }
         ToolbarItemGroup(placement: {
 #if os(iOS)
           .navigationBarTrailing

@@ -238,9 +238,7 @@ struct PropertyDetailView: View {
   }
   
   var sectionSeparator: some View {
-    Rectangle()
-      .fill(Color(.secondaryLabel))
-      .frame(height: 1)
+    Divider()
   }
   
   var body: some View {
