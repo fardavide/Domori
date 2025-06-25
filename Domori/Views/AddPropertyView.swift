@@ -274,10 +274,12 @@ struct AddPropertyView: View {
       property.rating = rating
       property.updatedDate = Timestamp()
       
-      do {
-        _ = try firestore.setProperty(property)
-      } catch {
-        print("Error updating property: \(error)")
+      Task {
+        do {
+          _ = try await firestore.setProperty(property)
+        } catch {
+          print("Error updating property: \(error)")
+        }
       }
       
     } else {
@@ -294,10 +296,12 @@ struct AddPropertyView: View {
         rating: rating
       )
       
-      do {
-        _ = try firestore.setProperty(newProperty)
-      } catch {
-        print("Error creating property: \(error)")
+      Task {
+        do {
+          _ = try await firestore.setProperty(newProperty)
+        } catch {
+          print("Error creating property: \(error)")
+        }
       }
     }
     

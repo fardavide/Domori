@@ -25,7 +25,7 @@ struct ImportPropertyIntent: AppIntent {
         await UIApplication.shared.open(url)
         return .result(value: "Opening Domori with imported property data")
       } else {
-        _ = try importService.savePropertyToFirestore(propertyData, firestore: firestore)
+        _ = try await importService.savePropertyToFirestore(propertyData, firestore: firestore)
         return .result(value: "Property imported successfully")
       }
     } catch {

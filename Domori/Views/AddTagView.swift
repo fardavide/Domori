@@ -136,27 +136,31 @@ struct AddTagView: View {
     
     let newTag = PropertyTag(name: trimmedName, rating: selectedRating)
     var updatedProperty = property
-    do {
-      let newTagRef = try firestore.setTag(newTag)
-      updatedProperty.tagIds.append(newTagRef.documentID)
-      _ = try firestore.setProperty(updatedProperty)
-    } catch {
-      print("Error creating tag: \(error)")
+    Task {
+      do {
+        let newTagRef = try await firestore.setTag(newTag)
+        updatedProperty.tagIds.append(newTagRef.documentID)
+        _ = try await firestore.setProperty(updatedProperty)
+      } catch {
+        print("Error creating tag: \(error)")
+      }
+      
+      newTagName = ""
+      selectedRating = .good
+      dismiss()
     }
-    
-    newTagName = ""
-    selectedRating = .good
-    dismiss()
   }
   
   private func addExistingTag(_ tag: PropertyTag) {
     var updatedProperty = property
     updatedProperty.tagIds.append(tag.id!)
-    do {
-      _ = try firestore.setProperty(updatedProperty)
-    } catch {
-      print("Error adding tag: \(error)")
+    Task {
+      do {
+        _ = try await firestore.setProperty(updatedProperty)
+      } catch {
+        print("Error adding tag: \(error)")
+      }
+      dismiss()
     }
-    dismiss()
   }
 }

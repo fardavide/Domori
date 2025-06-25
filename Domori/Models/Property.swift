@@ -17,6 +17,7 @@ struct Property: Codable, Hashable {
   @ServerTimestamp var updatedDate: Timestamp?
   var tagIds: [String] = []
   var notes: [PropertyNote]? = []
+  var userIds: [String]? = []
   
   // Computed properties with locale-aware formatting
   var formattedPrice: String {

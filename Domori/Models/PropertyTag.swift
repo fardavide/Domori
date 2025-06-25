@@ -6,6 +6,7 @@ struct PropertyTag: Codable, Identifiable {
   @DocumentID var id: String?
   var name: String
   var rating: PropertyRating = .none
+  var userIds: [String]? = []
   
   // Computed property to get SwiftUI Color from rating
   var swiftUiColor: Color {

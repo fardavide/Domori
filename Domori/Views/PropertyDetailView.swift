@@ -315,11 +315,13 @@ struct PropertyDetailView: View {
     updatedProperty.rating = newRating
     updatedProperty.updatedDate = Timestamp()
     
-    do {
-      _ = try firestore.setProperty(updatedProperty)
-      property = updatedProperty
-    } catch {
-      print("Error updating rating: \(error)")
+    Task {
+      do {
+        _ = try await firestore.setProperty(updatedProperty)
+        property = updatedProperty
+      } catch {
+        print("Error updating rating: \(error)")
+      }
     }
   }
   
@@ -329,11 +331,13 @@ struct PropertyDetailView: View {
     updatedProperty.tagIds.removeAll { $0 == tagId }
     updatedProperty.updatedDate = Timestamp()
     
-    do {
-      _ = try firestore.setProperty(updatedProperty)
-      property = updatedProperty
-    } catch {
-      print("Error removing tag: \(error)")
+    Task {
+      do {
+        _ = try await firestore.setProperty(updatedProperty)
+        property = updatedProperty
+      } catch {
+        print("Error removing tag: \(error)")
+      }
     }
   }
 }

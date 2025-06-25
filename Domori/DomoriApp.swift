@@ -7,6 +7,7 @@ import AppIntents
 struct DomoriApp: App {
   @UIApplicationDelegateAdaptor(AppDelegate.self) private var delegate
   @StateObject private var urlHandler = UrlHandler()
+  @StateObject private var authService = AuthService()
   static let isTest = ProcessInfo.processInfo.arguments.contains("test")
   static let isUiTest = ProcessInfo.processInfo.arguments.contains("uitest")
   
@@ -15,6 +16,7 @@ struct DomoriApp: App {
       ContentView()
         .environment(\.firestore, Firestore.firestore())
         .environmentObject(urlHandler)
+        .environmentObject(authService)
         .onOpenURL { url in
           urlHandler.handleUrl(url)
         }
@@ -23,6 +25,7 @@ struct DomoriApp: App {
 #if os(macOS)
     Settings {
       SettingsView()
+        .environmentObject(authService)
     }
 #endif
   }

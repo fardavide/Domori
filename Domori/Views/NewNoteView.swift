@@ -44,10 +44,12 @@ struct NewNoteView: View {
     } else {
       updatedProperty.notes?.append(note)
     }
-    if let _ = try? firestore.setProperty(updatedProperty) {
-      dismiss()
-    } else {
-      print("Error adding note")
+    Task {
+      if let _ = try? await firestore.setProperty(updatedProperty) {
+        dismiss()
+      } else {
+        print("Error adding note")
+      }
     }
   }
 }

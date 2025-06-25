@@ -33,7 +33,7 @@ final class PropertyImportService {
   func savePropertyToFirestore(
     _ importData: PropertyImportData,
     firestore: Firestore
-  ) throws -> DocumentReference {
+  ) async throws -> DocumentReference {
     let property = Property(
       title: importData.title,
       location: importData.location,
@@ -46,6 +46,6 @@ final class PropertyImportService {
       type: importData.type,
       rating: .none // Default rating for imported properties
     )
-    return try firestore.setProperty(property)
+    return try await firestore.setProperty(property)
   }
 }
