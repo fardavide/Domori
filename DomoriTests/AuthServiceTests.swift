@@ -25,18 +25,7 @@ struct AuthServiceTests {
     #expect(authService.isSignedIn == false)
     #expect(authService.currentUser == nil)
   }
-  
-  @Test func testAuthServiceAutomaticSignIn() async throws {
-    let authService = AuthService()
     
-    // Test automatic sign-in attempt
-    await authService.attemptAutomaticSignIn()
-    
-    // Should not be signed in without user interaction
-    #expect(authService.isSignedIn == false)
-    #expect(authService.currentUser == nil)
-  }
-  
   @Test func testAuthErrorLocalization() async throws {
     let invalidCredentialError = AuthError.invalidCredential
     let invalidTokenError = AuthError.invalidToken

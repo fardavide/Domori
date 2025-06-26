@@ -25,7 +25,7 @@ struct DomoriTests {
     )
     
     // Add to Firestore
-    let docRef = try firestore.setProperty(property)
+    let docRef = try await firestore.setProperty(property)
     
     // Fetch and verify the property was created correctly
     let fetchedProperty = try await firestore.getProperty(withId: docRef.documentID)
@@ -45,8 +45,8 @@ struct DomoriTests {
     let tag1 = PropertyTag(name: "Great Location", rating: .good)
     let tag2 = PropertyTag(name: "Needs Work", rating: .considering)
     
-    let tag1Ref = try firestore.setTag(tag1)
-    let tag2Ref = try firestore.setTag(tag2)
+    let tag1Ref = try await firestore.setTag(tag1)
+    let tag2Ref = try await firestore.setTag(tag2)
     
     // Create a test property with tag references
     var property = Property(
@@ -66,7 +66,7 @@ struct DomoriTests {
     property.tagIds = [tag1Ref.documentID, tag2Ref.documentID]
     
     // Add property to Firestore
-    let propertyRef = try firestore.setProperty(property)
+    let propertyRef = try await firestore.setProperty(property)
     
     // Fetch and verify
     let fetchedProperty = try await firestore.getProperty(withId: propertyRef.documentID)

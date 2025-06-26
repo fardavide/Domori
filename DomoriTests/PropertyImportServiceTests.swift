@@ -147,7 +147,7 @@ final class PropertyImportServiceTests {
       bathrooms: 1.0,
       type: .apartment
     )
-    let ref = try importService.savePropertyToFirestore(importData, firestore: firestore)
+    let ref = try await importService.savePropertyToFirestore(importData, firestore: firestore)
     let property = Property(
       title: "Firestore Test",
       location: "Test Location",
