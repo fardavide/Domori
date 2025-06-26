@@ -11,7 +11,7 @@ enum FirestoreCollection: String {
   case properties
   case tags
   case workspaces
-  case workspaceJoinRequests
+  case workspaceJoinRequests = "workspace-join-requests"
 #endif
 }
 
@@ -103,28 +103,33 @@ extension Firestore {
   }
   
   func approveWorkspaceJoinRequest(requestId: String) async throws {
-    guard let userId = currentUserId else {
+    guard let currentUserId = currentUserId else {
       throw NSError(domain: "Not logged in", code: 0, userInfo: nil)
     }
     
-    let currentWorkspace = try await getCurrentWorkspace()
+    var currentWorkspace = try await getCurrentWorkspace()
     let requestRef = collection(.workspaceJoinRequests).document(requestId)
     let request = try await requestRef.getDocument(as: WorkspaceJoinRequest.self)
     if currentWorkspace.id != request.workspaceId {
       print("Not authorized to approve this request.")
       return
     }
+    let inviteeUserId = request.userId
     
     let writeBatch = batch()
-    for propertyRef in try await collection(.properties).whereField("userIds", arrayContains: userId).getDocuments().documents {
+    writeBatch.updateData(
+      ["userIds": FieldValue.arrayUnion([inviteeUserId])],
+      forDocument: collection(.workspaces).document(currentWorkspace.id!)
+    )
+    for propertyRef in try await collection(.properties).whereField("userIds", arrayContains: currentUserId).getDocuments().documents {
       writeBatch.updateData(
-        [ "userIds": FieldValue.arrayUnion([userId]) ],
+        [ "userIds": FieldValue.arrayUnion([inviteeUserId]) ],
         forDocument: propertyRef.reference
       )
     }
-    for tagRef in try await collection(.tags).whereField("userIds", arrayContains: userId).getDocuments().documents {
+    for tagRef in try await collection(.tags).whereField("userIds", arrayContains: currentUserId).getDocuments().documents {
       writeBatch.updateData(
-        [ "userIds": FieldValue.arrayUnion([userId]) ],
+        [ "userIds": FieldValue.arrayUnion([inviteeUserId]) ],
         forDocument: tagRef.reference
       )
     }
