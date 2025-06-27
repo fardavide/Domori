@@ -43,9 +43,9 @@ enum PropertyRating: String, CaseIterable, Codable, Comparable {
   
   private var sortValue: Int {
     switch self {
-    case .none: return 0
-    case .excluded: return 1
-    case .considering: return 2
+    case .excluded: return 0
+    case .considering: return 1
+    case .none: return 2
     case .good: return 3
     case .excellent: return 4
     }
