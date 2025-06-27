@@ -9,4 +9,10 @@ struct WorkspaceJoinRequest: Codable {
   @DocumentID var id: String?
   var workspaceId: String
   var userId: String
+  
+  enum CodingKeys: String, CodingKey {
+    case id
+    case workspaceId
+    case userId
+  }
 }

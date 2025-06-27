@@ -3,23 +3,17 @@ import FirebaseAuth
 import FirebaseFirestore
 
 struct PropertyListRowView: View {
-  let listing: Property
+  @Environment(TagQuery.self) private var tagQuery
+  private var allTags: [PropertyTag] { tagQuery.all }
+  
+  let property: Property
   let isSelected: Bool
   let onSelectionChanged: (Bool) -> Void
   
-  @FirestoreQuery private var allTags: [PropertyTag]
-  
-  init(listing: Property, isSelected: Bool, onSelectionChanged: @escaping (Bool) -> Void) {
-    self.listing = listing
+  init(property: Property, isSelected: Bool, onSelectionChanged: @escaping (Bool) -> Void) {
+    self.property = property
     self.isSelected = isSelected
     self.onSelectionChanged = onSelectionChanged
-    
-    let uid = Auth.auth().currentUser?.uid ?? ""
-    _allTags = FirestoreQuery(
-      collectionPath: FirestoreCollection.tags.rawValue,
-      predicates: [.whereField("userIds", arrayContains: uid)],
-      animation: .default
-    )
   }
   
   var body: some View {
@@ -43,13 +37,13 @@ struct PropertyListRowView: View {
             HStack {
               
               // Icon
-              Image(systemName: listing.type.systemImage)
+              Image(systemName: property.type.systemImage)
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .frame(width: 16, height: 16)
               
               // Title
-              Text(listing.title)
+              Text(property.title)
                 .font(.headline)
                 .fontWeight(.semibold)
                 .lineLimit(1)
@@ -57,21 +51,21 @@ struct PropertyListRowView: View {
               Spacer()
               
               // Rating indicator as colored circle
-              if listing.rating != .none {
+              if property.rating != .none {
                 Circle()
-                  .fill(getColorForRating(listing.rating))
+                  .fill(getColorForRating(property.rating))
                   .frame(width: 12, height: 12)
               }
             }
             
-            if let agency = listing.agency {
+            if let agency = property.agency {
               Text("\(agency)")
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .lineLimit(1)
             }
             
-            Text(listing.location)
+            Text(property.location)
               .font(.subheadline)
               .foregroundColor(.secondary)
               .lineLimit(1)
@@ -80,24 +74,24 @@ struct PropertyListRowView: View {
         
         // Property details in a more organized grid
         HStack(spacing: 16) {
-          if listing.bedrooms > 0 {
+          if property.bedrooms > 0 {
             PropertyDetailBadge(
               icon: "bed.double",
-              value: "\(listing.bedrooms)",
-              label: listing.bedrooms == 1 ? "bed" : "beds"
+              value: "\(property.bedrooms)",
+              label: property.bedrooms == 1 ? "bed" : "beds"
             )
           }
           
           PropertyDetailBadge(
             icon: "shower",
-            value: listing.bathroomText,
-            label: Double(listing.bathroomText) == 1.0 ? "bath" : "baths"
+            value: property.bathroomText,
+            label: Double(property.bathroomText) == 1.0 ? "bath" : "baths"
           )
           
           PropertyDetailBadge(
             icon: "square",
-            value: "\(Int(listing.size))",
-            label: listing.sizeUnit
+            value: "\(Int(property.size))",
+            label: property.sizeUnit
           )
           
           Spacer()
@@ -105,12 +99,12 @@ struct PropertyListRowView: View {
         
         // Price information
         VStack(alignment: .leading, spacing: 2) {
-          Text(listing.formattedPrice)
+          Text(property.formattedPrice)
             .font(.title2)
             .fontWeight(.bold)
             .foregroundColor(.primary)
           
-          if let note = listing.latestNote {
+          if let note = property.latestNote {
             Text(note.text)
               .font(.caption)
               .foregroundColor(.secondary)
@@ -131,7 +125,7 @@ struct PropertyListRowView: View {
   private var tagsForProperty: [PropertyTag] {
     allTags.filter { tag in
       guard let tagId = tag.id else { return false }
-      return listing.tagIds.contains(tagId)
+      return property.tagIds.contains(tagId)
     }
   }
   
@@ -260,12 +254,12 @@ struct ViewHeightKey: PreferenceKey {
 #Preview {
   List {
     PropertyListRowView(
-      listing: Property.sampleData[0],
+      property: Property.sampleData[0],
       isSelected: false,
       onSelectionChanged: { _ in }
     )
     PropertyListRowView(
-      listing: Property.sampleData[1],
+      property: Property.sampleData[1],
       isSelected: true,
       onSelectionChanged: { _ in }
     )

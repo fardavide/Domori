@@ -3,30 +3,23 @@ import FirebaseAuth
 import FirebaseFirestore
 
 struct PropertyDetailView: View {
-  @State var property: Property
   @Environment(\.firestore) private var firestore
   @Environment(\.openURL) private var openURL
+  
+  @Environment(PropertyQuery.self) private var propertyQuery
+  private var allProperties: [Property] { propertyQuery.all }
+  
+  @Environment(TagQuery.self) private var tagQuery
+  private var allTags: [PropertyTag] { tagQuery.all }
+  
+  @State var property: Property
   @State private var showingEditSheet = false
   @State private var showingAddTagSheet = false
   @State private var showingNewNoteSheet = false
   @State private var newNote: String?
   
-  @FirestoreQuery private var allProperties: [Property]
-  @FirestoreQuery private var allTags: [PropertyTag]
-  
   init(property: Property) {
     self.property = property
-    let uid = Auth.auth().currentUser?.uid ?? ""
-    _allProperties = FirestoreQuery(
-      collectionPath: FirestoreCollection.properties.rawValue,
-      predicates: [.whereField("userIds", arrayContains: uid)],
-      animation: .default
-    )
-    _allTags = FirestoreQuery(
-      collectionPath: FirestoreCollection.tags.rawValue,
-      predicates: [.whereField("userIds", arrayContains: uid)],
-      animation: .default
-    )
   }
   
   private var propertyTags: [PropertyTag] {

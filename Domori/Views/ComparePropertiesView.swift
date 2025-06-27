@@ -3,18 +3,14 @@ import FirebaseAuth
 import FirebaseFirestore
 
 struct ComparePropertiesView: View {
-  let listings: [Property]
-  @FirestoreQuery private var allTags: [PropertyTag]
   @Environment(\.dismiss) private var dismiss
+  @Environment(TagQuery.self) private var tagQuery
+  private var allTags: [PropertyTag] { tagQuery.all }
   
-  init(listings: [Property]) {
-    self.listings = listings
-    let uid = Auth.auth().currentUser?.uid ?? ""
-    _allTags = FirestoreQuery(
-      collectionPath: FirestoreCollection.tags.rawValue,
-      predicates: [.whereField("userIds", arrayContains: uid)],
-      animation: .default
-    )
+  let properties: [Property]
+  
+  init(properties: [Property]) {
+    self.properties = properties
   }
   
   private func tagsForProperty(_ property: Property) -> [PropertyTag] {
@@ -51,7 +47,7 @@ struct ComparePropertiesView: View {
   private var priceComparisonRow: some View {
     ComparisonRow(
       label: "Price",
-      values: listings.map { $0.formattedPrice },
+      values: properties.map { $0.formattedPrice },
       highlightBest: true,
       bestComparison: priceComparison
     )
@@ -60,7 +56,7 @@ struct ComparePropertiesView: View {
   private var sizeComparisonRow: some View {
     ComparisonRow(
       label: "Size",
-      values: listings.map { $0.formattedSize },
+      values: properties.map { $0.formattedSize },
       highlightBest: true,
       bestComparison: sizeComparison
     )
@@ -69,7 +65,7 @@ struct ComparePropertiesView: View {
   private var bedroomsComparisonRow: some View {
     ComparisonRow(
       label: "Bedrooms",
-      values: listings.map { "\($0.bedrooms)" },
+      values: properties.map { "\($0.bedrooms)" },
       highlightBest: true,
       bestComparison: bedroomsComparison
     )
@@ -78,7 +74,7 @@ struct ComparePropertiesView: View {
   private var bathroomsComparisonRow: some View {
     ComparisonRow(
       label: "Bathrooms",
-      values: listings.map { $0.bathroomText },
+      values: properties.map { $0.bathroomText },
       highlightBest: true,
       bestComparison: bathroomsComparison
     )
@@ -87,14 +83,14 @@ struct ComparePropertiesView: View {
   private var typeComparisonRow: some View {
     ComparisonRow(
       label: "Type",
-      values: listings.map { $0.type.rawValue }
+      values: properties.map { $0.type.rawValue }
     )
   }
   
   private var ratingComparisonRow: some View {
     ComparisonRow(
       label: "Rating",
-      values: listings.map { listing in
+      values: properties.map { listing in
         listing.rating.displayName
       },
       highlightBest: true,
@@ -104,8 +100,8 @@ struct ComparePropertiesView: View {
   
   private var pricePerUnitComparisonRow: some View {
     ComparisonRow(
-      label: "Price/\(listings.first?.sizeUnit ?? "unit")",
-      values: listings.map { $0.formattedPricePerUnit },
+      label: "Price/\(properties.first?.sizeUnit ?? "unit")",
+      values: properties.map { $0.formattedPricePerUnit },
       highlightBest: true,
       bestComparison: pricePerUnitComparison
     )
@@ -114,42 +110,42 @@ struct ComparePropertiesView: View {
   private var locationComparisonRow: some View {
     ComparisonRow(
       label: "Location",
-      values: listings.map { $0.location }
+      values: properties.map { $0.location }
     )
   }
   
   private func priceComparison(_ values: [String]) -> [Bool] {
-    let prices = listings.map { $0.price }
+    let prices = properties.map { $0.price }
     let minPrice = prices.min() ?? 0
     return prices.map { $0 == minPrice }
   }
   
   private func sizeComparison(_ values: [String]) -> [Bool] {
-    let sizes = listings.map { $0.size }
+    let sizes = properties.map { $0.size }
     let maxSize = sizes.max() ?? 0
     return sizes.map { $0 == maxSize }
   }
   
   private func bedroomsComparison(_ values: [String]) -> [Bool] {
-    let bedrooms = listings.map { $0.bedrooms }
+    let bedrooms = properties.map { $0.bedrooms }
     let maxBedrooms = bedrooms.max() ?? 0
     return bedrooms.map { $0 == maxBedrooms }
   }
   
   private func bathroomsComparison(_ values: [String]) -> [Bool] {
-    let bathrooms = listings.map { $0.bathrooms }
+    let bathrooms = properties.map { $0.bathrooms }
     let maxBathrooms = bathrooms.max() ?? 0
     return bathrooms.map { $0 == maxBathrooms }
   }
   
   private func ratingComparison(_ values: [String]) -> [Bool] {
-    let ratingValues = listings.map { $0.rating.rawValue }
+    let ratingValues = properties.map { $0.rating.rawValue }
     let bestRating = ratingValues.max() ?? "none"
     return ratingValues.map { $0 == bestRating && $0 != "none" }
   }
   
   private func pricePerUnitComparison(_ values: [String]) -> [Bool] {
-    let pricesPerUnit = listings.map { $0.price / $0.size }
+    let pricesPerUnit = properties.map { $0.price / $0.size }
     let minPricePerUnit = pricesPerUnit.min() ?? 0
     return pricesPerUnit.map { $0 == minPricePerUnit }
   }
@@ -164,7 +160,7 @@ struct ComparePropertiesView: View {
               .frame(width: 120)
               .padding()
             
-            ForEach(listings, id: \.id) { listing in
+            ForEach(properties, id: \.id) { listing in
               VStack(alignment: .leading, spacing: 4) {
                 Text(listing.title)
                   .font(.subheadline)
@@ -205,7 +201,7 @@ struct ComparePropertiesView: View {
                 .padding()
                 .background(labelBackgroundColor)
               
-              ForEach(listings, id: \.id) { listing in
+              ForEach(properties, id: \.id) { listing in
                 ScrollView {
                   LazyVGrid(columns: [GridItem(.flexible())], spacing: 4) {
                     ForEach(tagsForProperty(listing), id: \.name) { tag in
@@ -300,5 +296,5 @@ struct ComparisonRow: View {
 }
 
 #Preview {
-    ComparePropertiesView(listings: Array(Property.sampleData.prefix(3)))
+    ComparePropertiesView(properties: Array(Property.sampleData.prefix(3)))
 } 

@@ -15,6 +15,12 @@ enum FirestoreCollection: String {
 #endif
 }
 
+enum FirestoreField: String {
+  case userId
+  case userIds
+  case workspaceId
+}
+
 extension Firestore {
   
   private var currentUserId: String? {
@@ -107,7 +113,7 @@ extension Firestore {
       throw NSError(domain: "Not logged in", code: 0, userInfo: nil)
     }
     
-    var currentWorkspace = try await getCurrentWorkspace()
+    let currentWorkspace = try await getCurrentWorkspace()
     let requestRef = collection(.workspaceJoinRequests).document(requestId)
     let request = try await requestRef.getDocument(as: WorkspaceJoinRequest.self)
     if currentWorkspace.id != request.workspaceId {
@@ -137,8 +143,19 @@ extension Firestore {
     try await writeBatch.commit()
   }
   
-  private func collection(_ collection: FirestoreCollection) -> CollectionReference {
+  func collection(_ collection: FirestoreCollection) -> CollectionReference {
     self.collection(collection.rawValue)
+  }
+}
+
+extension CollectionReference {
+  
+  func whereField(_ field: FirestoreField, arrayContains value: Any) -> Query {
+    whereField(field.rawValue, arrayContains: value)
+  }
+  
+  func whereField(_ field: FirestoreField, isEqualTo value: Any) -> Query {
+    whereField(field.rawValue, isEqualTo: value)
   }
 }
 

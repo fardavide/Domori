@@ -5,43 +5,36 @@ import FirebaseFirestore
 
 struct PropertyListView: View {
   @Environment(\.firestore) private var firestore
+  
+  @Environment(PropertyQuery.self) private var propertyQuery
+  private var allProperties: [Property] { propertyQuery.all }
+  
   @State private var sortOption: SortOption = .editDate
   @State private var searchText = ""
-  @State private var showingAddListing = false
-  @State private var showingCompareView = false
-  @State private var selectedListings: Set<Property> = []
-  
-  @FirestoreQuery private var allProperties: [Property]
-  
-  init() {
-    let uid = Auth.auth().currentUser?.uid ?? ""
-    _allProperties = FirestoreQuery(
-      collectionPath: FirestoreCollection.properties.rawValue,
-      predicates: [.whereField("userIds", arrayContains: uid)],
-      animation: .default
-    )
-  }
+  @State private var showingAddProperty = false
+  @State private var showingCompare = false
+  @State private var selectedProperties: Set<Property> = []
   
   var body: some View {
     NavigationStack {
       List {
-        ForEach(filteredAndSortedListings, id: \.id) { listing in
-          NavigationLink(destination: PropertyDetailView(property: listing)) {
+        ForEach(filteredAndSortedListings, id: \.id) { property in
+          NavigationLink(destination: PropertyDetailView(property: property)) {
             PropertyListRowView(
-              listing: listing,
-              isSelected: selectedListings.contains(listing),
+              property: property,
+              isSelected: selectedProperties.contains(property),
               onSelectionChanged: { isSelected in
                 if isSelected {
-                  selectedListings.insert(listing)
+                  selectedProperties.insert(property)
                 } else {
-                  selectedListings.remove(listing)
+                  selectedProperties.remove(property)
                 }
               }
             )
           }
           .swipeActions(edge: .trailing) {
             Button("Delete", role: .destructive) {
-              deleteProperty(listing)
+              deleteProperty(property)
             }
           }
         }
@@ -52,9 +45,9 @@ struct PropertyListView: View {
       .toolbar {
         ToolbarItemGroup(placement: .principal) {
           
-          if selectedListings.count >= 2 {
-            Button("Compare (\(selectedListings.count))") {
-              showingCompareView = true
+          if selectedProperties.count >= 2 {
+            Button("Compare (\(selectedProperties.count))") {
+              showingCompare = true
             }
             .font(.caption)
             .foregroundColor(.blue)
@@ -78,25 +71,25 @@ struct PropertyListView: View {
           .primaryAction
 #endif
         }()) {
-          if !selectedListings.isEmpty {
+          if !selectedProperties.isEmpty {
             Button("Clear") {
-              selectedListings.removeAll()
+              selectedProperties.removeAll()
             }
             .foregroundColor(.secondary)
           }
           
           Button {
-            showingAddListing = true
+            showingAddProperty = true
           } label: {
             Image(systemName: "plus")
           }
         }
       }
-      .sheet(isPresented: $showingAddListing) {
+      .sheet(isPresented: $showingAddProperty) {
         AddPropertyView()
       }
-      .sheet(isPresented: $showingCompareView) {
-        ComparePropertiesView(listings: Array(selectedListings))
+      .sheet(isPresented: $showingCompare) {
+        ComparePropertiesView(properties: Array(selectedProperties))
       }
     }
   }

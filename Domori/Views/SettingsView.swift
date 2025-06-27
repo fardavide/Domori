@@ -5,34 +5,14 @@ import SwiftUI
 struct SettingsView: View {
   @Environment(\.firestore) private var firestore
   @EnvironmentObject private var authService: AuthService
+  
+  @Environment(WorkspaceQuery.self) private var workspaceQuery
+  private var workspace: Workspace? { workspaceQuery.current }
+  
+  @Environment(WorkspaceJoinRequestQuery.self) private var joinRequestQuery
+  private var joinRequests: [WorkspaceJoinRequest] { joinRequestQuery.all }
+  
   @State private var showingShareSheet = false
-  
-  @FirestoreQuery private var allWorkspaces: [Workspace]
-  private var workspace: Workspace? {
-    allWorkspaces.first
-  }
-  
-  @FirestoreQuery(
-    collectionPath: FirestoreCollection.workspaceJoinRequests.rawValue,
-    animation: .default
-  )
-  private var allJoinRequests: [WorkspaceJoinRequest]
-  private var joinRequests: [WorkspaceJoinRequest] {
-    allJoinRequests.filter { $0.workspaceId == workspace?.id }
-  }
-  
-  init() {
-    let uid = Auth.auth().currentUser?.uid ?? ""
-    _allWorkspaces = FirestoreQuery(
-      collectionPath: FirestoreCollection.workspaces.rawValue,
-      predicates: [.whereField("userIds", arrayContains: uid)],
-      animation: .default
-    )
-    _allJoinRequests = FirestoreQuery(
-      collectionPath: FirestoreCollection.workspaceJoinRequests.rawValue,
-      animation: .default
-    )
-  }
   
   var currentUserSection: some View {
     Section("Current user") {

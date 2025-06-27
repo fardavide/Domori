@@ -18,6 +18,11 @@ struct DomoriApp: App {
         .environment(\.firestore, Firestore.firestore())
         .environmentObject(authService)
         .environmentObject(urlHandler)
+        .environment(delegate.propertyQuery)
+        .environment(delegate.tagQuery)
+        .environment(delegate.userQuery)
+        .environment(delegate.workspaceJoinRequestQuery)
+        .environment(delegate.workspaceQuery)
         .onOpenURL { url in
           urlHandler.handleUrl(url)
         }
@@ -31,8 +36,6 @@ struct DomoriApp: App {
 #endif
   }
 }
-
-// MARK: - URL Handler
 
 class UrlHandler: ObservableObject {
   private let firestore = Firestore.firestore()
@@ -91,6 +94,22 @@ class UrlHandler: ObservableObject {
 }
 
 private final class AppDelegate: NSObject, UIApplicationDelegate {
+  
+  private var _propertyQuery: PropertyQuery?
+  var propertyQuery: PropertyQuery { _propertyQuery! }
+  
+  private var _tagQuery: TagQuery?
+  var tagQuery: TagQuery { _tagQuery! }
+  
+  private var _userQuery: UserQuery?
+  var userQuery: UserQuery { _userQuery! }
+  
+  private var _workspaceJoinRequestQuery: WorkspaceJoinRequestQuery?
+  var workspaceJoinRequestQuery: WorkspaceJoinRequestQuery { _workspaceJoinRequestQuery! }
+  
+  private var _workspaceQuery: WorkspaceQuery?
+  var workspaceQuery: WorkspaceQuery { _workspaceQuery! }
+  
   func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
@@ -99,6 +118,11 @@ private final class AppDelegate: NSObject, UIApplicationDelegate {
     if !DomoriApp.isTest && !DomoriApp.isUiTest {
       FirebaseApp.configure()
     }
+    _userQuery = UserQuery()
+    _propertyQuery = PropertyQuery(userQuery: userQuery)
+    _tagQuery = TagQuery(userQuery: userQuery)
+    _workspaceQuery = WorkspaceQuery(userQuery: userQuery)
+    _workspaceJoinRequestQuery = WorkspaceJoinRequestQuery(workspaceQuery: workspaceQuery)
     return true
   }
 }

@@ -5,7 +5,8 @@ import FirebaseFirestore
 struct AddTagView: View {
   @Environment(\.dismiss) private var dismiss
   @Environment(\.firestore) private var firestore
-  @FirestoreQuery private var allTags: [PropertyTag]
+  @Environment(TagQuery.self) private var tagQuery
+  private var allTags: [PropertyTag] { tagQuery.all }
   
   let property: Property
   
@@ -14,13 +15,7 @@ struct AddTagView: View {
   @State private var selectedRating: PropertyRating = .good
   
   init(property: Property) {
-    self.property = property
-    let uid = Auth.auth().currentUser?.uid ?? ""
-    _allTags = FirestoreQuery(
-      collectionPath: FirestoreCollection.tags.rawValue,
-      predicates: [.whereField("userIds", arrayContains: uid)],
-      animation: .default
-    )
+    self.property = property    
   }
   
   var body: some View {
