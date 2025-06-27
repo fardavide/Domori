@@ -2,6 +2,12 @@ import Foundation
 @preconcurrency import FirebaseFirestore
 
 final class PropertyImportService {
+  private let propertyQuery: PropertyQuery
+  
+  init(propertyQuery: PropertyQuery) {
+    self.propertyQuery = propertyQuery
+  }
+  
   /// Parses and validates the JSON payload, returning a PropertyImportData object or throwing a descriptive error.
   func parseAndValidate(_ jsonString: String) throws -> PropertyImportData {
     guard let jsonData = jsonString.data(using: .utf8) else {
@@ -30,10 +36,7 @@ final class PropertyImportService {
   }
   
   /// Saves the property to Firestore using the provided instance
-  func savePropertyToFirestore(
-    _ importData: PropertyImportData,
-    firestore: Firestore
-  ) async throws -> DocumentReference {
+  func saveProperty(_ importData: PropertyImportData) async throws -> DocumentReference {
     let property = Property(
       title: importData.title,
       location: importData.location,
@@ -46,6 +49,6 @@ final class PropertyImportService {
       type: importData.type,
       rating: .none // Default rating for imported properties
     )
-    return try await firestore.setProperty(property)
+    return try await propertyQuery.set(property)
   }
 }

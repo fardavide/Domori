@@ -4,7 +4,7 @@ import FirebaseFirestore
 
 struct AddTagView: View {
   @Environment(\.dismiss) private var dismiss
-  @Environment(\.firestore) private var firestore
+  @Environment(PropertyQuery.self) private var propertyQuery
   @Environment(TagQuery.self) private var tagQuery
   private var allTags: [PropertyTag] { tagQuery.all }
   
@@ -144,9 +144,9 @@ struct AddTagView: View {
     var updatedProperty = property
     Task {
       do {
-        let newTagRef = try await firestore.setTag(newTag)
+        let newTagRef = try await tagQuery.set(newTag)
         updatedProperty.tagIds.append(newTagRef.documentID)
-        _ = try await firestore.setProperty(updatedProperty)
+        _ = try await propertyQuery.set(updatedProperty)
       } catch {
         print("Error creating tag: \(error)")
       }
@@ -162,7 +162,7 @@ struct AddTagView: View {
     updatedProperty.tagIds.append(tag.id!)
     Task {
       do {
-        _ = try await firestore.setProperty(updatedProperty)
+        _ = try await propertyQuery.set(updatedProperty)
       } catch {
         print("Error adding tag: \(error)")
       }

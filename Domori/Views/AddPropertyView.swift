@@ -2,8 +2,8 @@ import SwiftUI
 import FirebaseCore
 
 struct AddPropertyView: View {
-  @Environment(\.firestore) private var firestore
   @Environment(\.dismiss) private var dismiss
+  @Environment(PropertyQuery.self) private var propertyQuery
   
   // Edit mode
   var listing: Property?
@@ -276,7 +276,7 @@ struct AddPropertyView: View {
       
       Task {
         do {
-          _ = try await firestore.setProperty(property)
+          _ = try await propertyQuery.set(property)
         } catch {
           print("Error updating property: \(error)")
         }
@@ -298,7 +298,7 @@ struct AddPropertyView: View {
       
       Task {
         do {
-          _ = try await firestore.setProperty(newProperty)
+          _ = try await propertyQuery.set(newProperty)
         } catch {
           print("Error creating property: \(error)")
         }

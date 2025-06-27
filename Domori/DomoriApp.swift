@@ -15,7 +15,6 @@ struct DomoriApp: App {
   var body: some Scene {
     WindowGroup {
       ContentView()
-        .environment(\.firestore, Firestore.firestore())
         .environmentObject(authService)
         .environmentObject(urlHandler)
         .environment(delegate.propertyQuery)
@@ -24,7 +23,7 @@ struct DomoriApp: App {
         .environment(delegate.workspaceJoinRequestQuery)
         .environment(delegate.workspaceQuery)
         .onOpenURL { url in
-          urlHandler.handleUrl(url)
+          urlHandler.handleUrl(url, workspaceJoinRequestQuery: delegate.workspaceJoinRequestQuery)
         }
     }
     
@@ -44,12 +43,15 @@ class UrlHandler: ObservableObject {
   @Published var importData: PropertyImportData?
   @Published var shouldShowImportView = false
   
-  func handleUrl(_ url: URL) {
+  func handleUrl(
+    _ url: URL,
+    workspaceJoinRequestQuery: WorkspaceJoinRequestQuery
+  ) {
     guard url.scheme == "domori" else { return }
     
     switch url.host {
     case "import-property": handleImportPropertyUrl(url)
-    case "join-workspace": handleJoinWorkspaceUrl(url)
+    case "join-workspace": handleJoinWorkspaceUrl(url, workspaceJoinRequestQuery: workspaceJoinRequestQuery)
     default:
       print("Unsupported URL host: \(url.host ?? "(unknown)")")
     }
@@ -73,7 +75,10 @@ class UrlHandler: ObservableObject {
     }
   }
   
-  private func handleJoinWorkspaceUrl(_ url: URL) {
+  private func handleJoinWorkspaceUrl(
+    _ url: URL,
+    workspaceJoinRequestQuery: WorkspaceJoinRequestQuery
+  ) {
     guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
           let workspaceId = components.queryItems?.first(where: { $0.name == "id" })?.value else {
       print("Invalid join workspace URL format")
@@ -82,10 +87,7 @@ class UrlHandler: ObservableObject {
     
     Task {
       do {
-        try await firestore.createWorkspaceJoinRequest(
-          fromUserId: auth.currentUser!.uid,
-          forWorkspaceId: workspaceId
-        )
+        try await workspaceJoinRequestQuery.create(forWorkspaceId: workspaceId)
       } catch {
         print("Failed to join workspace: \(error)")
       }
@@ -119,10 +121,19 @@ private final class AppDelegate: NSObject, UIApplicationDelegate {
       FirebaseApp.configure()
     }
     _userQuery = UserQuery()
-    _propertyQuery = PropertyQuery(userQuery: userQuery)
-    _tagQuery = TagQuery(userQuery: userQuery)
     _workspaceQuery = WorkspaceQuery(userQuery: userQuery)
-    _workspaceJoinRequestQuery = WorkspaceJoinRequestQuery(workspaceQuery: workspaceQuery)
+    _propertyQuery = PropertyQuery(
+      userQuery: userQuery,
+      workspaceQuery: workspaceQuery
+    )
+    _tagQuery = TagQuery(
+      userQuery: userQuery,
+      workspaceQuery: workspaceQuery
+    )
+    _workspaceJoinRequestQuery = WorkspaceJoinRequestQuery(
+      userQuery: userQuery,
+      workspaceQuery: workspaceQuery
+    )
     return true
   }
 }

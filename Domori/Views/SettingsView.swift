@@ -3,7 +3,6 @@ import FirebaseFirestore
 import SwiftUI
 
 struct SettingsView: View {
-  @Environment(\.firestore) private var firestore
   @EnvironmentObject private var authService: AuthService
   
   @Environment(WorkspaceQuery.self) private var workspaceQuery
@@ -74,7 +73,7 @@ struct SettingsView: View {
           Button("Accept") {
             Task {
               do {
-                try await firestore.approveWorkspaceJoinRequest(requestId: requestId)
+                try await joinRequestQuery.approve(joinRequestId: requestId)
               } catch {
                 print("Could not approve join request: \(error)")
               }
@@ -84,12 +83,6 @@ struct SettingsView: View {
         Button("Invite users") {
           showingShareSheet = true
         }
-      }
-    }
-    .onAppear {
-      Task {
-        // Create workspace if none
-        try await firestore.getCurrentWorkspace()
       }
     }
   }

@@ -3,9 +3,7 @@ import SwiftUI
 import FirebaseAuth
 import FirebaseFirestore
 
-struct PropertyListView: View {
-  @Environment(\.firestore) private var firestore
-  
+struct PropertyListView: View {  
   @Environment(PropertyQuery.self) private var propertyQuery
   private var allProperties: [Property] { propertyQuery.all }
   
@@ -127,7 +125,7 @@ struct PropertyListView: View {
   private func deleteProperty(_ property: Property) {
     guard let id = property.id else { return }
     Task {
-      _ = try await firestore.deleteProperty(withId: id)
+      _ = try await propertyQuery.delete(withId: id)
     }
   }
 }

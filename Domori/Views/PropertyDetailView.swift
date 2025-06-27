@@ -3,7 +3,6 @@ import FirebaseAuth
 import FirebaseFirestore
 
 struct PropertyDetailView: View {
-  @Environment(\.firestore) private var firestore
   @Environment(\.openURL) private var openURL
   
   @Environment(PropertyQuery.self) private var propertyQuery
@@ -326,7 +325,7 @@ struct PropertyDetailView: View {
     
     Task {
       do {
-        _ = try await firestore.setProperty(updatedProperty)
+        _ = try await propertyQuery.set(updatedProperty)
         property = updatedProperty
       } catch {
         print("Error updating rating: \(error)")
@@ -342,7 +341,7 @@ struct PropertyDetailView: View {
     
     Task {
       do {
-        _ = try await firestore.setProperty(updatedProperty)
+        _ = try await propertyQuery.set(updatedProperty)
         property = updatedProperty
       } catch {
         print("Error removing tag: \(error)")

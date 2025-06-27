@@ -15,8 +15,13 @@ struct ImportPropertyIntent: AppIntent {
   static let openAppWhenRun: Bool = true
 
   func perform() async throws -> some IntentResult & OpensIntent & ReturnsValue<String> {
-    let firestore = Firestore.firestore()
-    let importService = PropertyImportService()
+    let userQuery = UserQuery()
+    let importService = PropertyImportService(
+      propertyQuery: PropertyQuery(
+        userQuery: userQuery,
+        workspaceQuery: WorkspaceQuery(userQuery: userQuery)
+      )
+    )
     do {
       let propertyData = try importService.parseAndValidate(jsonPayload)
       if openEditor {
@@ -25,7 +30,7 @@ struct ImportPropertyIntent: AppIntent {
         await UIApplication.shared.open(url)
         return .result(value: "Opening Domori with imported property data")
       } else {
-        _ = try await importService.savePropertyToFirestore(propertyData, firestore: firestore)
+        _ = try await importService.saveProperty(propertyData)
         return .result(value: "Property imported successfully")
       }
     } catch {

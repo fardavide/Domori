@@ -3,8 +3,9 @@ import FirebaseFirestore
 
 struct NewNoteView: View {
   let property: Property
+  
   @Environment(\.dismiss) private var dismiss
-  @Environment(\.firestore) private var firestore
+  @Environment(PropertyQuery.self) private var propertyQuery
   
   @State private var showingCreateNote = false
   @State private var newNoteText = ""
@@ -45,7 +46,7 @@ struct NewNoteView: View {
       updatedProperty.notes?.append(note)
     }
     Task {
-      if let _ = try? await firestore.setProperty(updatedProperty) {
+      if let _ = try? await propertyQuery.set(updatedProperty) {
         dismiss()
       } else {
         print("Error adding note")

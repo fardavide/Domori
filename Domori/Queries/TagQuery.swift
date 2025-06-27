@@ -5,12 +5,18 @@ import SwiftUI
 
 @Observable final class TagQuery {
   private let firestore = Firestore.firestore()
+  private let workspaceQuery: WorkspaceQuery
   private var cancellable: AnyCancellable?
   private var listener: ListenerRegistration?
   
   private(set) var all: [PropertyTag] = []
   
-  init(userQuery: UserQuery) {
+  init(
+    userQuery: UserQuery,
+    workspaceQuery: WorkspaceQuery
+  ) {
+    self.workspaceQuery = workspaceQuery
+    
     cancellable = userQuery.currentIdOrEmptySubject
       .sink { userId in
         self.listener?.remove()
@@ -29,5 +35,17 @@ import SwiftUI
   deinit {
     cancellable?.cancel()
     listener?.remove()
+  }
+  
+  func set(_ tag: PropertyTag) async throws -> DocumentReference {
+    var tag = tag
+    tag.userIds = workspaceQuery.required.userIds
+    if let id = tag.id {
+      let ref = firestore.collection(.tags).document(id)
+      try ref.setData(from: tag, merge: true)
+      return ref
+    } else {
+      return try firestore.collection(.tags).addDocument(from: tag)
+    }
   }
 }
