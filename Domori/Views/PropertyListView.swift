@@ -117,7 +117,7 @@ struct PropertyListView: View {
       case .title:
         return first.title < second.title
       case .rating:
-        return first.rating.rawValue > second.rating.rawValue
+        return first.rating > second.rating
       }
     }
   }
