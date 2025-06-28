@@ -8,15 +8,14 @@ import AppIntents
 struct DomoriApp: App {
   @UIApplicationDelegateAdaptor(AppDelegate.self) private var delegate
   @StateObject private var urlHandler = UrlHandler()
-  @StateObject private var authService = AuthService()
   static let isTest = ProcessInfo.processInfo.arguments.contains("test")
   static let isUiTest = ProcessInfo.processInfo.arguments.contains("uitest")
   
   var body: some Scene {
     WindowGroup {
       ContentView()
-        .environmentObject(authService)
         .environmentObject(urlHandler)
+        .environment(delegate.authService)
         .environment(delegate.propertyQuery)
         .environment(delegate.tagQuery)
         .environment(delegate.userQuery)
@@ -97,6 +96,9 @@ class UrlHandler: ObservableObject {
 
 private final class AppDelegate: NSObject, UIApplicationDelegate {
   
+  private var _authService: AuthService!
+  var authService: AuthService { _authService! }
+  
   private var _propertyQuery: PropertyQuery?
   var propertyQuery: PropertyQuery { _propertyQuery! }
   
@@ -120,7 +122,8 @@ private final class AppDelegate: NSObject, UIApplicationDelegate {
     if !DomoriApp.isTest && !DomoriApp.isUiTest {
       FirebaseApp.configure()
     }
-    _userQuery = UserQuery()
+    _authService = AuthService()
+    _userQuery = UserQuery(authService: authService)
     _workspaceQuery = WorkspaceQuery(userQuery: userQuery)
     _propertyQuery = PropertyQuery(
       userQuery: userQuery,

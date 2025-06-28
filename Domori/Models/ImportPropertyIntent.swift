@@ -15,7 +15,7 @@ struct ImportPropertyIntent: AppIntent {
   static let openAppWhenRun: Bool = true
 
   func perform() async throws -> some IntentResult & OpensIntent & ReturnsValue<String> {
-    let userQuery = UserQuery()
+    let userQuery = UserQuery(authService: .init())
     let importService = PropertyImportService(
       propertyQuery: PropertyQuery(
         userQuery: userQuery,

@@ -3,26 +3,26 @@ import FirebaseAuth
 import SwiftUI
 
 @Observable final class UserQuery {
-  private var auth = Auth.auth()
-  private var listener: AuthStateDidChangeListenerHandle?
-  
-  private(set) var current: User?
+  private(set) var current: UserInfo?
   private(set) var currentIdOrEmpty = ""
-  
-  let currentSubject = CurrentValueSubject<User?, Never>(nil)
+
+  let currentSubject = CurrentValueSubject<UserInfo?, Never>(nil)
   let currentIdOrEmptySubject = CurrentValueSubject<String, Never>("")
   
-  init() {
-    listener = auth.addStateDidChangeListener { auth, user in
-      self.currentSubject.send(user)
-      self.current = user
-      let idOrEmpty = user?.uid ?? ""
-      self.currentIdOrEmptySubject.send(idOrEmpty)
-      self.currentIdOrEmpty = idOrEmpty
-    }
+  private var cancellable: AnyCancellable?
+  
+  init(authService: AuthService) {
+    cancellable = authService.currentUserSubject
+      .sink { user in
+        let userId = user?.uid ?? ""
+        self.currentSubject.send(user)
+        self.current = user
+        self.currentIdOrEmptySubject.send(userId)
+        self.currentIdOrEmpty = userId
+      }
   }
   
   deinit {
-    auth.removeStateDidChangeListener(listener!)
+    cancellable?.cancel()
   }
 }

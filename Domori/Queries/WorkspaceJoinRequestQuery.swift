@@ -4,14 +4,14 @@ import FirebaseFirestore
 import SwiftUI
 
 @Observable final class WorkspaceJoinRequestQuery {
+  private(set) var all: [WorkspaceJoinRequest] = []
+
   private let firestore = Firestore.firestore()
   private var userQuery: UserQuery
   private var workspaceQuery: WorkspaceQuery
   private var cancellable: AnyCancellable?
   private var listener: ListenerRegistration?
-  
-  private(set) var all: [WorkspaceJoinRequest] = []
-  
+    
   init(
     userQuery: UserQuery,
     workspaceQuery: WorkspaceQuery

@@ -3,7 +3,7 @@ import FirebaseFirestore
 import SwiftUI
 
 struct SettingsView: View {
-  @EnvironmentObject private var authService: AuthService
+  @Environment(AuthService.self) private var authService
   
   @Environment(WorkspaceQuery.self) private var workspaceQuery
   private var workspace: Workspace? { workspaceQuery.current }
@@ -15,30 +15,25 @@ struct SettingsView: View {
   
   var currentUserSection: some View {
     Section("Current user") {
-      if authService.isSignedIn {
-        HStack {
-          Text("Signed in as")
-          Spacer()
-          Text(authService.currentUser?.email ?? "Apple ID")
-            .foregroundColor(.secondary)
-        }
-        
+      if let user = authService.currentUser {
+        userCard(for: user)
         Button("Sign Out") {
           authService.signOut()
         }
         .foregroundColor(.red)
       } else {
-        Button(action: {
+        Button("Sign in with Apple", systemImage: "applelogo") {
           Task {
             await authService.signInWithApple()
           }
-        }) {
-          HStack {
-            Image(systemName: "applelogo")
-            Text("Sign in with Apple")
-          }
         }
         .disabled(authService.isLoading)
+        if FeatureFlags.shared.isPswSignInEnabled {
+          Button("Sign in with email", systemImage: "at") {
+            // TODO
+          }
+          .disabled(authService.isLoading)
+        }
         
         if authService.isLoading {
           HStack {
@@ -54,6 +49,21 @@ struct SettingsView: View {
         Text(errorMessage)
           .foregroundColor(.red)
           .font(.caption)
+      }
+    }
+  }
+  
+  private func userCard(for user: UserInfo) -> some View {
+    VStack(alignment: .trailing) {
+      HStack {
+        Text("Signed in as - \(user.providerID)")
+        Spacer()
+        Text(user.displayName ?? user.email ?? "Unknown user")
+          .foregroundColor(.secondary)
+      }
+      if let email = user.email, user.displayName != nil {
+        Text(email)
+          .foregroundColor(.secondary)
       }
     }
   }
@@ -110,7 +120,9 @@ struct SettingsView: View {
     NavigationView {
       Form {
         currentUserSection
-        workspaceSection
+        if workspaceQuery.current != nil {
+          workspaceSection
+        }
         appInformationSection
       }
       .navigationTitle("Settings")
@@ -134,8 +146,23 @@ struct ShareSheet: UIViewControllerRepresentable {
   func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
-#Preview {
+#Preview("Apple user") {
+  let authService = AuthService.preview(currentUser: User.sampleApple)
   SettingsView()
-    .environmentObject(AuthService())
-    .previewQueries()
+    .environment(authService)
+    .previewQueries(authService: authService)
+}
+
+#Preview("Email user") {
+  let authService = AuthService.preview(currentUser: User.sampleEmail)
+  SettingsView()
+    .environment(authService)
+    .previewQueries(authService: authService)
+}
+
+#Preview("No user") {
+  let authService = AuthService.preview(currentUser: nil)
+  SettingsView()
+    .environment(authService)
+    .previewQueries(authService: authService)
 }

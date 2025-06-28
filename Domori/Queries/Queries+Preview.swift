@@ -2,8 +2,12 @@ import SwiftUI
 
 extension View {
   
-  func previewQueries() -> some View {
-    let userQuery = UserQuery()
+  func previewQueries(
+    authService: AuthService = .init()
+  ) -> some View {
+    let userQuery = UserQuery(
+      authService: authService
+    )
     let workspaceQuery = WorkspaceQuery(
       userQuery: userQuery
     )

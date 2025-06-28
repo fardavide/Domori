@@ -4,12 +4,12 @@ import FirebaseFirestore
 import SwiftUI
 
 @Observable final class PropertyQuery {
+  private(set) var all: [Property] = []
+  
   private let firestore = Firestore.firestore()
   private let workspaceQuery: WorkspaceQuery
   private var cancellable: AnyCancellable?
   private var listener: ListenerRegistration?
-  
-  private(set) var all: [Property] = []
   
   init(
     userQuery: UserQuery,

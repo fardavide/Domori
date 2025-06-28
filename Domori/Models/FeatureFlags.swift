@@ -1,8 +1,8 @@
 final class FeatureFlags {
   static let shared = FeatureFlags()
   
-  var isShareEnabled: Bool {
-    isDebugBuild
+  var isPswSignInEnabled: Bool {
+    false
   }
   
   private var isDebugBuild: Bool {

@@ -4,12 +4,12 @@ import FirebaseFirestore
 import SwiftUI
 
 @Observable final class TagQuery {
+  private(set) var all: [PropertyTag] = []
+  
   private let firestore = Firestore.firestore()
   private let workspaceQuery: WorkspaceQuery
   private var cancellable: AnyCancellable?
   private var listener: ListenerRegistration?
-  
-  private(set) var all: [PropertyTag] = []
   
   init(
     userQuery: UserQuery,

@@ -4,14 +4,14 @@ import FirebaseFirestore
 import SwiftUI
 
 @Observable final class WorkspaceQuery {
-  private let firestore = Firestore.firestore()
-  private var cancellable: AnyCancellable?
-  private var listener: ListenerRegistration?
-  
   private(set) var current: Workspace?
   private(set) var required: Workspace!
   
   let currentSubject = CurrentValueSubject<Workspace?, Never>(nil)
+  
+  private let firestore = Firestore.firestore()
+  private var cancellable: AnyCancellable?
+  private var listener: ListenerRegistration?
   
   init(userQuery: UserQuery) {
     cancellable = userQuery.currentIdOrEmptySubject

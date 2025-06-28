@@ -1,14 +1,16 @@
-import Foundation
-import FirebaseAuth
 import AuthenticationServices
+import Combine
 import CryptoKit
+import FirebaseAuth
+import Foundation
 
-@MainActor
-class AuthService: ObservableObject {
-  @Published var isSignedIn = false
-  @Published var currentUser: User?
-  @Published var isLoading = false
-  @Published var errorMessage: String?
+@Observable
+class AuthService {
+  private(set) var currentUser: UserInfo?
+  private(set) var isLoading = false
+  private(set) var errorMessage: String?
+  
+  let currentUserSubject = CurrentValueSubject<UserInfo?, Never>(nil)
   
   private var listener: NSObjectProtocol?
   private var currentNonce: String?
@@ -16,20 +18,44 @@ class AuthService: ObservableObject {
   init() {
     setupListener()
   }
+  
+  static func preview(
+    currentUser: UserInfo? = nil,
+    isLoading: Bool = false,
+    errorMessage: String? = nil
+  ) -> AuthService {
+    .init(
+      currentUser: currentUser,
+      isLoading: isLoading,
+      errorMessage: errorMessage
+    )
+  }
+  
+  private init(
+    currentUser: UserInfo?,
+    isLoading: Bool,
+    errorMessage: String?
+  ) {
+    self.currentUserSubject.send(currentUser)
+    self.currentUser = currentUser
+    self.isLoading = isLoading
+    self.errorMessage = errorMessage
+  }
 
   private func setupListener() {
     listener = Auth.auth().addStateDidChangeListener { [weak self] _, user in
-      DispatchQueue.main.async {
-        self?.isSignedIn = user != nil
-        self?.currentUser = user
-      }
+      self?.currentUserSubject.send(user)
+      self?.currentUser = user
     }
   }
   
   deinit {
-    Auth.auth().removeStateDidChangeListener(listener!)
+    if let listener = listener {
+      Auth.auth().removeStateDidChangeListener(listener)
+    }
   }
       
+  @MainActor
   func signInWithApple() async {
     isLoading = true
     errorMessage = nil
@@ -69,15 +95,13 @@ class AuthService: ObservableObject {
         throw AuthError.invalidToken
       }
       
-      let credential = OAuthProvider.credential(
-        withProviderID: "apple.com",
-        idToken: idTokenString,
-        rawNonce: nonce
+      let credential = OAuthProvider.appleCredential(
+        withIDToken: idTokenString,
+        rawNonce: nonce,
+        fullName: appleIDCredential.fullName
       )
-      
       let authResult = try await Auth.auth().signIn(with: credential)
       currentUser = authResult.user
-      isSignedIn = true
       
     } catch {
       errorMessage = error.localizedDescription
@@ -89,7 +113,6 @@ class AuthService: ObservableObject {
   func signOut() {
     do {
       try Auth.auth().signOut()
-      isSignedIn = false
       currentUser = nil
     } catch {
       errorMessage = error.localizedDescription
