@@ -161,10 +161,10 @@ struct PropertyDetailView: View {
   
   var notesSection: some View {
     Section {
-      let notes = property.notes ?? []
+      let notes = property.notes?.sorted(by: { $0.date > $1.date }) ?? []
       if !notes.isEmpty {
         ForEach(notes) { note in
-          VStack {
+          VStack(alignment: .leading) {
             Text(note.text)
             Text("\(note.date.formatted(date: .abbreviated, time: .shortened))")
               .font(.caption)

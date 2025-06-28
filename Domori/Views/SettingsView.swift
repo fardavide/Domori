@@ -137,4 +137,5 @@ struct ShareSheet: UIViewControllerRepresentable {
 #Preview {
   SettingsView()
     .environmentObject(AuthService())
+    .previewQueries()
 }
