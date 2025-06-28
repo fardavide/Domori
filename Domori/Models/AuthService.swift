@@ -15,8 +15,14 @@ class AuthService {
   private var listener: NSObjectProtocol?
   private var currentNonce: String?
   
+  private var fullUser: User?
+  
   init() {
-    setupListener()
+    listener = Auth.auth().addStateDidChangeListener { _, user in
+      self.currentUserSubject.send(user)
+      self.currentUser = user
+      self.fullUser = user
+    }
   }
   
   static func preview(
@@ -40,13 +46,6 @@ class AuthService {
     self.currentUser = currentUser
     self.isLoading = isLoading
     self.errorMessage = errorMessage
-  }
-
-  private func setupListener() {
-    listener = Auth.auth().addStateDidChangeListener { [weak self] _, user in
-      self?.currentUserSubject.send(user)
-      self?.currentUser = user
-    }
   }
   
   deinit {
@@ -163,8 +162,6 @@ class AuthService {
     return hashString
   }
 }
-
-// MARK: - Error Types
 
 enum AuthError: LocalizedError {
   case invalidCredential

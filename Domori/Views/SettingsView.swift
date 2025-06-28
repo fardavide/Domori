@@ -61,6 +61,13 @@ struct SettingsView: View {
         Text(user.displayName ?? user.email ?? "Unknown user")
           .foregroundColor(.secondary)
       }
+      .contextMenu {
+        Button("Refresh info") {
+          Task {
+            await authService.signInWithApple()
+          }
+        }
+      }
       if let email = user.email, user.displayName != nil {
         Text(email)
           .foregroundColor(.secondary)
