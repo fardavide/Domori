@@ -25,7 +25,7 @@ class AuthService {
     }
   }
   
-  static func preview(
+  static func fake(
     currentUser: UserInfo? = nil,
     isLoading: Bool = false,
     errorMessage: String? = nil
@@ -162,6 +162,7 @@ class AuthService {
     return hashString
   }
 }
+
 
 enum AuthError: LocalizedError {
   case invalidCredential

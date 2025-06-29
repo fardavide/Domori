@@ -1,15 +1,16 @@
 import Testing
 import AppIntents
+import FirebaseAuth
 import FirebaseFirestore
 import Foundation
 @testable import Domori
 
 @MainActor
 final class PropertyImportServiceTests {
-  let importService = PropertyImportService()
   
   @Test("Parse and validate valid property JSON")
   func testParseAndValidateValidJson() throws {
+    let scenario = Scenario()
     let jsonPayload = """
         {
           "title": "Test Property",
@@ -23,7 +24,7 @@ final class PropertyImportServiceTests {
           "type": "house"
         }
         """
-    let data = try importService.parseAndValidate(jsonPayload)
+    let data = try scenario.sut.parseAndValidate(jsonPayload)
     #expect(data.title == "Test Property")
     #expect(data.location == "123 Test Street")
     #expect(data.link == "https://example.com/test")
@@ -37,6 +38,7 @@ final class PropertyImportServiceTests {
   
   @Test("Parse property JSON with different case variations")
   func testParsePropertyJsonWithCaseVariations() throws {
+    let scenario = Scenario()
     // Test uppercase
     let jsonPayload1 = """
         {
@@ -51,7 +53,7 @@ final class PropertyImportServiceTests {
           "type": "APARTMENT"
         }
         """
-    let data1 = try importService.parseAndValidate(jsonPayload1)
+    let data1 = try scenario.sut.parseAndValidate(jsonPayload1)
     #expect(data1.type == .apartment)
     
     // Test mixed case
@@ -68,7 +70,7 @@ final class PropertyImportServiceTests {
           "type": "Condo"
         }
         """
-    let data2 = try importService.parseAndValidate(jsonPayload2)
+    let data2 = try scenario.sut.parseAndValidate(jsonPayload2)
     #expect(data2.type == .condo)
     
     // Test lowercase
@@ -85,15 +87,16 @@ final class PropertyImportServiceTests {
           "type": "townhouse"
         }
         """
-    let data3 = try importService.parseAndValidate(jsonPayload3)
+    let data3 = try scenario.sut.parseAndValidate(jsonPayload3)
     #expect(data3.type == .townhouse)
   }
   
   @Test("Parse invalid JSON")
   func testParseInvalidJson() {
+    let scenario = Scenario()
     let invalidJson = "{ invalid json }"
     do {
-      _ = try importService.parseAndValidate(invalidJson)
+      _ = try scenario.sut.parseAndValidate(invalidJson)
       #expect(Bool(false), "Should have thrown an error")
     } catch {
       #expect(error.localizedDescription.contains("JSON decoding failed") || error.localizedDescription.contains("parsing failed"))
@@ -102,12 +105,14 @@ final class PropertyImportServiceTests {
   
   @Test("Allows missing fields")
   func allowsMissingFields() throws {
+    let scenario = Scenario()
     let emptyJson = "{}"
-    _ = try importService.parseAndValidate(emptyJson)
+    _ = try scenario.sut.parseAndValidate(emptyJson)
   }
   
   @Test("Encode and decode property data for URL")
   func testEncodeDecodePropertyDataForUrl() throws {
+    let scenario = Scenario()
     let testData = PropertyImportData(
       title: "Test Property",
       location: "123 Test Street",
@@ -119,7 +124,7 @@ final class PropertyImportServiceTests {
       bathrooms: 1.5,
       type: .house
     )
-    let encoded = try importService.encodePropertyDataForUrl(testData)
+    let encoded = try scenario.sut.encodePropertyDataForUrl(testData)
     #expect(!encoded.isEmpty)
     let decoded = try decodePropertyDataFromUrl(encoded)
     #expect(decoded.title == testData.title)
@@ -135,7 +140,7 @@ final class PropertyImportServiceTests {
   
   @Test("Save property to Firestore")
   func testSavePropertyToFirestore() async throws {
-    let firestore = Firestore.firestore()
+    let scenario = Scenario()
     let importData = PropertyImportData(
       title: "Firestore Test",
       location: "Test Location",
@@ -147,8 +152,8 @@ final class PropertyImportServiceTests {
       bathrooms: 1.0,
       type: .apartment
     )
-    let ref = try await importService.savePropertyToFirestore(importData, firestore: firestore)
-    let property = Property(
+    let ref = try await scenario.sut.saveProperty(importData)
+    var property = Property(
       title: "Firestore Test",
       location: "Test Location",
       link: "https://example.com/firestore",
@@ -159,9 +164,27 @@ final class PropertyImportServiceTests {
       bathrooms: 1.0,
       type: .apartment
     )
-    var savedProperty = try await ref.getDocument(as: Property.self)
-    savedProperty.id = nil 
+    let savedProperty = try await ref.getDocument(as: Property.self)
+    property.id = savedProperty.id
+    property.createdDate = savedProperty.createdDate
+    property.updatedDate = savedProperty.updatedDate
+    property.userIds = [scenario.user.uid]
     #expect(savedProperty == property)
+  }
+  
+  private struct Scenario {
+    let sut: PropertyImportService
+    let user = User.sampleEmail
+    
+    init() {
+      let userQuery = UserQuery(authService: .fake(currentUser: user))
+      sut = PropertyImportService(
+        propertyQuery: .init(
+          userQuery: userQuery,
+          workspaceQuery: .fake(workspace: .sample(forUserId: user.uid))
+        )
+      )
+    }
   }
 }
 

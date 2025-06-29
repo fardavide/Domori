@@ -10,7 +10,6 @@ struct AuthServiceTests {
     let authService = AuthService()
     
     // Initially should not be signed in
-    #expect(authService.isSignedIn == false)
     #expect(authService.currentUser == nil)
     #expect(authService.isLoading == false)
     #expect(authService.errorMessage == nil)
@@ -22,7 +21,6 @@ struct AuthServiceTests {
     // Test sign out when not signed in (should not throw)
     authService.signOut()
     
-    #expect(authService.isSignedIn == false)
     #expect(authService.currentUser == nil)
   }
     

@@ -37,6 +37,10 @@ import SwiftUI
     listener?.remove()
   }
   
+  func get(withId id: String) async throws -> Property? {
+    try await firestore.collection(.properties).document(id).getDocument(as: Property.self)
+  }
+  
   func set(_ property: Property) async throws -> DocumentReference {
     var property = property
     property.userIds = workspaceQuery.required.userIds

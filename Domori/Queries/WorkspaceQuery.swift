@@ -35,6 +35,16 @@ import SwiftUI
       }
   }
   
+  static func fake(workspace: Workspace) -> Self {
+    .init(workspace: workspace)
+  }
+  
+  private init(workspace: Workspace) {
+    self.currentSubject.value = workspace
+    self.current = workspace
+    self.required = workspace
+  }
+  
   deinit {
     cancellable?.cancel()
     listener?.remove()

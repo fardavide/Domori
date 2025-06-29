@@ -154,21 +154,21 @@ struct ShareSheet: UIViewControllerRepresentable {
 }
 
 #Preview("Apple user") {
-  let authService = AuthService.preview(currentUser: User.sampleApple)
+  let authService = AuthService.fake(currentUser: User.sampleApple)
   SettingsView()
     .environment(authService)
     .previewQueries(authService: authService)
 }
 
 #Preview("Email user") {
-  let authService = AuthService.preview(currentUser: User.sampleEmail)
+  let authService = AuthService.fake(currentUser: User.sampleEmail)
   SettingsView()
     .environment(authService)
     .previewQueries(authService: authService)
 }
 
 #Preview("No user") {
-  let authService = AuthService.preview(currentUser: nil)
+  let authService = AuthService.fake(currentUser: nil)
   SettingsView()
     .environment(authService)
     .previewQueries(authService: authService)
