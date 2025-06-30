@@ -7,7 +7,7 @@ struct PropertyListView: View {
   @Environment(PropertyQuery.self) private var propertyQuery
   private var allProperties: [Property] { propertyQuery.all }
   
-  @State private var sortOption: SortOption = .editDate
+  @AppStorage("sortOption") private var sortOption: SortOption = .editDate
   @State private var searchText = ""
   @State private var showingAddProperty = false
   @State private var showingCompare = false
